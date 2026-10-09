@@ -1,0 +1,9 @@
+# pnpm 11 在此项目使用的配置（pnpm 专属设置已从 .npmrc 迁移到这里）。
+#
+# nodeLinker: hoisted —— pnpm 默认的 isolated 布局依赖符号链接/junction，
+# 在 DSH 沙箱下 reparse point 会被呈现为普通目录，导致依赖解析失败，
+# 因此本项目固定使用扁平布局。在普通机器上该布局同样可用。
+nodeLinker: hoisted
+
+minimumReleaseAgeExclude:
+  - astro@7.3.8
