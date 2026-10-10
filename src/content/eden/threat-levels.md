@@ -4,6 +4,7 @@ category: 基础
 summary: 以新启初年人类文明力量为标尺，对异变生物 1 至 10 阶威胁的划分与说明。
 source: 变异体常态危险等级【新启初年标准】.docx
 by: 企划资料
+display: levels
 order: 2
 ---
 

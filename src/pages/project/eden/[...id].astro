@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import DetailPage from '../../../layouts/DetailPage.astro';
+import { LEVEL_BANDS, levelColor, parseThreatLevels } from '../../../lib/eden';
 
 const WikiUrl = 'https://yidianyuanguichenm.fandom.com/zh/wiki/';
 
@@ -11,9 +12,11 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, category, summary, source, by } = entry.data;
+const { title, category, summary, source, by, display } = entry.data;
 /** 本人稿件 or 企划公开资料 */
 const isMine = by === 'water2H2O';
+/** 等级阶梯排版：正文一字不动，只按结构重组 */
+const threat = display === 'levels' ? parseThreatLevels(entry.body ?? '') : null;
 
 const all = (await getCollection('eden', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order,
@@ -31,6 +34,12 @@ const meta = [
 	{ label: 'wiki', value: 'yidianyuanguichenm.fandom.com', href: WikiUrl },
 	...(source ? [{ label: '原稿', value: source }] : []),
 ];
+
+/** 把等级色写成 CSS 变量 */
+const colorVars = (n: number) => {
+	const { h, s, l } = levelColor(n);
+	return `--h:${h}; --s:${s}%; --l:${l}%`;
+};
 ---
 
 <DetailPage
@@ -42,7 +51,52 @@ const meta = [
 	backHref="/project/eden/"
 	backLabel="伊甸园"
 >
-	<Content />
+	{
+		threat ? (
+			<div class="threat">
+				{threat.preamble.length > 0 && (
+					<section class="preamble">
+						{threat.preamble.map((paragraph) => (
+							<p>{paragraph}</p>
+						))}
+					</section>
+				)}
+
+				{/* 一眼看清分档；范围数字是原文里的原话 */}
+				<div class="bands">
+					{LEVEL_BANDS.map((band) => (
+						<span class="band" style={colorVars(band.n)}>
+							<b>{band.range}</b> 阶 · {band.label}
+						</span>
+					))}
+				</div>
+
+				<ol class="ladder">
+					{threat.levels.map((level) => (
+						<li style={colorVars(level.n)}>
+							<span class="num">{level.n}</span>
+							<div class="body">
+								<h2>危险程度 {level.n}</h2>
+								<p>{level.text}</p>
+								{level.quote && <blockquote>{level.quote}</blockquote>}
+							</div>
+						</li>
+					))}
+				</ol>
+
+				{threat.notes.length > 0 && (
+					<section class="notes">
+						<h2>注</h2>
+						{threat.notes.map((paragraph) => (
+							<p>{paragraph}</p>
+						))}
+					</section>
+				)}
+			</div>
+		) : (
+			<Content />
+		)
+	}
 
 	<p class="note">
 		{
@@ -91,6 +145,110 @@ const meta = [
 	</nav>
 
 	<style>
+		/* 前言：比正文轻一点，作为引子 */
+		.threat .preamble p {
+			margin: 0 0 1.1em;
+			font-size: 0.92em;
+			line-height: 2;
+			color: rgb(var(--gray));
+		}
+
+		.threat .bands {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 1.6em;
+			margin: 1.8em 0 2.4em;
+			padding: 0.95em 1.2em;
+			border-radius: 12px;
+			background: var(--surface);
+			border: 1px solid rgb(var(--gray-light));
+		}
+		.threat .band {
+			font-size: 0.8em;
+			letter-spacing: 0.04em;
+			color: hsl(var(--h) var(--s) var(--l));
+		}
+		.threat .band b {
+			font-weight: 400;
+			font-variant-numeric: tabular-nums;
+		}
+
+		/* 等级阶梯：数字的颜色沿 1→10 由青转红，越危险越亮越烫 */
+		.threat .ladder {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+		.threat .ladder > li {
+			display: grid;
+			grid-template-columns: 3.6em 1fr;
+			gap: 1.3em;
+			padding: 1.6em 0;
+			border-top: 1px solid rgb(var(--gray-light));
+		}
+		.threat .ladder > li:last-child {
+			border-bottom: 1px solid rgb(var(--gray-light));
+		}
+		.threat .num {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			align-self: start;
+			width: 3.6em;
+			height: 3.6em;
+			border-radius: 50%;
+			font-size: 1.35em;
+			font-variant-numeric: tabular-nums;
+			color: hsl(var(--h) var(--s) var(--l));
+			background: hsl(var(--h) var(--s) 60% / 12%);
+			border: 1px solid hsl(var(--h) var(--s) 60% / 42%);
+			box-shadow: 0 0 26px hsl(var(--h) var(--s) 60% / 18%);
+		}
+		.threat .body h2 {
+			margin: 0 0 0.6em;
+			font-size: 0.8em;
+			font-weight: 400;
+			letter-spacing: 0.22em;
+			color: hsl(var(--h) var(--s) var(--l));
+		}
+		.threat .body p {
+			margin: 0;
+			line-height: 2;
+			color: rgb(var(--gray-dark));
+		}
+		/* 等级末尾那句引言：像题记 */
+		.threat .body blockquote {
+			margin: 1em 0 0;
+			padding: 0 0 0 1.1em;
+			border-left: 2px solid hsl(var(--h) var(--s) 60% / 40%);
+			font-size: 0.9em;
+			line-height: 1.95;
+			color: rgb(var(--gray));
+		}
+
+		.threat .notes {
+			margin-top: 2.6em;
+			padding: 1.3em 1.5em;
+			border-radius: 12px;
+			background: var(--surface);
+			border: 1px solid rgb(var(--gray-light));
+		}
+		.threat .notes h2 {
+			margin: 0 0 0.8em;
+			font-size: 0.8em;
+			letter-spacing: 0.22em;
+			color: var(--accent);
+		}
+		.threat .notes p {
+			margin: 0 0 1em;
+			font-size: 0.88em;
+			line-height: 1.95;
+			color: rgb(var(--gray));
+		}
+		.threat .notes p:last-child {
+			margin-bottom: 0;
+		}
+
 		.note {
 			margin: 3em 0 0;
 			padding-top: 1.4em;
@@ -139,6 +297,15 @@ const meta = [
 			color: var(--glow);
 		}
 		@media (max-width: 720px) {
+			.threat .ladder > li {
+				grid-template-columns: 2.9em 1fr;
+				gap: 0.9em;
+			}
+			.threat .num {
+				width: 2.9em;
+				height: 2.9em;
+				font-size: 1.1em;
+			}
 			.pager {
 				flex-direction: column;
 			}

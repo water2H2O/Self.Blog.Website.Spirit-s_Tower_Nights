@@ -201,6 +201,12 @@ const eden = defineCollection({
 			source: z.string().optional(),
 			/** 撰稿人；企划公开的基础设定统一写「企划资料」 */
 			by: z.string().default('water2H2O'),
+			/**
+			 * 正文的展示方式：
+			 *   prose  —— 普通排版（默认）
+			 *   levels —— 按「危险等级阶梯」排版（见 src/lib/eden.ts）
+			 */
+			display: z.enum(['prose', 'levels']).default('prose'),
 			draft: z.boolean().default(false),
 			order: z.number().default(100),
 		}),
