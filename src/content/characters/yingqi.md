@@ -1,6 +1,7 @@
 ---
 name: 应祈
 ownership: 联动
+owner: '应祈'
 race: 'human'
 aliases: ['祈']
 title: 那个“实验体”，18号

@@ -1,5 +1,6 @@
 ---
 name: 淼渺
+ownership: 原创
 race: 'elemental-spirit'
 aliases: ['水水']
 title: 莉莉安娜的“小药剂师”、北境的受赐者
