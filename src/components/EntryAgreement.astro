@@ -1,0 +1,246 @@
+---
+/**
+ * 入场协议：第一次进站要选一次。
+ *
+ * 「同意」是唯一的出口 —— 「拒绝」按钮会缩小、瞬移、和同意交换位置，
+ * 想尽办法不让你点到它。同意之后记在 localStorage，下次不再出现。
+ *
+ * 改协议内容时记得把 STORAGE_KEY 的版本号 +1，老访客会重新看到。
+ */
+const STORAGE_KEY = 'shuita-entry-agreement-v1';
+
+const ARTICLES = [
+	'淼渺是水水的自设。本人理解的自设是超——大杯的 OC，所以也会用 OC 称呼淼渺。除了淼渺、飒岚，还有某个白头发的屑魔女，也是水水的主要 OC。',
+	'水水不能喝。',
+	'淼渺是水精灵，但因为一段特殊经历，有了狐狸耳朵和尾巴。现在是魔法学徒！有一顶超——级大的魔法帽。',
+	'水水不是饮料，不能喝。',
+	'淼淼、渺渺都是淼渺的称呼。因为上传表情包时的一个失误，后面就一直这么叫了。',
+	'水水真的不能喝。',
+	'水水交友没啥雷点，但双向尊重是必须坚持的原则。请尊重水水、淼渺和她的伙伴们，也尊重水水的日常习惯、爱好、学业和工作。',
+	'水水不好喝，请不要喝水水。',
+	'水水低精力时会用「囦囦」（读 yuán，1 元钱的元）称呼自己，表达自己真的很想睡觉……总之，想睡，别叫我。',
+	'啊啊啊不要追着水水啃啦！！！',
+	'水水非常乐意交流，但留学生 + 音乐企划运营的双重 buff 导致常年低精力。漏回消息和评论真的抱歉，不是不尊重。',
+	'水水是真的会被喝完的，你们不要再喝啦！',
+	'最后，养 OC 是为了开心，也希望大家天天开心！哪怕生活暂时充满阴霾，我们也一起加油吧~',
+	'那几个拿瓶子的，你们要干……不能喝啊啊啊',
+];
+---
+
+<div class="gate" id="entry-gate" hidden>
+	<div class="gate-box" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+		<p class="kicker">进塔之前</p>
+		<h2 id="gate-title">水水使用协议</h2>
+		<p class="lead">
+			第一次来，麻烦看一眼。看完点<strong>同意</strong>就好 —— 想拒绝也行，如果你点得到的话。
+		</p>
+		<ol class="articles">
+			{ARTICLES.map((text) => <li>{text}</li>)}
+		</ol>
+		<div class="actions">
+			<button type="button" class="yes" id="gate-yes">同意</button>
+			<button type="button" class="no" id="gate-no">拒绝</button>
+		</div>
+		<p class="hint" id="gate-hint"></p>
+	</div>
+</div>
+
+<style>
+	.gate {
+		position: fixed;
+		inset: 0;
+		z-index: 90;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4vh 4vw;
+		background: rgba(3, 8, 14, 88%);
+		backdrop-filter: blur(6px);
+	}
+	.gate[hidden] {
+		display: none;
+	}
+	.gate-box {
+		width: min(680px, 100%);
+		max-height: 92vh;
+		overflow: auto;
+		padding: 1.8em 2em 2em;
+		border-radius: 18px;
+		background: var(--surface);
+		border: 1px solid rgba(175, 255, 255, 28%);
+		box-shadow: 0 24px 70px rgba(0, 0, 0, 55%);
+	}
+	.kicker {
+		margin: 0;
+		font-size: 0.72em;
+		letter-spacing: 0.3em;
+		color: rgb(var(--gray));
+	}
+	.gate-box h2 {
+		margin: 0.3em 0 0.7em;
+		font-size: 1.5em;
+		color: var(--glow);
+	}
+	.gate-box .lead {
+		margin: 0 0 1.2em;
+		font-size: 0.86em;
+		line-height: 1.9;
+		color: rgb(var(--gray));
+	}
+	.gate-box .lead strong {
+		color: var(--accent);
+	}
+	.articles {
+		margin: 0 0 1.6em;
+		padding: 0 0 0 1.4em;
+		font-size: 0.86em;
+		line-height: 1.95;
+		color: rgb(var(--gray-dark));
+	}
+	.articles li {
+		margin-bottom: 0.5em;
+	}
+	/* 每隔一条重复的「不能喝」，看着就没那么板正 */
+	.articles li:nth-child(2n) {
+		color: rgb(var(--gray));
+	}
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 1em;
+		min-height: 3.4em;
+	}
+	.actions button {
+		padding: 0.7em 2.2em;
+		border-radius: 999px;
+		font-size: 0.95em;
+		cursor: pointer;
+		transition:
+			transform 0.25s ease,
+			left 0.25s ease,
+			top 0.25s ease,
+			opacity 0.3s ease,
+			background 0.15s ease;
+	}
+	.actions .yes {
+		color: #06121a;
+		background: var(--glow);
+		border: 1px solid var(--glow);
+	}
+	.actions .yes:hover {
+		box-shadow: var(--glow-shadow);
+	}
+	.actions .no {
+		color: rgb(var(--gray-dark));
+		background: transparent;
+		border: 1px solid rgb(var(--gray-light));
+	}
+	/* 被追着跑的时候会变成定位元素 */
+	.actions .no.fleeing {
+		position: fixed;
+		z-index: 95;
+	}
+	.hint {
+		margin: 0.9em 0 0;
+		min-height: 1.6em;
+		font-size: 0.82em;
+		color: var(--accent);
+	}
+</style>
+
+<script>
+	const KEY = 'shuita-entry-agreement-v1';
+
+	const gate = document.getElementById('entry-gate');
+	const yes = document.getElementById('gate-yes');
+	const no = document.getElementById('gate-no');
+	const hint = document.getElementById('gate-hint');
+
+	if (gate && yes && no && hint) {
+		let accepted = false;
+		try {
+			accepted = localStorage.getItem(KEY) === 'ok';
+		} catch {
+			// 隐私模式下 localStorage 可能不可用，那就每次都问
+		}
+
+		if (!accepted) {
+			gate.hidden = false;
+			document.body.style.overflow = 'hidden';
+
+			/** 拒绝按钮的花样，按顺序来 */
+			const HINTS = [
+				'诶，它好像小了？',
+				'别急，它还会跑。',
+				'看，它和「同意」换位置了。',
+				'……你怎么还在点。',
+				'这个按钮已经尽力了。',
+				'好吧，看来只剩一个选择了。',
+			];
+
+			let stage = 0;
+
+			const flee = () => {
+				stage += 1;
+				hint.textContent = HINTS[Math.min(stage - 1, HINTS.length - 1)] ?? '';
+
+				// 第 1 次：缩一点
+				if (stage === 1) {
+					no.style.transform = 'scale(0.7)';
+					return;
+				}
+
+				// 第 2 次：脱离文档流，随机瞬移
+				if (stage === 2) {
+					no.classList.add('fleeing');
+					no.style.transform = 'scale(0.7)';
+				}
+
+				// 第 3 次：和「同意」交换位置
+				if (stage === 3) {
+					const actions = no.parentElement;
+					if (actions) {
+						actions.style.flexDirection = 'row-reverse';
+						actions.style.justifyContent = 'flex-end';
+					}
+					return;
+				}
+
+				// 之后每次：继续缩小 + 换地方
+				const scale = Math.max(0.16, 0.7 - (stage - 2) * 0.16);
+				const pad = 60;
+				const maxX = Math.max(pad, window.innerWidth - no.offsetWidth - pad);
+				const maxY = Math.max(pad, window.innerHeight - no.offsetHeight - pad);
+				no.style.position = 'fixed';
+				no.classList.add('fleeing');
+				no.style.transform = `scale(${scale.toFixed(2)})`;
+				no.style.left = `${pad + Math.random() * (maxX - pad)}px`;
+				no.style.top = `${pad + Math.random() * (maxY - pad)}px`;
+
+				// 追到第 8 次就让它消失
+				if (stage >= 8) {
+					no.style.opacity = '0';
+					no.style.pointerEvents = 'none';
+					hint.textContent = '它走了。就剩同意了。';
+				}
+			};
+
+			// 悬停就躲；触屏没有 hover，点下去也只会触发躲，不会真的拒绝
+			no.addEventListener('mouseenter', flee);
+			no.addEventListener('click', (event) => {
+				event.preventDefault();
+				flee();
+			});
+
+			yes.addEventListener('click', () => {
+				try {
+					localStorage.setItem(KEY, 'ok');
+				} catch {
+					// 存不了也没关系，本次照样放行
+				}
+				gate.hidden = true;
+				document.body.style.overflow = '';
+			});
+		}
+	}
+</script>

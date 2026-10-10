@@ -5,12 +5,25 @@ import logo from '../assets/oc/logo.webp';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR, SITE_DESCRIPTION } from '../consts';
+import {
+	BILIBILI_NAME,
+	BILIBILI_URL,
+	EMAIL,
+	GITHUB_NAME,
+	GITHUB_URL,
+	PROJECT_SUBTITLE,
+	PROJECT_TITLE,
+	QQ_GROUP,
+	QQ_GROUP_URL,
+	SITE_AUTHOR,
+	SITE_DESCRIPTION,
+} from '../consts';
 
 const isPublic = (entry: { data: { draft?: boolean } }) => !entry.data.draft;
 const posts = (await getCollection('blog')).filter(isPublic);
 const characters = (await getCollection('characters')).filter(isPublic);
 const stories = (await getCollection('stories', ({ data }) => data.status === 'published'));
+const eden = (await getCollection('eden', ({ data }) => !data.draft));
 ---
 
 <!doctype html>
@@ -21,30 +34,91 @@ const stories = (await getCollection('stories', ({ data }) => data.status === 'p
 			main {
 				width: 1000px;
 			}
+			/* 开头这一段：不再是一行干巴巴的自我介绍 */
 			.intro h1 {
-				margin: 0 0 0.1em;
-				font-size: 2.4em;
+				margin: 0 0 0.15em;
+				font-size: 2.6em;
+				color: var(--glow);
+				text-shadow: 0 0 24px rgba(175, 255, 255, 22%);
 			}
-			.intro .sub {
-				margin: 0 0 1.2em;
-				font-size: 0.8em;
-				letter-spacing: 0.2em;
+			.intro .aka {
+				margin: 0 0 1.4em;
+				font-size: 0.84em;
+				letter-spacing: 0.1em;
 				color: rgb(var(--gray));
-				text-transform: uppercase;
 			}
-			.intro p {
+			.intro .bio {
+				max-width: 40em;
+				margin: 0 0 0.9em;
 				font-size: 1.02em;
+				line-height: 2;
 			}
-			.intro .placeholder {
+			.intro .langs {
+				max-width: 40em;
+				margin: 0 0 1.5em;
+				font-size: 0.94em;
+				line-height: 2;
 				color: rgb(var(--gray));
+			}
+			.intro .langs b {
+				font-weight: 400;
+				color: var(--accent);
+			}
+			.intro .note {
+				max-width: 40em;
+				margin: 0 0 1.6em;
+				padding: 0.7em 1em;
+				border-radius: 10px;
+				font-size: 0.84em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+				background: var(--surface);
+				border-left: 2px solid rgba(175, 255, 255, 30%);
+			}
+			/* 出没的地方 */
+			.platforms {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5em;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.platforms a {
+				display: inline-block;
+				padding: 0.4em 1em;
+				border-radius: 999px;
 				font-size: 0.82em;
-				font-style: italic;
+				text-decoration: none;
+				color: var(--accent);
+				background: rgba(175, 255, 255, 6%);
+				border: 1px solid rgba(175, 255, 255, 22%);
+				transition: 0.15s ease;
+			}
+			.platforms a:hover {
+				color: #06121a;
+				background: var(--glow);
+				border-color: var(--glow);
+			}
+			.platforms .plain {
+				padding: 0.4em 1em;
+				border-radius: 999px;
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+				border: 1px dashed rgb(var(--gray-light));
+			}
+			.section-title {
+				margin: 3em 0 0;
+				font-size: 0.84em;
+				font-weight: 400;
+				letter-spacing: 0.22em;
+				color: rgb(var(--gray));
 			}
 			.cards {
 				display: grid;
 				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 				gap: 1.3rem;
-				margin-top: 2.5em;
+				margin-top: 1.2em;
 			}
 			.card {
 				display: flex;
@@ -69,59 +143,49 @@ const stories = (await getCollection('stories', ({ data }) => data.status === 'p
 			}
 			.card .badge {
 				align-self: flex-start;
-				margin: 0 0 0.8em;
-				padding: 0.2em 0.6em;
+				margin-bottom: 0.7em;
+				padding: 0.15em 0.65em;
 				border-radius: 999px;
 				font-size: 0.72em;
-				letter-spacing: 0.06em;
-				color: var(--glow);
+				letter-spacing: 0.08em;
+				color: var(--accent);
 				background: rgba(175, 255, 255, 10%);
-				border: 1px solid rgba(175, 255, 255, 28%);
-			}
-			.card .badge.soon {
-				color: rgb(var(--gray));
-				background: rgba(255, 255, 255, 4%);
-				border-color: rgb(var(--gray-light));
+				border: 1px solid rgba(175, 255, 255, 25%);
 			}
 			.card p {
 				margin: 0.6em 0 0;
-				font-size: 0.88em;
-				line-height: 1.7;
+				font-size: 0.9em;
+				line-height: 1.85;
 				color: rgb(var(--gray));
 			}
 			.card .stats {
 				margin-top: auto;
-				padding-top: 1em;
-				font-size: 0.78em;
+				padding-top: 0.9em;
+				font-size: 0.8em;
 				color: rgb(var(--gray));
+				opacity: 0.85;
 			}
-			/* 主推卡片：世界观企划 */
 			.card.featured {
-				grid-column: span 2;
 				flex-direction: row;
 				align-items: center;
-				gap: 1.6em;
-				background:
-					radial-gradient(600px 240px at 0% 0%, rgba(175, 255, 255, 8%), transparent 70%),
-					var(--surface);
+				gap: 1.4em;
+				grid-column: span 2;
+				border-color: rgba(175, 255, 255, 28%);
 			}
 			.card.featured .thumb {
-				width: 160px;
 				flex: none;
+				width: 160px;
 			}
 			.card.featured .thumb :global(img) {
 				width: 100%;
 				height: auto;
-				border-radius: 0;
+				border-radius: 10px;
 			}
-			@media (max-width: 760px) {
+			@media (max-width: 720px) {
 				.card.featured {
-					grid-column: span 1;
 					flex-direction: column;
+					grid-column: span 1;
 					align-items: flex-start;
-				}
-				.card.featured .thumb {
-					width: 120px;
 				}
 			}
 		</style>
@@ -130,13 +194,32 @@ const stories = (await getCollection('stories', ({ data }) => data.status === 'p
 		<Header />
 		<main>
 			<section class="intro">
-				<h1>{SITE_AUTHOR}</h1>
-				<p class="sub">Personal Site</p>
-				<p class="placeholder">
-					（这段是占位。把我换成你的自我介绍 —— 一两句话说明你是谁、这里会放什么就够。）
+				<h1>水水</h1>
+				<p class="aka">淼渺_Water2H2O · 一只狐狸（？）</p>
+
+				<p class="bio">
+					在香港读计算机的苦逼大学生。啥都喜欢弄一点 —— 写故事、画 OC、给它们做曲子，
+					顺便运营一个音游企划。养 OC 是为了开心。
 				</p>
+				<p class="langs">
+					会说 <b>普通话</b>、<b>English</b>，还有 <b>Python</b>、<b>Java</b>、<b>C</b>、<b>C++</b>……
+				</p>
+				<p class="note">
+					留学生 + 音乐企划运营的双重 buff，常年低精力；漏回消息和评论真的抱歉，不是不尊重。
+					想睡的时候我会自称「囦囦」（yuán）—— 总之，想睡，别叫我。
+				</p>
+
+				<ul class="platforms">
+					<li><a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">QQ 群 {QQ_GROUP}</a></li>
+					<li><a href={BILIBILI_URL} target="_blank" rel="noreferrer">B 站</a></li>
+					<li><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></li>
+					<li><a href={`mailto:${EMAIL}`}>邮箱</a></li>
+					<li><span class="plain">小红书</span></li>
+					<li><span class="plain">X</span></li>
+				</ul>
 			</section>
 
+			<h2 class="section-title">这座塔里有什么</h2>
 			<div class="cards">
 				<a class="card featured" href="/worldview/">
 					<div class="thumb">
@@ -155,25 +238,25 @@ const stories = (await getCollection('stories', ({ data }) => data.status === 'p
 					</div>
 				</a>
 
+				<a class="card" href="/project/">
+					<span class="badge">企划</span>
+					<h2>参与的项目</h2>
+					<p>音游《Blophy 方菱律动》，群创世界观「伊甸园」，还有一批画完的 OC 立绘。</p>
+					<p class="stats">{eden.length + 2} 个企划</p>
+				</a>
+
 				<a class="card" href="/blog/">
 					<span class="badge">记录</span>
 					<h2>随笔</h2>
-					<p>制作花絮、灵感笔记，以及一些不成体系的日常记录。</p>
+					<p>制作花絮、灵感笔记，以及这个站自己的一些记录。</p>
 					<p class="stats">{posts.length} 篇</p>
 				</a>
-
-				<div class="card">
-					<span class="badge soon">筹备中</span>
-					<h2>个人内容</h2>
-					<p>
-						这里预留给你自己的东西 —— 想放什么（日记、读书笔记、作品集、乱七八糟的收藏）告诉我，我来搭。
-					</p>
-				</div>
 
 				<a class="card" href="/about/">
 					<span class="badge">关于</span>
 					<h2>关于</h2>
 					<p>关于我、联系方式，以及作品的使用与授权说明。</p>
+					<p class="stats">{BILIBILI_NAME} · {GITHUB_NAME}</p>
 				</a>
 			</div>
 		</main>

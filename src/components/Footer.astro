@@ -1,4 +1,5 @@
 ---
+import EntryAgreement from './EntryAgreement.astro';
 import {
 	BILIBILI_NAME,
 	BILIBILI_URL,
@@ -72,6 +73,9 @@ const links = [
 		}
 	</div>
 </footer>
+
+{/* 入场协议：挂在页脚，于是全站每页都会出现一次（同意过就不再弹） */}
+<EntryAgreement />
 <style>
 	footer {
 		padding: 2em 1em 4em 1em;
