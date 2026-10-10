@@ -64,6 +64,10 @@ const eden = await getCollection('eden', ({ data }) => !data.draft);
 				line-height: 1.9;
 				color: rgb(var(--gray));
 			}
+			.card p.sub {
+				margin-top: 0.6em;
+				font-size: 0.84em;
+			}
 			.card .more {
 				display: inline-block;
 				margin-top: 1em;
@@ -114,16 +118,22 @@ const eden = await getCollection('eden', ({ data }) => !data.draft);
 			</p>
 
 			<div class="card">
-				<span class="kind">音游</span>
+				<span class="kind">音游 · 非商业</span>
 				<h2>Blophy 方菱律动</h2>
 				<p>
-					一款音乐节奏游戏。我在其中担任<strong>主催</strong>与<strong>外交</strong>。详情、角色与下载都在官网，这里只放个入口。
+					<strong>青柠工作室（Lime Studio）</strong>开发和运营的非商业音乐游戏。我在其中担任<strong>主催</strong>与<strong
+						>外交</strong
+					>。
+				</p>
+				<p class="sub">
+					制作组是个年轻的同人社团，成员来自各地、各行、各业，不以盈利为开发和制作的第一目标。
+					曲目、档案与出场人物都在官网，这里只放个入口。
 				</p>
 				<span class="links">
-					<a href="https://blophy.com/" target="_blank" rel="noreferrer">官网</a>
-					<a href="https://blophy.com/more" target="_blank" rel="noreferrer">更多</a>
-					<a href="https://blophy.com/characters" target="_blank" rel="noreferrer">角色</a>
-					<a href="https://blophy.com/profile" target="_blank" rel="noreferrer">简介</a>
+					<a href="https://blophy.cn/" target="_blank" rel="noreferrer">官网</a>
+					<a href="https://blophy.cn/more" target="_blank" rel="noreferrer">更多</a>
+					<a href="https://blophy.cn/characters" target="_blank" rel="noreferrer">出场人物</a>
+					<a href="https://blophy.cn/profile" target="_blank" rel="noreferrer">档案信息</a>
 				</span>
 			</div>
 
