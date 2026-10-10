@@ -29,3 +29,7 @@ assets-staging/
 # Python 字节码缓存（tools/extract-docx.py 等会生成）
 __pycache__/
 *.pyc
+
+# 子任务/工具留下的临时备份目录
+.dsh-old/
+.dsh-*/

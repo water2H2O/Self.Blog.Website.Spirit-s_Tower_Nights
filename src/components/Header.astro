@@ -9,10 +9,13 @@ const mainLinks = [
 	{ href: '/about', label: '关于' },
 ];
 
-/** 世界观企划内部的二级导航，只在 /worldview/ 下显示 */
+/**
+ * 世界观企划内部的二级导航，只在 /worldview/ 下显示。
+ * 「设定」暂时藏起来了（内容还在完善中）—— 页面没删，直接访问
+ * /worldview/lore/ 依然能看，索引也照常列出全部条目。
+ */
 const worldviewLinks = [
 	{ href: `${WORLDVIEW_BASE}`, label: '总览' },
-	{ href: `${WORLDVIEW_BASE}/lore`, label: '设定' },
 	{ href: `${WORLDVIEW_BASE}/races`, label: '种族' },
 	{ href: `${WORLDVIEW_BASE}/characters`, label: '角色' },
 	{ href: `${WORLDVIEW_BASE}/stories`, label: '故事' },

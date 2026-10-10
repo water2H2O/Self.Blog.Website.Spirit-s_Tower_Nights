@@ -346,6 +346,16 @@ node tools/verify-verbatim.mjs --map=<映射.json>
 - **不要把中间产物写进 `src/content/` 目录**：glob loader 会把任何 `.md` 都当成内容条目，
   缺字段就直接让构建失败。临时文件放到 `src/` 之外
 
+## 设定区目前是「隐藏」状态
+
+`/worldview/lore/` 的内容还在长，所以暂时从**导航和总览**里收了起来 —— **不是删除**：
+
+- 页面照常构建，直接访问 `/worldview/lore/` 能看，索引也列出全部条目
+- 条目之间的 `related` 链接、以及角色页的「关联设定」链接都正常
+- 想放回导航：在 `src/components/Header.astro` 的 `worldviewLinks` 里加回一行
+  `{ href: `${WORLDVIEW_BASE}/lore`, label: '设定' }`，
+  并在 `src/pages/worldview/index.astro` 的 `rooms` 里加回对应的房间卡片
+
 ## 画廊图池与品牌资源
 
 ### 画廊图池
