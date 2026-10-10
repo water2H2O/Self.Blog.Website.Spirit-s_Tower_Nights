@@ -1,0 +1,161 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+
+const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.number - b.data.number,
+);
+const characters = await getCollection('characters');
+const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="音乐"
+			description="水塔夜谈原创音乐企划：与不同曲师合作的曲目、曲绘与创作笔记。"
+		/>
+		<style>
+			main {
+				width: 900px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+			}
+			.notice {
+				margin: 1.5em 0 0;
+				padding: 0.9em 1.1em;
+				border-radius: 12px;
+				font-size: 0.85em;
+				color: #b6ffd8;
+				background: rgba(120, 255, 190, 8%);
+				border: 1px solid rgba(120, 255, 190, 25%);
+			}
+			.track {
+				display: grid;
+				grid-template-columns: 240px 1fr;
+				gap: 1.5em;
+				margin-top: 2.2em;
+				padding: 1.3em;
+				border-radius: 16px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-left: 4px solid var(--track-color);
+			}
+			.cover {
+				overflow: hidden;
+				border-radius: 10px;
+			}
+			.cover :global(img) {
+				display: block;
+				width: 100%;
+				height: auto;
+				border-radius: 10px;
+			}
+			.info h2 {
+				margin: 0;
+				font-size: 1.4em;
+			}
+			.no {
+				font-size: 0.75em;
+				letter-spacing: 0.14em;
+				color: var(--track-color);
+			}
+			.artist {
+				margin: 0.3em 0 0;
+				font-size: 0.88em;
+				color: rgb(var(--gray));
+			}
+			.artist b {
+				color: var(--glow);
+				font-weight: 400;
+			}
+			.links {
+				margin: 0.7em 0 0;
+				font-size: 0.85em;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em 1.2em;
+			}
+			.tags {
+				margin-top: 0.7em;
+				font-size: 0.78em;
+				color: rgb(var(--gray));
+			}
+			audio {
+				width: 100%;
+				margin-top: 0.9em;
+				filter: invert(92%) hue-rotate(160deg);
+			}
+			.note {
+				margin: 0.7em 0 0;
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+			}
+			@media (max-width: 720px) {
+				.track {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>音乐</h1>
+			<p class="lead">
+				这是一个 OC 世界观音乐企划：每一首曲子都与不同的曲师合作，并配有专属曲绘。
+			</p>
+			<p class="notice">
+				网页版音频正在重新制作（ogg/Opus + m4a/AAC 双格式）。曲目信息与曲绘已就绪，音频文件接入后即可在站内直接播放。
+			</p>
+
+			{
+				tracks.map((track) => (
+					<article class="track" style={`--track-color:${track.data.themeColor}`}>
+						{track.data.cover && (
+							<div class="cover">
+								<Image src={track.data.cover} alt={track.data.title} width={480} />
+							</div>
+						)}
+						<div class="info">
+							<span class="no">#{String(track.data.number).padStart(2, '0')}</span>
+							<h2>{track.data.title}</h2>
+							<p class="artist">
+								曲师 <b>{track.data.artist}</b>
+								{track.data.characters.length > 0 &&
+									` ／ 关联角色 ${track.data.characters
+										.map((ref) => characterName.get(ref.id) ?? ref.id)
+										.join('、')}`}
+							</p>
+							{track.data.audioOgg ? (
+								<audio controls preload="none">
+									<source src={track.data.audioOgg} type="audio/ogg" />
+									{track.data.audioM4a && <source src={track.data.audioM4a} type="audio/mp4" />}
+									你的浏览器不支持音频播放。
+								</audio>
+							) : (
+								<p class="note">音频制作中 —— 曲绘与信息可先行查看。</p>
+							)}
+							{track.data.tags.length > 0 && <p class="tags">{track.data.tags.join(' · ')}</p>}
+							{track.data.pvUrl && (
+								<p class="links">
+									<a href={track.data.pvUrl} target="_blank" rel="noreferrer">
+										观看 PV →
+									</a>
+								</p>
+							)}
+							{track.data.note && <p class="note">{track.data.note}</p>}
+						</div>
+					</article>
+				))
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

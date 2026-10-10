@@ -1,0 +1,107 @@
+---
+import { getCollection, render } from 'astro:content';
+import DetailPage from '../../layouts/DetailPage.astro';
+
+export async function getStaticPaths() {
+	const races = await getCollection('races', ({ data }) => !data.draft);
+	return races.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const {
+	name,
+	epithet,
+	aliases,
+	summary,
+	themeColor,
+	cover,
+	miasmaTolerance,
+	population,
+	habitat,
+	conflicts,
+	tags,
+	canon,
+	spoiler,
+} = entry.data;
+
+const meta: { label: string; value: string }[] = [];
+if (epithet) meta.push({ label: '称号', value: `[${epithet}]` });
+if (aliases.length > 0) meta.push({ label: '别称', value: aliases.join(' / ') });
+if (miasmaTolerance) meta.push({ label: '瘴素耐受', value: miasmaTolerance });
+if (population) meta.push({ label: '人口与分布', value: population });
+if (habitat) meta.push({ label: '聚居地', value: habitat });
+
+const members = (
+	await getCollection('characters', ({ data }) => !data.draft && data.race.id === entry.id)
+).sort((a, b) => a.data.order - b.data.order);
+---
+
+<DetailPage
+	title={name}
+	subtitle={epithet ? `[${epithet}]` : undefined}
+	summary={summary}
+	themeColor={themeColor}
+	cover={cover}
+	tags={tags}
+	meta={meta}
+	canon={canon}
+	spoiler={spoiler}
+	backHref="/races/"
+	backLabel="种族"
+>
+	{
+		conflicts.length > 0 && (
+			<div class="conflicts">
+				<h2>核心矛盾</h2>
+				<ul>
+					{conflicts.map((text) => (
+						<li>{text}</li>
+					))}
+				</ul>
+			</div>
+		)
+	}
+	<Content />
+	{
+		members.length > 0 && (
+			<div class="related">
+				<h2>已建档的角色</h2>
+				<ul>
+					{members.map((character) => (
+						<li>
+							<a href={`/characters/${character.id}/`}>{character.data.name}</a>
+						</li>
+					))}
+				</ul>
+			</div>
+		)
+	}
+</DetailPage>
+
+<style>
+	.conflicts {
+		margin: 0 0 2.5em;
+		padding: 1.1em 1.3em 1.2em;
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--entry-color) 8%, var(--surface));
+		border: 1px solid color-mix(in srgb, var(--entry-color) 25%, transparent);
+	}
+	.conflicts h2 {
+		margin: 0 0 0.5em;
+		font-size: 1em;
+		letter-spacing: 0.08em;
+		color: var(--entry-color);
+	}
+	.conflicts ul {
+		margin: 0;
+		padding-left: 1.2em;
+		font-size: 0.9em;
+	}
+	.conflicts li {
+		margin-bottom: 0.5em;
+	}
+	.conflicts li:last-child {
+		margin-bottom: 0;
+	}
+</style>

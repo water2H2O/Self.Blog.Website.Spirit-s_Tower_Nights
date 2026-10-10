@@ -19,9 +19,11 @@ interface Props {
 	themeColor: string;
 	cover?: ImageMetadata;
 	tags?: string[];
-	/** 右侧信息栏：角色页放年龄/所属，设定页放分类/别名等 */
+	/** 信息栏：角色页放年龄/所属，设定页放分类/别名等 */
 	meta?: MetaItem[];
 	spoiler?: 'none' | 'mild' | 'heavy';
+	/** 正典档位，locked 会在标题下显示「不可变更」徽章 */
+	canon?: 'locked' | 'open' | 'draft';
 	backHref: string;
 	backLabel: string;
 }
@@ -35,9 +37,16 @@ const {
 	tags = [],
 	meta = [],
 	spoiler = 'none',
+	canon,
 	backHref,
 	backLabel,
 } = Astro.props;
+
+const CANON = {
+	locked: { label: '正典 · 不可变更', hint: '这一条已经钉死，写作时不应违背' },
+	open: { label: '可扩展', hint: '大方向已定，细节可以继续长' },
+	draft: { label: '草稿', hint: '随时可能推翻重写' },
+} as const;
 ---
 
 <!doctype html>
@@ -59,7 +68,7 @@ const {
 			.hero {
 				margin: 1em 0 1.6em;
 				padding-bottom: 1.2em;
-				border-bottom: 2px solid color-mix(in srgb, var(--entry-color) 35%, transparent);
+				border-bottom: 2px solid color-mix(in srgb, var(--entry-color) 40%, transparent);
 			}
 			.hero h1 {
 				margin: 0;
@@ -67,7 +76,32 @@ const {
 			.subtitle {
 				margin: 0.2em 0 0;
 				color: var(--entry-color);
+				letter-spacing: 0.06em;
+			}
+			.canon {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				margin: 0.8em 0 0;
+				padding: 0.32em 0.75em;
+				border-radius: 999px;
+				font-size: 0.72em;
 				letter-spacing: 0.04em;
+			}
+			.canon[data-level='locked'] {
+				color: #b6ffd8;
+				background: rgba(120, 255, 190, 12%);
+				border: 1px solid rgba(120, 255, 190, 35%);
+			}
+			.canon[data-level='open'] {
+				color: rgb(var(--gray));
+				background: rgba(255, 255, 255, 4%);
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.canon[data-level='draft'] {
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 10%);
+				border: 1px solid rgba(255, 200, 90, 30%);
 			}
 			.cover {
 				margin: 1.2em 0 0;
@@ -84,13 +118,14 @@ const {
 				gap: 0.4em 1.2em;
 				margin: 0 0 2em;
 				padding: 1em 1.2em;
-				background: color-mix(in srgb, var(--entry-color) 7%, #fff);
-				border: 1px solid color-mix(in srgb, var(--entry-color) 22%, transparent);
+				background: color-mix(in srgb, var(--entry-color) 8%, var(--surface));
+				border: 1px solid color-mix(in srgb, var(--entry-color) 25%, transparent);
 				border-radius: 12px;
 				font-size: 0.88em;
 			}
 			.meta dt {
 				color: rgb(var(--gray));
+				white-space: nowrap;
 			}
 			.meta dd {
 				margin: 0;
@@ -110,6 +145,9 @@ const {
 			.prose :global(blockquote) {
 				border-left-color: var(--entry-color);
 			}
+			.prose :global(strong) {
+				color: var(--glow);
+			}
 			/* 页面正文里用 <div class="related"> 输出的关联区块 */
 			.prose :global(.related) {
 				margin-top: 3em;
@@ -118,15 +156,17 @@ const {
 			}
 			.prose :global(.related h2) {
 				margin: 0 0 0.6em;
-				font-size: 1.1em;
+				font-size: 1.05em;
 				border: none;
+				color: rgb(var(--gray));
+				letter-spacing: 0.08em;
 			}
 			.prose :global(.related ul) {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 0.6em;
 				list-style: none;
-				margin: 0;
+				margin: 0 0 1.6em;
 				padding: 0;
 			}
 			.prose :global(.related a) {
@@ -136,11 +176,11 @@ const {
 				font-size: 0.85em;
 				text-decoration: none;
 				color: var(--entry-color);
-				background: color-mix(in srgb, var(--entry-color) 10%, #fff);
-				border: 1px solid color-mix(in srgb, var(--entry-color) 28%, transparent);
+				background: color-mix(in srgb, var(--entry-color) 10%, var(--surface));
+				border: 1px solid color-mix(in srgb, var(--entry-color) 30%, transparent);
 			}
 			.prose :global(.related a:hover) {
-				background: color-mix(in srgb, var(--entry-color) 18%, #fff);
+				background: color-mix(in srgb, var(--entry-color) 20%, var(--surface));
 			}
 			@media (max-width: 720px) {
 				.meta {
@@ -160,6 +200,7 @@ const {
 			<header class="hero">
 				<h1>{title}</h1>
 				{subtitle && <p class="subtitle">{subtitle}</p>}
+				{canon && <p class="canon" data-level={canon} title={CANON[canon].hint}>{CANON[canon].label}</p>}
 				<SpoilerNote level={spoiler} />
 				<TagList tags={tags} color={themeColor} />
 				{cover && <div class="cover"><Image src={cover} alt={title} width={1020} /></div>}

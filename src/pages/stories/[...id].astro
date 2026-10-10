@@ -1,0 +1,164 @@
+---
+import { render } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import SpoilerNote from '../../components/SpoilerNote.astro';
+import { publishedEpisodes } from '../../lib/stories';
+
+export async function getStaticPaths() {
+	const episodes = await publishedEpisodes();
+	return episodes.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const episodes = await publishedEpisodes();
+const position = episodes.findIndex((item) => item.id === entry.id);
+const prev = position > 0 ? episodes[position - 1] : null;
+const next = position < episodes.length - 1 ? episodes[position + 1] : null;
+
+const { title, act, arc, code, summary, spoiler, updatedDate, pubDate } = entry.data;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={`${code} ${title} · ${arc}`} description={summary ?? `${arc} ${code}`} />
+		<style>
+			main {
+				width: 760px;
+			}
+			.crumb {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+				text-decoration: none;
+				letter-spacing: 0.04em;
+			}
+			.crumb:hover {
+				color: var(--glow);
+			}
+			.title {
+				margin: 1.2em 0 0.2em;
+				padding-bottom: 0.5em;
+				border-bottom: 2px solid rgba(175, 255, 255, 25%);
+			}
+			.title .code {
+				display: block;
+				font-size: 0.4em;
+				letter-spacing: 0.2em;
+				color: var(--glow);
+				opacity: 0.75;
+			}
+			.meta {
+				margin: 0.6em 0 2.5em;
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+			}
+			/* 正文排版：中文阅读优化，段间距大于行距 */
+			.prose {
+				color: rgb(var(--gray-dark));
+			}
+			.prose :global(p) {
+				margin: 0 0 1.6em;
+				text-align: justify;
+				text-justify: inter-ideograph;
+			}
+			.prose :global(p:first-of-type)::first-letter {
+				font-size: 1.05em;
+			}
+			.prose :global(hr) {
+				width: 40%;
+				margin: 2.5em auto;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.prose :global(blockquote) {
+				border-left-color: var(--accent);
+			}
+			.pager {
+				display: flex;
+				justify-content: space-between;
+				gap: 1em;
+				margin-top: 3.5em;
+				padding-top: 1.5em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.pager a {
+				flex: 1 1 0;
+				padding: 0.9em 1.1em;
+				border-radius: 12px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				text-decoration: none;
+				color: rgb(var(--gray-dark));
+				font-size: 0.86em;
+				transition: 0.2s ease;
+			}
+			.pager a:hover {
+				border-color: rgba(175, 255, 255, 45%);
+				box-shadow: var(--glow-shadow);
+			}
+			.pager a.next {
+				text-align: right;
+			}
+			.pager .dir {
+				display: block;
+				font-size: 0.8em;
+				letter-spacing: 0.1em;
+				color: rgb(var(--gray));
+			}
+			.pager .name {
+				color: var(--glow);
+			}
+			@media (max-width: 720px) {
+				.pager {
+					flex-direction: column;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<a class="crumb" href="/stories/">← 故事目录 ／ {act} ／ {arc}</a>
+			<h1 class="title">
+				<span class="code">{code}</span>
+				{title}
+			</h1>
+			<p class="meta">
+				{pubDate && <span>{pubDate.toLocaleDateString('zh-CN')} · </span>}
+				<span>第 {position + 1} / {episodes.length} 话</span>
+				{updatedDate && <span> · 修订于 {updatedDate.toLocaleDateString('zh-CN')}</span>}
+			</p>
+			<SpoilerNote level={spoiler} />
+			<div class="prose">
+				<Content />
+			</div>
+
+			<nav class="pager">
+				{
+					prev ? (
+						<a href={`/stories/${prev.id}/`}>
+							<span class="dir">← 上一篇</span>
+							<span class="name">{prev.data.code} {prev.data.title}</span>
+						</a>
+					) : (
+						<span></span>
+					)
+				}
+				{
+					next ? (
+						<a class="next" href={`/stories/${next.id}/`}>
+							<span class="dir">下一篇 →</span>
+							<span class="name">{next.data.code} {next.data.title}</span>
+						</a>
+					) : (
+						<span></span>
+					)
+				}
+			</nav>
+		</main>
+		<Footer />
+	</body>
+</html>

@@ -5,7 +5,7 @@ import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import LoreCard from '../../components/LoreCard.astro';
 
-const CATEGORY_ORDER = ['地理', '种族', '体系', '组织', '历史', '器物', '概念'] as const;
+const CATEGORY_ORDER = ['世界规则', '瘴素', '神器', '魔法体系', '势力', '地理', '历史', '概念'] as const;
 
 const lore = await getCollection('lore', ({ data }) => !data.draft);
 

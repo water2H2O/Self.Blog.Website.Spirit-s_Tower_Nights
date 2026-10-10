@@ -1,6 +1,7 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
 import DetailPage from '../../layouts/DetailPage.astro';
+import { publishedEpisodes } from '../../lib/stories';
 
 export async function getStaticPaths() {
 	const characters = await getCollection('characters', ({ data }) => !data.draft);
@@ -14,56 +15,196 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const {
 	name,
+	race,
 	aliases,
+	title,
 	summary,
-	role,
-	affiliation,
 	pronouns,
+	height,
 	age,
 	themeColor,
 	portrait,
 	tags,
+	relations,
 	lore,
+	canon,
 	spoiler,
 } = entry.data;
 
-const meta: { label: string; value: string }[] = [];
-if (role) meta.push({ label: '定位', value: role });
-if (affiliation) meta.push({ label: '所属', value: affiliation });
-if (pronouns) meta.push({ label: '人称', value: pronouns });
-if (age) meta.push({ label: '年龄', value: age });
-if (aliases.length > 0) meta.push({ label: '别名', value: aliases.join(' / ') });
+const raceEntry = await getEntry(race);
 
+const meta: { label: string; value: string }[] = [];
+if (raceEntry) meta.push({ label: '种族', value: raceEntry.data.name });
+if (title) meta.push({ label: '称号', value: title });
+if (pronouns) meta.push({ label: '性别表现', value: pronouns });
+if (height) meta.push({ label: '身高', value: height });
+if (age) meta.push({ label: '年龄', value: age });
+if (aliases.length > 0) meta.push({ label: '别名 / 自称', value: aliases.join(' / ') });
+
+/** 关联设定 */
 const relatedLore = (await Promise.all(lore.map((ref) => getEntry(ref)))).filter(
 	(item): item is NonNullable<typeof item> => Boolean(item),
 );
+
+/** 出场故事 */
+const episodes = (await publishedEpisodes()).filter((episode) =>
+	episode.data.characters.some((ref) => ref.id === entry.id),
+);
+
+/** 画作 */
+const artworks = (
+	await getCollection(
+		'gallery',
+		({ data }) => !data.draft && data.characters.some((ref) => ref.id === entry.id),
+	)
+).sort((a, b) => a.data.order - b.data.order);
+
+/** 人际关系 */
+const relationList: { name: string; note: string; id?: string; color: string }[] = [];
+if (relations.length > 0) {
+	const resolved = await Promise.all(relations.map((relation) => getEntry(relation.to)));
+	resolved.forEach((target, index) => {
+		if (!target) return;
+		relationList.push({
+			id: target.id,
+			name: target.data.name,
+			note: relations[index]!.note,
+			color: target.data.themeColor,
+		});
+	});
+}
 ---
 
 <DetailPage
 	title={name}
-	subtitle={role}
+	subtitle={raceEntry ? raceEntry.data.name : undefined}
 	summary={summary}
 	themeColor={themeColor}
 	cover={portrait}
 	tags={tags}
 	meta={meta}
+	canon={canon}
 	spoiler={spoiler}
 	backHref="/characters/"
-	backLabel="角色档案"
+	backLabel="角色"
 >
 	<Content />
+
 	{
-		relatedLore.length > 0 && (
-			<div class="related">
-				<h2>相关设定</h2>
+		relationList.length > 0 && (
+			<div class="relations">
+				<h2>人际关系</h2>
 				<ul>
-					{relatedLore.map((item) => (
-						<li>
-							<a href={`/world/${item.id}/`}>{item.data.title}</a>
+					{relationList.map((relation) => (
+						<li style={`--rel-color:${relation.color}`}>
+							<span class="who">
+								{relation.id ? <a href={`/characters/${relation.id}/`}>{relation.name}</a> : relation.name}
+							</span>
+							<span class="note">{relation.note}</span>
 						</li>
 					))}
 				</ul>
 			</div>
 		)
 	}
+
+	{
+		(artworks.length > 0 || episodes.length > 0 || relatedLore.length > 0) && (
+			<div class="related">
+				{artworks.length > 0 && (
+					<>
+						<h2>画作（{artworks.length}）</h2>
+						<ul>
+							{artworks.map((art) => (
+								<li>
+									<a href="/gallery/">
+										{art.data.title}
+										<span class="kind">{art.data.kind}</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</>
+				)}
+				{episodes.length > 0 && (
+					<>
+						<h2>出场故事（{episodes.length}）</h2>
+						<ul>
+							{episodes.map((episode) => (
+								<li>
+									<a href={`/stories/${episode.id}/`}>
+										{episode.data.code} {episode.data.title}
+									</a>
+								</li>
+							))}
+						</ul>
+					</>
+				)}
+				{relatedLore.length > 0 && (
+					<>
+						<h2>关联设定</h2>
+						<ul>
+							{relatedLore.map((item) => (
+								<li>
+									<a href={`/world/${item.id}/`}>{item.data.title}</a>
+								</li>
+							))}
+						</ul>
+					</>
+				)}
+			</div>
+		)
+	}
 </DetailPage>
+
+<style>
+	.relations {
+		margin: 3em 0 0;
+		padding-top: 1.5em;
+		border-top: 1px solid rgb(var(--gray-light));
+	}
+	.relations h2 {
+		margin: 0 0 0.9em;
+		font-size: 1.05em;
+		letter-spacing: 0.08em;
+		color: rgb(var(--gray));
+	}
+	.relations ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.relations li {
+		display: grid;
+		grid-template-columns: 10em 1fr;
+		gap: 0.4em 1.2em;
+		padding: 0.7em 0;
+		border-bottom: 1px dashed rgb(var(--gray-light));
+		font-size: 0.9em;
+	}
+	.relations li:last-child {
+		border-bottom: none;
+	}
+	.relations .who a {
+		color: var(--rel-color);
+		text-decoration: none;
+	}
+	.relations .who a:hover {
+		color: var(--glow);
+	}
+	.relations .note {
+		color: rgb(var(--gray));
+		font-size: 0.95em;
+		line-height: 1.7;
+	}
+	.related .kind {
+		margin-left: 0.5em;
+		font-size: 0.8em;
+		opacity: 0.65;
+	}
+	@media (max-width: 720px) {
+		.relations li {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

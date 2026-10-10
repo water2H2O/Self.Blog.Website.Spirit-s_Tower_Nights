@@ -45,6 +45,7 @@ const relatedLore = (await Promise.all(related.map((ref) => getEntry(ref)))).fil
 	cover={cover}
 	tags={tags}
 	meta={meta}
+	canon={entry.data.canon}
 	spoiler={spoiler}
 	backHref="/world/"
 	backLabel="世界观"

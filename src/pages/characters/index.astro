@@ -8,28 +8,69 @@ import Header from '../../components/Header.astro';
 const characters = (await getCollection('characters', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name, 'zh-Hans-CN'),
 );
+const races = (await getCollection('races', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.order - b.data.order,
+);
+
+/** 按种族分组 —— 呼应用户「先定种族」的创作流程 */
+const groups = races
+	.map((race) => ({
+		race,
+		members: characters.filter((character) => character.data.race.id === race.id),
+	}))
+	.filter((group) => group.members.length > 0);
+
+const known = new Set(groups.flatMap((group) => group.members.map((m) => m.id)));
+const ungrouped = characters.filter((character) => !known.has(character.id));
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead
-			title="角色档案"
-			description="Spirit's Tower Nights 的角色一览：立绘、定位、别名与关联设定。"
+			title="角色"
+			description="水塔夜谈的角色档案：按种族分组，含立绘、称号、性格与关联设定。"
 		/>
 		<style>
 			main {
-				width: 1000px;
+				width: 1060px;
 			}
 			.lead {
 				color: rgb(var(--gray));
 				font-size: 0.9em;
 			}
+			section {
+				margin-top: 2.8em;
+			}
+			.race-head {
+				display: flex;
+				align-items: baseline;
+				gap: 0.8em;
+				flex-wrap: wrap;
+				padding-bottom: 0.5em;
+				margin-bottom: 1.4em;
+				border-bottom: 2px solid color-mix(in srgb, var(--race-color) 40%, transparent);
+			}
+			.race-head h2 {
+				margin: 0;
+				font-size: 1.5em;
+			}
+			.race-head a {
+				text-decoration: none;
+				color: var(--race-color);
+			}
+			.race-head a:hover {
+				color: var(--glow);
+			}
+			.race-head .epithet {
+				font-size: 0.78em;
+				letter-spacing: 0.06em;
+				color: rgb(var(--gray));
+			}
 			.grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-				gap: 1.6rem;
-				margin-top: 2em;
+				gap: 1.5rem;
 			}
 			.empty {
 				color: rgb(var(--gray));
@@ -39,21 +80,41 @@ const characters = (await getCollection('characters', ({ data }) => !data.draft)
 	<body>
 		<Header />
 		<main>
-			<h1>角色档案</h1>
+			<h1>角色</h1>
 			<p class="lead">
-				{characters.length} 位角色。点开任意一位，可以看到 TA 的设定、别名与相关条目。
+				{characters.length} 位角色，按种族分组。点开任意一位，可以看到 TA 的设定、出处、画作与出场故事。
 			</p>
+
 			{
-				characters.length > 0 ? (
-					<div class="grid">
-						{characters.map((entry) => (
-							<CharacterCard entry={entry} />
-						))}
-					</div>
-				) : (
-					<p class="empty">
-						还没有角色。在 <code>src/content/characters/</code> 下新建一个 markdown 文件即可。
-					</p>
+				groups.map((group) => (
+					<section style={`--race-color:${group.race.data.themeColor}`}>
+						<div class="race-head">
+							<h2>
+								<a href={`/races/${group.race.id}/`}>{group.race.data.name}</a>
+							</h2>
+							{group.race.data.epithet && <span class="epithet">[{group.race.data.epithet}]</span>}
+						</div>
+						<div class="grid">
+							{group.members.map((character) => (
+								<CharacterCard entry={character} />
+							))}
+						</div>
+					</section>
+				))
+			}
+
+			{
+				ungrouped.length > 0 && (
+					<section>
+						<div class="race-head">
+							<h2>未分组</h2>
+						</div>
+						<div class="grid">
+							{ungrouped.map((character) => (
+								<CharacterCard entry={character} />
+							))}
+						</div>
+					</section>
 				)
 			}
 		</main>

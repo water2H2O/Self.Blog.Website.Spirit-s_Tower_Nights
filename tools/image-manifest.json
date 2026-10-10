@@ -1,0 +1,80 @@
+[
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/世界观logo.png",
+    "out": "src/assets/oc/logo.webp",
+    "maxEdge": 1024,
+    "quality": 90
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/立绘&设计-实习药剂师（正比）.jpg",
+    "out": "src/assets/oc/characters/miaomiao-portrait.webp",
+    "maxEdge": 1600,
+    "quality": 82
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/标准立绘-常服.jpg",
+    "out": "src/assets/oc/characters/miaomiao-casual.webp",
+    "maxEdge": 1400,
+    "quality": 82
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/插画-全身插画.png",
+    "out": "src/assets/oc/gallery/miaomiao-fullbody.webp",
+    "maxEdge": 1600,
+    "quality": 80
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/插画-魔法药剂师.png",
+    "out": "src/assets/oc/gallery/miaomiao-alchemist.webp",
+    "maxEdge": 1600,
+    "quality": 80
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/Q立-实习药剂师.png",
+    "out": "src/assets/oc/gallery/miaomiao-chibi.webp",
+    "maxEdge": 1000,
+    "quality": 80
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/插画-印象曲曲绘.jpg",
+    "out": "src/assets/oc/gallery/miaomiao-impression.webp",
+    "maxEdge": 1400,
+    "quality": 80
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/头像1.png",
+    "out": "src/assets/oc/gallery/miaomiao-avatar.webp",
+    "maxEdge": 800,
+    "quality": 82
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/双人贴贴-拍立得（水水×白茶）.png",
+    "out": "src/assets/oc/gallery/miaomiao-baicha.webp",
+    "maxEdge": 1400,
+    "quality": 80
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#4]Halv - Snowflower.png",
+    "out": "src/assets/oc/music/halv-snowflower.webp",
+    "maxEdge": 1200,
+    "quality": 82
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#2]ああああ-アドベンチャー・パレード.png",
+    "out": "src/assets/oc/music/aaaa-adventure-parade.webp",
+    "maxEdge": 1200,
+    "quality": 82
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#1]Lum1n0u2-Late Glow, Twin Trails_.jpeg",
+    "out": "src/assets/oc/music/lum1n0u2-late-glow.webp",
+    "maxEdge": 1200,
+    "quality": 82
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/芸芸众生（人物档案）/[元素精灵]淼渺/插画-アドベンチャー・パレード.png",
+    "out": "src/assets/oc/gallery/miaomiao-parade.webp",
+    "maxEdge": 1400,
+    "quality": 80
+  }
+]

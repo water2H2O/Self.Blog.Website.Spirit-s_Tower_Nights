@@ -1,6 +1,18 @@
 ---
 import { GITHUB_URL, SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
+
+const links = [
+	{ href: '/', label: '首页' },
+	{ href: '/world', label: '世界观' },
+	{ href: '/races', label: '种族' },
+	{ href: '/characters', label: '角色' },
+	{ href: '/stories', label: '故事' },
+	{ href: '/gallery', label: '画廊' },
+	{ href: '/music', label: '音乐' },
+	{ href: '/blog', label: '随笔' },
+	{ href: '/about', label: '关于' },
+];
 ---
 
 <header>
@@ -9,16 +21,12 @@ import HeaderLink from './HeaderLink.astro';
 			<a href="/">{SITE_TITLE}</a>
 		</h2>
 		<div class="internal-links">
-			<HeaderLink href="/">首页</HeaderLink>
-			<HeaderLink href="/world">世界观</HeaderLink>
-			<HeaderLink href="/characters">角色</HeaderLink>
-			<HeaderLink href="/blog">随笔</HeaderLink>
-			<HeaderLink href="/about">关于</HeaderLink>
+			{links.map((link) => <HeaderLink href={link.href}>{link.label}</HeaderLink>)}
 		</div>
 		<div class="social-links">
 			<a href={GITHUB_URL} target="_blank" rel="noreferrer">
 				<span class="sr-only">GitHub</span>
-				<svg viewBox="0 0 16 16" aria-hidden="true" width="28" height="28">
+				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24">
 					<path
 						fill="currentColor"
 						d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
@@ -32,8 +40,12 @@ import HeaderLink from './HeaderLink.astro';
 	header {
 		margin: 0;
 		padding: 0 1em;
-		background: white;
-		box-shadow: 0 2px 8px rgba(var(--black), 5%);
+		background: rgba(16, 31, 46, 88%);
+		backdrop-filter: blur(10px);
+		border-bottom: 1px solid rgb(var(--gray-light));
+		position: sticky;
+		top: 0;
+		z-index: 20;
 	}
 	h2 {
 		margin: 0;
@@ -44,22 +56,31 @@ import HeaderLink from './HeaderLink.astro';
 	h2 a.active {
 		text-decoration: none;
 	}
+	h2 a:hover {
+		color: var(--glow);
+	}
 	nav {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1em;
+		gap: 0.8em;
 		flex-wrap: wrap;
 	}
 	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
+		padding: 0.95em 0.45em;
+		font-size: 0.95em;
+		color: rgb(var(--black));
+		border-bottom: 3px solid transparent;
 		text-decoration: none;
+		white-space: nowrap;
+	}
+	nav a:hover {
+		color: var(--glow);
 	}
 	nav a.active {
 		text-decoration: none;
-		border-bottom-color: var(--accent);
+		border-bottom-color: var(--glow);
+		color: var(--glow);
 	}
 	.internal-links {
 		display: flex;
@@ -69,10 +90,16 @@ import HeaderLink from './HeaderLink.astro';
 	.social-links a {
 		display: flex;
 	}
-	@media (max-width: 720px) {
-		nav a {
-			padding: 0.7em 0.4em;
+	@media (max-width: 900px) {
+		h2 {
 			font-size: 0.9em;
+		}
+		nav a {
+			padding: 0.6em 0.4em;
+			font-size: 0.85em;
+		}
+		nav {
+			justify-content: flex-start;
 		}
 		.social-links {
 			display: none;
