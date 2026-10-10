@@ -70,6 +70,28 @@ const eden = await getCollection('eden', ({ data }) => !data.draft);
 				font-size: 0.82em;
 				color: var(--accent);
 			}
+			/* 外链型卡片：整张不可点，入口是一排小链接 */
+			.card .links {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5em;
+				margin-top: 1.1em;
+			}
+			.card .links a {
+				padding: 0.3em 0.85em;
+				border-radius: 999px;
+				font-size: 0.8em;
+				text-decoration: none;
+				color: var(--accent);
+				background: rgba(175, 255, 255, 6%);
+				border: 1px solid rgba(175, 255, 255, 22%);
+				transition: 0.15s ease;
+			}
+			.card .links a:hover {
+				color: #06121a;
+				background: var(--glow);
+				border-color: var(--glow);
+			}
 			.home {
 				margin-top: 3em;
 				padding-top: 1.4em;
@@ -91,14 +113,19 @@ const eden = await getCollection('eden', ({ data }) => !data.draft);
 				<a href="/worldview/">水塔夜谈</a>。
 			</p>
 
-			<a class="card" href="https://blophy.com/" target="_blank" rel="noreferrer">
+			<div class="card">
 				<span class="kind">音游</span>
 				<h2>Blophy 方菱律动</h2>
 				<p>
-					一款音乐节奏游戏。我负责的音游企划，详情、曲目与下载都在官网 —— 这里只放个入口。
+					一款音乐节奏游戏。我在其中担任<strong>主催</strong>与<strong>外交</strong>。详情、角色与下载都在官网，这里只放个入口。
 				</p>
-				<span class="more">去 blophy.com 看看 →</span>
-			</a>
+				<span class="links">
+					<a href="https://blophy.com/" target="_blank" rel="noreferrer">官网</a>
+					<a href="https://blophy.com/more" target="_blank" rel="noreferrer">更多</a>
+					<a href="https://blophy.com/characters" target="_blank" rel="noreferrer">角色</a>
+					<a href="https://blophy.com/profile" target="_blank" rel="noreferrer">简介</a>
+				</span>
+			</div>
 
 			<a class="card" href="/project/eden/">
 				<span class="kind">群创 · 末日</span>
