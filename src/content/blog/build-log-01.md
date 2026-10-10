@@ -2,6 +2,7 @@
 title: '站搭起来了，然后呢'
 description: '基本功能跑通了，接下来是「怎么让它好看一点」。'
 pubDate: '2026-10-10'
+heroImage: '../../assets/oc/build-log-01.webp'
 ---
 
 2026 年 10 月 10 日 23:07
