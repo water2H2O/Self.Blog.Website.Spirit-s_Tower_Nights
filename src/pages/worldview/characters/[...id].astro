@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getCollection, getEntry, render } from 'astro:content';
 import gallery from '../../../data/gallery-meta.json';
+import GalleryWall from '../../../components/GalleryWall.astro';
 import DetailPage from '../../../layouts/DetailPage.astro';
 import { publishedEpisodes } from '../../../lib/stories';
 
@@ -61,17 +62,40 @@ const episodes = (await publishedEpisodes()).filter((episode) =>
 	episode.data.characters.some((ref) => ref.id === entry.id),
 );
 
-/** 画作：从画廊图池里按角色抽（标注见 src/data/gallery-meta.json） */
+/**
+ * 画作：从画廊图池里按角色取（标注见 src/data/gallery-meta.json）。
+ * 和画廊同一套展示模式，且**不排除任何分类** —— 表情包、鼠标指针这些也一起铺，
+ * 角色页讲究的是「这个人的东西都在这儿」。
+ */
 const POOL = path.join(process.cwd(), 'public', 'gallery');
 const galleryMeta =
-	(gallery as { items?: Record<string, { character?: string; kind?: string; title?: string }> }).items ?? {};
+	(gallery as {
+		items?: Record<
+			string,
+			{ character?: string; kind?: string; title?: string; ownership?: string; owner?: string; w?: number; h?: number }
+		>;
+	}).items ?? {};
+const myName = entry.data.name;
 const artworks = fs.existsSync(POOL)
 	? fs
 			.readdirSync(POOL)
 			.filter((file) => /\.webp$/i.test(file))
 			.sort()
 			.map((file) => ({ file, ...(galleryMeta[file] ?? {}) }))
-			.filter((item) => item.character === entry.data.name)
+			// 宽松匹配：条目里的名字可能比图池里的更长（例如「莉莉安娜·萨拉姆博」）
+			.filter((item) => {
+				const name = item.character ?? '';
+				return name !== '' && (name === myName || name.includes(myName) || myName.includes(name));
+			})
+			.map((item) => ({
+				url: `/gallery/${encodeURIComponent(item.file)}`,
+				ar: item.w && item.h ? Number((item.w / item.h).toFixed(3)) : 1,
+				ownership: item.ownership ?? '其他',
+				owner: item.owner ?? '',
+				kind: item.kind ?? '其他',
+				character: item.character ?? '',
+				title: item.title ?? '',
+			}))
 	: [];
 
 /** 人际关系 */
@@ -129,21 +153,8 @@ if (relations.length > 0) {
 				{artworks.length > 0 && (
 					<>
 						<h2>画作（{artworks.length}）</h2>
-						<ul class="artworks">
-							{artworks.map((art) => (
-								<li>
-									<a href="/worldview/gallery/" title={art.title || art.kind}>
-										<img
-											src={`/gallery/${encodeURIComponent(art.file)}`}
-											alt={art.title || `${entry.data.name} ${art.kind ?? ''}`}
-											loading="lazy"
-											decoding="async"
-										/>
-										<span class="kind">{art.kind}</span>
-									</a>
-								</li>
-							))}
-						</ul>
+						<p class="hint">和画廊同一套展示：每次打开随机铺墙，点开看大图。表情包与周边素材也一并放在这里。</p>
+						<GalleryWall items={artworks} minHeight={260} />
 					</>
 				)}
 				{episodes.length > 0 && (
@@ -222,48 +233,11 @@ if (relations.length > 0) {
 		font-size: 0.8em;
 		opacity: 0.65;
 	}
-	/* 画作缩略图墙 */
-	.related .artworks {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-		gap: 0.7em;
-	}
-	.related .artworks li {
-		margin: 0;
-	}
-	.related .artworks a {
-		position: relative;
-		display: block;
-		border-radius: 10px;
-		overflow: hidden;
-		border: 1px solid rgb(var(--gray-light));
-		transition: 0.18s ease;
-	}
-	.related .artworks a:hover {
-		border-color: rgba(175, 255, 255, 45%);
-		box-shadow: var(--glow-shadow);
-	}
-	.related .artworks img {
-		display: block;
-		width: 100%;
-		aspect-ratio: 1;
-		object-fit: cover;
-	}
-	.related .artworks .kind {
-		position: absolute;
-		left: 6px;
-		bottom: 5px;
-		margin: 0;
-		padding: 2px 6px;
-		border-radius: 6px;
-		font-size: 10px;
-		opacity: 1;
-		color: rgba(255, 255, 255, 85%);
-		background: rgba(4, 12, 20, 45%);
-		backdrop-filter: blur(2px);
+	.related .hint {
+		margin: 0.4em 0 0;
+		font-size: 0.82em;
+		line-height: 1.7;
+		color: rgb(var(--gray));
 	}
 	@media (max-width: 720px) {
 		.relations li {

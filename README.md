@@ -379,6 +379,9 @@ node tools/build-gallery-pool.mjs --dry-run  # 只看会做什么
 - 页面每次打开随机抽 `SAMPLE_SIZE` 张（在 `src/pages/worldview/gallery/index.astro` 里改），
   大小、横竖、顺序都随机
 - 水印是**页面叠加**的：截图带，右键另存的原图不带
+- 照片墙本身是共享组件 [`src/components/GalleryWall.astro`](src/components/GalleryWall.astro)：
+  画廊页与角色页用的是同一套（随机抽样、随机大小、水印、灯箱），后者不显示筛选按钮、
+  也不排除任何分类（表情包与指针素材在角色页会一并铺开）
 
 ### 站点图标与分享图
 

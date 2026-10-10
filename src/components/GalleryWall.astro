@@ -1,0 +1,415 @@
+---
+/**
+ * 照片墙：画廊页与角色页共用同一套展示模式。
+ * - 每次打开随机抽 N 张，大小 / 横竖 / 顺序都随机
+ * - 右下角叠页面水印（只在页面上，另存的原图不带）
+ * - 点开有灯箱，显示角色、分类、归属与设主
+ * - showFilters 打开时带归属筛选按钮（画廊用；角色页不需要）
+ *
+ * 同一页可以放多个实例，脚本按 .wall-wrap 逐个初始化。
+ */
+import { SITE_AUTHOR, SITE_TITLE } from '../consts';
+
+export interface WallItem {
+	url: string;
+	/** 宽高比（宽 / 高），决定格子高度 */
+	ar: number;
+	ownership: string;
+	owner: string;
+	kind: string;
+	character: string;
+	title: string;
+}
+
+interface Props {
+	items: WallItem[];
+	/** 每次展示多少张，默认全部 */
+	sampleSize?: number;
+	showFilters?: boolean;
+	watermark?: string;
+	/** 容器最小高度，避免图少时太扁 */
+	minHeight?: number;
+	/** 是否按类型限制尺寸（画廊里表情包限成小方块；角色页不限制） */
+	kindSizing?: boolean;
+	/** 空状态的提示文字 */
+	emptyText?: string;
+}
+
+const {
+	items,
+	sampleSize = items.length,
+	showFilters = false,
+	watermark = `${SITE_TITLE} · @${SITE_AUTHOR}`,
+	minHeight = 200,
+	kindSizing = false,
+	emptyText = '还没有图片。',
+} = Astro.props;
+
+const count = (predicate: (item: WallItem) => boolean) => items.filter(predicate).length;
+const filters = showFilters
+	? [
+			{ key: 'all', label: '全部', n: items.length },
+			{ key: '原创', label: '原创设定', n: count((i) => i.ownership === '原创') },
+			{ key: '联动', label: '联动设定', n: count((i) => i.ownership === '联动') },
+			{ key: '企划', label: '企划', n: count((i) => i.ownership === '企划') },
+			{ key: '其他', label: '其他', n: count((i) => i.ownership === '其他') },
+		].filter((f) => f.key === 'all' || f.n > 0)
+	: [];
+---
+
+{
+	items.length === 0 ? (
+		<p class="wall-empty">{emptyText}</p>
+	) : (
+		<div
+			class="wall-wrap"
+			data-sample={sampleSize}
+			data-kind-sizing={kindSizing ? '1' : '0'}
+			style={`--wall-min:${minHeight}px`}
+		>
+			{filters.length > 0 && (
+				<div class="filters">
+					{filters.map((filter, index) => (
+						<button type="button" data-filter={filter.key} aria-pressed={index === 0 ? 'true' : 'false'}>
+							{filter.label} <span>{filter.n}</span>
+						</button>
+					))}
+				</div>
+			)}
+
+			<div class="wall">
+				{items.map((item) => (
+					<figure
+						class="tile hidden"
+						data-ownership={item.ownership}
+						data-ar={item.ar}
+						data-url={item.url}
+						data-character={item.character}
+						data-owner={item.owner}
+						data-kind={item.kind}
+						data-title={item.title}
+					>
+						<img src={item.url} alt={item.title || `${item.character}${item.kind}`} loading="lazy" decoding="async" />
+						<span class="wm">{watermark}</span>
+						{item.ownership === '联动' && <span class="tag collab">联动</span>}
+						{item.ownership === '原创' && <span class="tag">原创</span>}
+						{item.ownership === '企划' && <span class="tag project">企划</span>}
+					</figure>
+				))}
+			</div>
+		</div>
+	)
+}
+
+<div class="lightbox">
+	<button class="close" type="button" aria-label="关闭">✕</button>
+	<img src="" alt="" />
+	<p class="caption"></p>
+</div>
+
+<style>
+	.wall-empty {
+		color: rgb(var(--gray));
+		font-size: 0.88em;
+	}
+
+	.filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5em;
+		margin: 1.2em 0 0.6em;
+	}
+	.filters button {
+		padding: 0.4em 0.95em;
+		border-radius: 999px;
+		font-size: 0.82em;
+		cursor: pointer;
+		color: rgb(var(--gray-dark));
+		background: var(--surface);
+		border: 1px solid rgb(var(--gray-light));
+		transition: 0.15s ease;
+	}
+	.filters button:hover {
+		border-color: rgba(175, 255, 255, 40%);
+		color: var(--glow);
+	}
+	.filters button[aria-pressed='true'] {
+		color: #06121a;
+		background: var(--glow);
+		border-color: var(--glow);
+	}
+	.filters button span {
+		opacity: 0.65;
+		font-size: 0.9em;
+	}
+
+	/* 瀑布流：位置由脚本算，尺寸随机 */
+	.wall {
+		position: relative;
+		margin-top: 0.8em;
+		min-height: var(--wall-min);
+		opacity: 0;
+		transition: opacity 0.35s ease;
+	}
+	.wall.ready {
+		opacity: 1;
+	}
+	.tile {
+		position: absolute;
+		top: 0;
+		left: 0;
+		overflow: hidden;
+		border-radius: 12px;
+		background: var(--surface);
+		border: 1px solid rgb(var(--gray-light));
+		cursor: zoom-in;
+		transition:
+			box-shadow 0.18s ease,
+			border-color 0.18s ease;
+	}
+	.tile:hover {
+		border-color: rgba(175, 255, 255, 45%);
+		box-shadow: var(--glow-shadow);
+	}
+	.tile img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	/* 页面水印：只在页面上叠加，另存的原图不带 */
+	.tile .wm {
+		position: absolute;
+		right: 6px;
+		bottom: 5px;
+		font-size: 10px;
+		line-height: 1;
+		padding: 3px 6px;
+		border-radius: 6px;
+		letter-spacing: 0.04em;
+		color: rgba(255, 255, 255, 82%);
+		background: rgba(4, 12, 20, 42%);
+		backdrop-filter: blur(2px);
+		pointer-events: none;
+		user-select: none;
+	}
+	.tile .tag {
+		position: absolute;
+		left: 6px;
+		top: 6px;
+		font-size: 10px;
+		line-height: 1;
+		padding: 3px 6px;
+		border-radius: 6px;
+		color: #06121a;
+		background: rgba(175, 255, 255, 85%);
+		pointer-events: none;
+	}
+	.tile .tag.collab {
+		color: #2a1a00;
+		background: rgba(255, 214, 138, 92%);
+	}
+	.tile .tag.project {
+		color: #05230f;
+		background: rgba(150, 255, 178, 92%);
+	}
+	.hidden {
+		display: none !important;
+	}
+
+	/* 灯箱 */
+	.lightbox {
+		position: fixed;
+		inset: 0;
+		z-index: 60;
+		display: none;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		gap: 0.8em;
+		padding: 3vh 3vw;
+		background: rgba(3, 8, 14, 92%);
+		backdrop-filter: blur(6px);
+	}
+	.lightbox.open {
+		display: flex;
+	}
+	.lightbox img {
+		max-width: 92vw;
+		max-height: 78vh;
+		border-radius: 12px;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 55%);
+	}
+	.lightbox .caption {
+		font-size: 0.86em;
+		color: rgb(var(--gray-dark));
+		text-align: center;
+		line-height: 1.7;
+	}
+	.lightbox .caption b {
+		color: var(--glow);
+		font-weight: 400;
+	}
+	.lightbox .close {
+		position: absolute;
+		top: 2vh;
+		right: 3vw;
+		width: 42px;
+		height: 42px;
+		border-radius: 50%;
+		font-size: 1.2em;
+		cursor: pointer;
+		color: var(--glow);
+		background: rgba(175, 255, 255, 10%);
+		border: 1px solid rgba(175, 255, 255, 35%);
+	}
+</style>
+
+<script>
+	const GAP = 12;
+
+	/** 归属筛选后重新抽样；角色页没有筛选按钮，就只抽样一次 */
+	function setupWall(wrap: HTMLElement) {
+		const wall = wrap.querySelector<HTMLElement>('.wall');
+		if (!wall) return;
+		const tiles = Array.from(wall.querySelectorAll<HTMLElement>('.tile'));
+		const filters = wrap.querySelector<HTMLElement>('.filters');
+		const sampleSize = Number(wrap.dataset.sample) || tiles.length;
+		const kindSizing = wrap.dataset.kindSizing === '1';
+
+		/** 每张图的宽度档位：1 = 一列，2 = 两列（大图） */
+		const sizeOf = (tile: HTMLElement) => {
+			if (kindSizing && tile.dataset.kind === '表情包') return 1;
+			const ar = Number(tile.dataset.ar) || 1;
+			const wide = ar > 1.25 ? Math.random() < 0.55 : Math.random() < 0.15;
+			const big = Math.random() < 0.22;
+			return wide || big ? 2 : 1;
+		};
+
+		/** 每类图的尺寸区间（相对宽度）；不限制时就放开 */
+		const ratioRange = (tile: HTMLElement): [number, number] => {
+			if (kindSizing && tile.dataset.kind === '表情包') return [0.85, 1];
+			return [0.55, 1.9];
+		};
+
+		/** 从当前放行的图里随机抽 sampleSize 张 */
+		function sample(): HTMLElement[] {
+			const pool = tiles.filter((tile) => tile.dataset.enabled !== '0');
+			for (let i = pool.length - 1; i > 0; i -= 1) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[pool[i], pool[j]] = [pool[j], pool[i]];
+			}
+			return pool.slice(0, Math.min(sampleSize, pool.length));
+		}
+
+		/** 瀑布流排版：每张按随机宽度与自身比例算高，塞进当前最矮的位置 */
+		function layout(list: HTMLElement[]) {
+			const width = wall.clientWidth;
+			if (!width) return;
+			const cols = Math.max(2, Math.min(6, Math.round(width / 240)));
+			const colW = (width - GAP * (cols - 1)) / cols;
+			const heights = new Array(cols).fill(0);
+
+			for (const tile of list) {
+				const span = Math.min(sizeOf(tile), cols);
+				const tileW = colW * span + GAP * (span - 1);
+				const ar = Number(tile.dataset.ar) || 1;
+				const [minRatio, maxRatio] = ratioRange(tile);
+				const tileH = Math.round(Math.min(Math.max(tileW / ar, tileW * minRatio), tileW * maxRatio));
+
+				let best = 0;
+				let bestY = Infinity;
+				for (let c = 0; c + span <= cols; c += 1) {
+					let y = 0;
+					for (let k = 0; k < span; k += 1) y = Math.max(y, heights[c + k]);
+					if (y < bestY) {
+						bestY = y;
+						best = c;
+					}
+				}
+
+				tile.style.width = `${tileW}px`;
+				tile.style.height = `${tileH}px`;
+				tile.style.transform = `translate(${Math.round(best * (colW + GAP))}px, ${Math.round(bestY)}px)`;
+				for (let k = 0; k < span; k += 1) heights[best + k] = bestY + tileH + GAP;
+			}
+
+			wall.style.height = `${Math.max(...heights, 0)}px`;
+			wall.classList.add('ready');
+		}
+
+		let current: HTMLElement[] = [];
+
+		function render() {
+			for (const tile of tiles) tile.classList.add('hidden');
+			current = sample();
+			for (const tile of current) tile.classList.remove('hidden');
+			layout(current);
+		}
+
+		for (const tile of tiles) tile.dataset.enabled = '1';
+
+		if (filters) {
+			filters.addEventListener('click', (event) => {
+				const button = (event.target as HTMLElement).closest('button');
+				if (!button) return;
+				const active = button.dataset.filter ?? 'all';
+				for (const other of filters.querySelectorAll('button')) {
+					other.setAttribute('aria-pressed', String(other === button));
+				}
+				for (const tile of tiles) {
+					tile.dataset.enabled = active === 'all' || tile.dataset.ownership === active ? '1' : '0';
+				}
+				render();
+			});
+		}
+
+		render();
+
+		let timer = 0;
+		window.addEventListener('resize', () => {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(() => layout(current), 150);
+		});
+	}
+
+	/** 灯箱：整页共用一个（多个墙实例共用同一个灯箱） */
+	function setupLightbox() {
+		const lightbox = document.querySelector<HTMLElement>('.lightbox');
+		if (!lightbox) return;
+		const img = lightbox.querySelector('img');
+		const caption = lightbox.querySelector<HTMLElement>('.caption');
+		const close = () => lightbox.classList.remove('open');
+
+		document.addEventListener('click', (event) => {
+			const target = event.target as HTMLElement;
+			const tile = target.closest<HTMLElement>('.tile');
+			if (!tile || !img || !caption) return;
+			const parts: string[] = [];
+			if (tile.dataset.title) parts.push(`<b>${tile.dataset.title}</b>`);
+			if (tile.dataset.character) parts.push(tile.dataset.character);
+			if (tile.dataset.kind) parts.push(tile.dataset.kind);
+			if (tile.dataset.ownership === '联动') {
+				parts.push(`联动设定 · 设主：${tile.dataset.owner || '待补'}`);
+			} else if (tile.dataset.ownership === '原创') {
+				parts.push('原创设定');
+			} else if (tile.dataset.ownership === '企划') {
+				parts.push('企划');
+			}
+			img.src = tile.dataset.url ?? '';
+			caption.innerHTML = parts.join(' · ');
+			lightbox.classList.add('open');
+		});
+
+		lightbox.querySelector('.close')?.addEventListener('click', close);
+		lightbox.addEventListener('click', (event) => {
+			if (event.target === lightbox) close();
+		});
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') close();
+		});
+	}
+
+	for (const wrap of document.querySelectorAll<HTMLElement>('.wall-wrap')) setupWall(wrap);
+	setupLightbox();
+</script>
