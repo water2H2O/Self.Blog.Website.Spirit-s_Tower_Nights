@@ -28,9 +28,12 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			}
 			.hero-image {
 				width: 100%;
+				margin: 0 0 1.8em;
 			}
 			.hero-image img {
 				display: block;
+				width: 100%;
+				height: auto;
 				margin: 0 auto;
 				border-radius: 12px;
 				box-shadow: var(--box-shadow);
@@ -65,9 +68,6 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<Header />
 		<main>
 			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} src={heroImage} alt="" />}
-				</div>
 				<div class="prose">
 					<div class="title">
 						<div class="date">
@@ -81,6 +81,12 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 						<h1>{title}</h1>
 						<hr />
 					</div>
+					{/* 配图放在日期与标题**下面**，先见标题再见图 */}
+					{heroImage && (
+						<div class="hero-image">
+							<Image width={720} src={heroImage} alt="" />
+						</div>
+					)}
 					<slot />
 				</div>
 			</article>
