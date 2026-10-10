@@ -20,6 +20,7 @@ const {
 	artistUrl,
 	illustrator,
 	illustratorUrl,
+	videoCredit,
 	cover,
 	audio,
 	audioAlt,
@@ -360,6 +361,14 @@ const relatedCharacters = (
 										illustrator
 									)}
 								</dd>
+							</span>
+						)
+					}
+					{
+						videoCredit && (
+							<span class="pair">
+								<dt>视频制作</dt>
+								<dd>{videoCredit}</dd>
 							</span>
 						)
 					}

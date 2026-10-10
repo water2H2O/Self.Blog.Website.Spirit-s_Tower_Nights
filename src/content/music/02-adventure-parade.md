@@ -4,10 +4,13 @@ number: 2
 artist: ああああ
 artistUrl: 'https://x.com/q07a_'
 illustrator: 茶地XD
+videoCredit: '@轩轩七不饱'
 cover: '../../assets/oc/music/02-adventure-parade.webp'
 audio: '/audio/02-adventure-parade.mp3'
 duration: '2:18'
 characters: ['miaomiao']
+pvUrl: 'https://www.bilibili.com/video/BV1xVctz3EXA'
+note: '站内视频为动态壁纸预告片（23 秒）；4K / 1080P 壁纸可在 PV 简介里获取。'
 themeColor: '#AFFFFF'
 order: 20
 ---

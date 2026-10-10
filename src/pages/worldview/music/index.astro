@@ -31,8 +31,8 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			}
 			.track {
 				display: grid;
-				grid-template-columns: 150px 1fr;
-				gap: 1.3em;
+				grid-template-columns: 320px 1fr;
+				gap: 1.4em;
 				padding: 1em;
 				border-radius: 14px;
 				background: var(--surface);
@@ -43,18 +43,20 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 				border-color: rgba(175, 255, 255, 38%);
 				box-shadow: var(--glow-shadow);
 			}
-			/* 曲绘预览：列表里收成左侧小图，详情页才放大展示 */
+			/* 曲绘预览：撑满整行高度（详情页另有全图展示） */
 			.cover {
 				position: relative;
 				display: block;
 				border-radius: 10px;
 				overflow: hidden;
-				align-self: start;
+				align-self: stretch;
+				min-height: 176px;
 			}
 			.cover :global(img) {
 				display: block;
 				width: 100%;
-				height: auto;
+				height: 100%;
+				object-fit: cover;
 				border-radius: 10px;
 			}
 			.cover::after {
@@ -111,8 +113,11 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			}
 			@media (max-width: 640px) {
 				.track {
-					grid-template-columns: 110px 1fr;
+					grid-template-columns: 210px 1fr;
 					gap: 1em;
+				}
+				.cover {
+					min-height: 130px;
 				}
 				.info h2 {
 					font-size: 1.15em;

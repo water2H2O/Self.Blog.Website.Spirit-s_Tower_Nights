@@ -179,6 +179,8 @@ const music = defineCollection({
 			illustrator: z.string().optional(),
 			/** 画师主页（可选） */
 			illustratorUrl: z.string().url().optional(),
+			/** 视频 / 动态制作署名（部分曲目另有专人） */
+			videoCredit: z.string().optional(),
 			cover: z.optional(image()),
 			/** 站内音频（MP3，全平台通用，含 Safari/iOS）。以 / 开头即指向 public/ 下的文件 */
 			audio: z.string().optional(),
