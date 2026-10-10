@@ -170,6 +170,40 @@ characters: ['miaomiao']
 ---
 ```
 
+### 回响之殿：曲目与「小故事」
+
+每首曲目一个文件，正文部分就是详情页上的「小故事」：
+
+```md
+---
+title: Snowflower
+number: 4
+artist: Halv                   # 曲师
+artistUrl: 'https://…'         # 曲师主页，填了以后曲师名可点击
+illustrator: 茶地XD            # 曲绘画师
+illustratorUrl: 'https://…'    # 可选
+cover: '../../assets/oc/music/04-snowflower.webp'
+audio: '/audio/04-snowflower.mp3'
+duration: '2:37'
+characters: ['miaomiao']       # 关联角色，会在详情页下方显示简介
+pvUrl: 'https://www.bilibili.com/video/…'
+themeColor: '#AFFFFF'
+---
+
+## 小故事
+
+飒岚：水水快看！穿过这片云——\
+淼渺：（小声）我、我还是怕高……\
+（行尾的反斜杠是 markdown 硬换行，见下）
+```
+
+**换行规则（重要）**：markdown 会把连续几行合并成一个段落，所以
+
+- **对话**：每行末尾加一个反斜杠 `\`，就会严格按行渲染（同一段内换行，间距紧凑）
+- **旁白/散文**：段落之间空一行，就是独立的段落
+
+两种可以混用：对话写成一组带 `\` 的连续行，旁白之间空行分段。
+
 ### 吃书防线：`canon` 三档
 
 | 值 | 含义 | 站点表现 |

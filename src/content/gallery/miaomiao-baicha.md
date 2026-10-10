@@ -1,4 +1,4 @@
-﻿---
+---
 title: 拍立得 · 水水 × 白茶
 image: '../../assets/oc/gallery/miaomiao-baicha.webp'
 kind: 插画

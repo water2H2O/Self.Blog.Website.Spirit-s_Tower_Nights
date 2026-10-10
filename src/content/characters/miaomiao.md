@@ -1,4 +1,4 @@
-﻿---
+---
 name: 淼渺
 race: 'elemental-spirit'
 aliases: ['水水']
