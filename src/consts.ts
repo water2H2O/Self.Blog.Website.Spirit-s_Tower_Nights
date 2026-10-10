@@ -23,3 +23,19 @@ export const WORLDVIEW_BASE = '/worldview';
 
 /** 社交链接：只放真实存在的 */
 export const GITHUB_URL = 'https://github.com/water2H2O';
+export const GITHUB_NAME = 'water2H2O';
+
+/** B 站（音乐 PV、表情包小剧场） */
+export const BILIBILI_URL = 'https://space.bilibili.com/433383827';
+export const BILIBILI_NAME = '淼渺_Water2H2O';
+
+/** 联系邮箱（授权、转载、合作） */
+export const EMAIL = 'ss.water2h2o@gmail.com';
+
+/**
+ * QQ 群。
+ * 加群链接用 qm.qq.com 的 groupcode 形式 —— 这个不需要腾讯后台生成的 key，
+ * 填群号即可跳转（已实测返回 200）。
+ */
+export const QQ_GROUP = '1074706241';
+export const QQ_GROUP_URL = `https://qm.qq.com/cgi-bin/qm/qr?k=&groupcode=${QQ_GROUP}`;

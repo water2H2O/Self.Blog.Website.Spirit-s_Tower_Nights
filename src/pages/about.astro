@@ -1,7 +1,18 @@
 ---
 import AboutHeroImage from '../assets/oc/about-hero.webp';
 import Layout from '../layouts/BlogPost.astro';
-import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../consts';
+import {
+	BILIBILI_NAME,
+	BILIBILI_URL,
+	EMAIL,
+	GITHUB_NAME,
+	GITHUB_URL,
+	PROJECT_SUBTITLE,
+	PROJECT_TITLE,
+	QQ_GROUP,
+	QQ_GROUP_URL,
+	SITE_AUTHOR,
+} from '../consts';
 ---
 
 <Layout
@@ -79,17 +90,19 @@ import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../con
 	<h2>联系</h2>
 	<ul>
 		<li>
-			邮箱：<a href="mailto:ss.water2h2o@gmail.com">ss.water2h2o@gmail.com</a>
+			邮箱：<a href={`mailto:${EMAIL}`}>{EMAIL}</a>
 			（授权、转载、合作都发这里）
 		</li>
 		<li>
-			B 站：<a href="https://space.bilibili.com/433383827" target="_blank" rel="noreferrer"
-				>淼渺_Water2H2O</a
-			>
+			B 站：<a href={BILIBILI_URL} target="_blank" rel="noreferrer">{BILIBILI_NAME}</a>
 			（音乐 PV、表情包小剧场都在那边）
 		</li>
 		<li>
-			GitHub：<a href={GITHUB_URL}>{GITHUB_URL.replace('https://github.com/', '')}</a>
+			GitHub：<a href={GITHUB_URL} target="_blank" rel="noreferrer">{GITHUB_NAME}</a>
+		</li>
+		<li>
+			QQ 群：<a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">{QQ_GROUP}</a>
+			（点群号直接加群）
 		</li>
 	</ul>
 </Layout>

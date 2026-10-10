@@ -1,8 +1,24 @@
 ---
-import { GITHUB_URL, SITE_AUTHOR } from '../consts';
+import {
+	BILIBILI_NAME,
+	BILIBILI_URL,
+	EMAIL,
+	GITHUB_URL,
+	QQ_GROUP,
+	QQ_GROUP_URL,
+	SITE_AUTHOR,
+} from '../consts';
 
 const today = new Date();
 const CC_URL = 'https://creativecommons.org/licenses/by/4.0/deed.zh';
+
+/** 页脚的社交入口：图标即链接 */
+const links = [
+	{ href: `mailto:${EMAIL}`, label: `邮箱 ${EMAIL}`, name: '邮箱' },
+	{ href: BILIBILI_URL, label: `B 站 ${BILIBILI_NAME}`, name: 'B 站' },
+	{ href: GITHUB_URL, label: `GitHub ${SITE_AUTHOR}`, name: 'GitHub' },
+	{ href: QQ_GROUP_URL, label: `QQ 群 ${QQ_GROUP}（点这里加群）`, name: 'QQ 群' },
+];
 ---
 
 <footer>
@@ -14,15 +30,46 @@ const CC_URL = 'https://creativecommons.org/licenses/by/4.0/deed.zh';
 		详见 <a href="/license/">授权说明</a>。
 	</p>
 	<div class="social-links">
-		<a href={GITHUB_URL} target="_blank" rel="noreferrer">
-			<span class="sr-only">GitHub</span>
-			<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24">
-				<path
-					fill="currentColor"
-					d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-				></path>
-			</svg>
-		</a>
+		{
+			links.map((link) => (
+				<a href={link.href} target="_blank" rel="noreferrer" title={link.label} aria-label={link.label}>
+					{link.name === '邮箱' && (
+						<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+							<rect x="2.6" y="5.4" width="18.8" height="13.2" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7" />
+							<path d="M3.6 6.6 12 13l8.4-6.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+						</svg>
+					)}
+					{link.name === 'B 站' && (
+						<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+							<path
+								fill="currentColor"
+								d="M7.7 2.9a1 1 0 0 1 1.4 1.4l-.7.7h7.2l-.7-.7a1 1 0 1 1 1.4-1.4l2.1 2.1h.2A3.4 3.4 0 0 1 22 8.4v8.2a3.4 3.4 0 0 1-3.4 3.4H5.4A3.4 3.4 0 0 1 2 16.6V8.4a3.4 3.4 0 0 1 3.4-3.4h.2zM5.4 6.9A1.6 1.6 0 0 0 3.8 8.4v8.2a1.6 1.6 0 0 0 1.6 1.6h13.2a1.6 1.6 0 0 0 1.6-1.6V8.4a1.6 1.6 0 0 0-1.6-1.6z"
+							/>
+							<circle cx="9.1" cy="12.2" r="1.35" fill="currentColor" />
+							<circle cx="14.9" cy="12.2" r="1.35" fill="currentColor" />
+						</svg>
+					)}
+					{link.name === 'GitHub' && (
+						<svg viewBox="0 0 16 16" aria-hidden="true" width="22" height="22">
+							<path
+								fill="currentColor"
+								d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+							/>
+						</svg>
+					)}
+					{link.name === 'QQ 群' && (
+						<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+							<path
+								fill="currentColor"
+								d="M12 2.8c4.9 0 8.9 3.2 8.9 7.2 0 2.3-1.3 4.3-3.3 5.6l.9 3.6a.6.6 0 0 1-.9.65l-3.4-1.9c-.7.13-1.4.2-2.2.2-4.9 0-8.9-3.2-8.9-7.2S7.1 2.8 12 2.8z"
+							/>
+							<circle cx="8.9" cy="9.6" r="1.25" fill="var(--bg, #0b1118)" />
+							<circle cx="15.1" cy="9.6" r="1.25" fill="var(--bg, #0b1118)" />
+						</svg>
+					)}
+				</a>
+			))
+		}
 	</div>
 </footer>
 <style>
