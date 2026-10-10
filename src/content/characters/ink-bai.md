@@ -11,6 +11,7 @@ portrait: '../../assets/oc/characters/ink-bai.webp'
 pronouns: 女
 age: 外表20，本质未知/永恒（诞生于时间长河，无生老病死概念）
 tags: ['猫亚人', '观测者', '时间']
+lore: ['fate-triad', 'time-loop', 'celestial-infernal']
 canon: open
 order: 20
 ---

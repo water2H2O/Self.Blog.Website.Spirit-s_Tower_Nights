@@ -7,6 +7,20 @@ aliases: ['醉酒的星辰']
 summary: 人类最顶尖的空间魔女，终日在醉与微醺之间游荡。她视旧元素与新生瘴素、晶体为世界不同的“语法”，把“有趣”当作唯一的行动准则。
 portrait: '../../assets/oc/characters/viola.webp'
 tags: ['魔女', '空间魔法', '观察者']
+lore: ['borderland', 'silver-federation']
+relations:
+  - to: 'miaomiao'
+    note: '她从血族皇宫带出来、又送去北境的水精灵；如今她定期路过铃月镇，和淼渺做药剂交易'
+  - to: 'salan'
+    note: '铃月镇的风精灵发明家；交界地之行由她点名造出“共鸣器”，两人一路边吵边测数据'
+  - to: 'yingqi'
+    note: '圣盾追捕的实验体；她在云穹城邦替祈设局引蛇出洞，把祈从引渡表决里保了下来'
+  - to: 'baicha'
+    note: '见了面第一个扑过来喊“薇奥拉姐姐”的神界使小姑娘；她也总顺手揉揉白茶的脑袋'
+  - to: 'fengxi-lingyue'
+    note: '铃月镇的守护者，她带她走进交界地；在时空乱流里是她第一个扶住了快要倒下的铃月'
+  - to: 'liliana-salambo'
+    note: '蔷薇帝国的女皇，她的老相识；“人类与血族本不该有太多交集”，两人却总在彼此的摊子边上碰面'
 canon: open
 order: 90
 ---

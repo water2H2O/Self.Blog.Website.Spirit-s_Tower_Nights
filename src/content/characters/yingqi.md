@@ -9,6 +9,20 @@ portrait: '../../assets/oc/characters/yingqi.webp'
 pronouns: 女
 age: '14'
 tags: ['奇美拉', '人造生命', '逃亡者']
+lore: ['holy-shield', 'artifacts']
+relations:
+  - to: 'miaomiao'
+    note: '把她从失稳的剧痛里捞出来的药剂师；她攥着淼渺的衣角才肯睡'
+  - to: 'baicha'
+    note: '用“安抚之光”替她压住项圈发作的神界使；光和水的配合是她现在赖以撑住的临时方案'
+  - to: 'salan'
+    note: '收留她的同伴；飒岚围着她的外骨骼和项圈两眼放光，还替她破解了项圈的加密'
+  - to: 'fengxi-lingyue'
+    note: '铃月镇的守护者；她出逃后落脚铃月镇，铃月替她们把圣盾特别行动队挡在了边境线外'
+  - to: 'viola'
+    note: '星轨魔女；她在云穹城邦替祈设了一场“引蛇出洞”的戏，把祈从圣盾的引渡表决里保了下来'
+  - to: 'liliana-salambo'
+    note: '血族女皇；她在铃月镇外以“朋友的朋友的朋友”为由拦下圣盾，还托铃月带话说撑不住可以去找她'
 canon: open
 order: 30
 ---

@@ -5,6 +5,7 @@ ownership: 原创
 summary: 晶脉群系“调谐主脑”的人形化身，握有最高四级共鸣权限与整个群系的算力；一旦脱离母巢网络，本体却几乎没有自保能力，是所有势力觊觎的目标。
 height: 约1.67米（人类少女拟态）
 tags: ['晶裔', '网络节点', '指挥核心']
+lore: ['entropy-decay', 'miasma', 'holy-shield']
 canon: open
 order: 40
 ---

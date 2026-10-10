@@ -5,6 +5,18 @@ ownership: 原创
 summary: 风精灵出身的机械发明家，把风元素和齿轮、发条拼在一起造出各种“风动力机械”。大灾变留下的后遗症让她对“静止”生理性不适，只能不断移动与创造。
 portrait: '../../assets/oc/characters/salan.webp'
 tags: ['风精灵', '发明家', '旅行者']
+lore: ['cloudspire']
+relations:
+  - to: 'miaomiao'
+    note: '旅途中最重要的同伴：她一头撞坏了水塔，也硬把这位怕生的水精灵拉出了门'
+  - to: 'baicha'
+    note: '同行的小妹妹；白茶一口一个“飒岚姐姐”，连她哥哥也把给白茶的药葫芦托付给她'
+  - to: 'yingqi'
+    note: '同行的伙伴；她围着祈的外骨骼和项圈两眼放光，也一次次抢在前面把祈挡在身后'
+  - to: 'fengxi-lingyue'
+    note: '铃月镇的守护者，她一口一个“守护者”；去交界地时全靠这位带路'
+  - to: 'viola'
+    note: '星轨魔女；交界地之行由她点名让飒岚造出“共鸣器”，两人一路争论着数据'
 canon: open
 order: 10
 ---

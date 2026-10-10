@@ -6,6 +6,16 @@ summary: 光暗元素之神中“光”的那一半，如今已遗忘一切，�
 portrait: '../../assets/oc/characters/baicha.webp'
 pronouns: 女
 tags: ['神界使', '治愈', '光元素']
+lore: ['fate-triad', 'celestial-infernal', 'cataclysm']
+relations:
+  - to: 'miaomiao'
+    note: '同行的同伴；她第一次见面就认真记住了淼渺的名字，说她的力量“像泡在暖暖的泉水里”'
+  - to: 'salan'
+    note: '一口一个“飒岚姐姐”的同行者；云穹城邦和铃月镇之间都是飒岚带着她跑'
+  - to: 'yingqi'
+    note: '她用“安抚之光”替祈压住项圈发作，和淼渺一起做出了让祈撑下去的临时配方'
+  - to: 'viola'
+    note: '她口中的“薇奥拉姐姐”，见面第一个扑上去；薇奥拉也总爱揉她的头'
 canon: open
 order: 60
 ---

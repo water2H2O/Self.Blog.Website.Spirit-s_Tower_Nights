@@ -10,7 +10,20 @@ age: 不详（精灵寿命漫长，心理年龄与外表均显稚嫩）
 themeColor: '#AFFFFF'
 portrait: '../../assets/oc/characters/miaomiao-portrait.webp'
 tags: ['主角', '水精灵', '药剂师', '旅行者']
-lore: ['miasma']
+lore: ['miasma', 'artifacts', 'elf-arc']
+relations:
+  - to: 'liliana-salambo'
+    note: '把她从森林溪边带回蔷薇帝国皇宫、又为保护她把她关了七年的血族公主；她怯生生地喊她“莉莉安娜姐姐”'
+  - to: 'viola'
+    note: '把她带出蔷薇帝国、一路送往北境的星轨魔女；她喊她“魔女姐姐”，两人至今保持着药剂交易'
+  - to: 'salan'
+    note: '四处旅行、彼此照应的同伴；飒岚一头撞进她的水塔砸烂了瓶瓶罐罐，从此再没分开过'
+  - to: 'baicha'
+    note: '同行的同伴；白茶的光和她的水曾联手压住祈的戒断反应'
+  - to: 'yingqi'
+    note: '同行的伙伴；她用掺了水元素的药剂替祈压过失稳的剧痛，祈总攥着她的衣角才睡得着'
+  - to: 'fengxi-lingyue'
+    note: '铃月镇的守护者，她恭敬地称她“铃月大人”；在交界地她曾用水之力替她稳住躁动的月之力碎片'
 canon: locked
 order: 10
 ---

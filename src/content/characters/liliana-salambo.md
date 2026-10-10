@@ -7,6 +7,16 @@ title: 蔷薇帝国代理女皇、永夜蔷薇之主、冥血镰刀的女主人
 pronouns: 女
 summary: 蔷薇帝国的代理女皇，对外以慵懒无害的少女姿态示人，对内则是言语犀利、算无遗策的统治者。母亲失踪的阴影与冰冷的王座让她极度孤独，却绝不能示弱。
 portrait: '../../assets/oc/characters/liliana-salambo.webp'
+lore: ['miasma', 'silver-federation']
+relations:
+  - to: 'miaomiao'
+    note: '她一手带回皇宫、又在灾变后关了七年的水精灵药剂师；她喊她“莉莉安娜姐姐”，是这座冰冷王座上极少数会让她心软的存在'
+  - to: 'viola'
+    note: '偶尔会来皇宫庭院和她说话、能让她笑出声的星轨魔女；一个人类，却总在她的烂摊子边上出现'
+  - to: 'fengxi-lingyue'
+    note: '铃月镇的守护者，她认识已久；在铃月镇外与她一同逼退了圣盾，还说“第一次见你主动护人”'
+  - to: 'yingqi'
+    note: '圣盾通缉的 E7 实验体；她以“朋友的朋友的朋友”为由把圣盾挡了回去，还留话说撑不住可以来找她'
 canon: open
 order: 80
 ---

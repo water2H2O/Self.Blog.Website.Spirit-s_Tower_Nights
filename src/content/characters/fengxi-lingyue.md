@@ -6,6 +6,18 @@ owner: '风汐铃月'
 aliases: ['澪沫']
 summary: “冷月”神器破碎后重生的狼灵族村长，以与体内共生的月之力碎片守护村子。她已失去全部记忆与过去，力量与战斗本能却仍刻着前任继承者澪沫的影子。
 portrait: '../../assets/oc/characters/fengxi-lingyue.webp'
+lore: ['artifacts', 'elf-arc', 'borderland', 'silver-federation', 'miasma']
+relations:
+  - to: 'miaomiao'
+    note: '镇子里的水精灵药剂师；淼渺称她“铃月大人”，在交界地曾用水之力替她稳住躁动的碎片'
+  - to: 'salan'
+    note: '总在镇里捣鼓机械的天翼种工匠，一口一个“守护者”；前往交界地时由她带路'
+  - to: 'viola'
+    note: '定期路过铃月镇、并带她进交界地追寻真相的星轨魔女；也是她为数不多愿意听下去的“外人”'
+  - to: 'yingqi'
+    note: '被圣盾追捕、落脚铃月镇的孩子；铃月替她们一行把圣盾特别行动队挡在了边境线外'
+  - to: 'liliana-salambo'
+    note: '血族女皇；曾在铃月镇外被她一镰逼退（那时她还不知道对方的名字），后来两人在镇外一同逼退了圣盾'
 canon: open
 order: 50
 ---
