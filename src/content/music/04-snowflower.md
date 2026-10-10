@@ -4,7 +4,6 @@ number: 4
 artist: Halv
 artistUrl: 'https://x.com/Ha1uday0'
 illustrator: 飔暁あずみ
-videoCredit: '@扌免酉禾酱'
 cover: '../../assets/oc/music/04-snowflower.webp'
 audio: '/audio/04-snowflower.mp3'
 duration: '2:37'

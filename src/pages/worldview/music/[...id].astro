@@ -20,7 +20,6 @@ const {
 	artistUrl,
 	illustrator,
 	illustratorUrl,
-	videoCredit,
 	cover,
 	audio,
 	audioAlt,
@@ -137,9 +136,19 @@ const relatedCharacters = (
 				align-items: baseline;
 			}
 			.pv {
-				display: inline-block;
-				margin: 0.3em 0 0;
-				font-size: 0.85em;
+				flex: none;
+				padding: 0.45em 0.9em;
+				border-radius: 999px;
+				font-size: 0.78em;
+				text-decoration: none;
+				white-space: nowrap;
+				color: #ffe6ad;
+				background: rgba(255, 200, 90, 12%);
+				border: 1px solid rgba(255, 200, 90, 34%);
+				transition: 0.15s ease;
+			}
+			.pv:hover {
+				background: rgba(255, 200, 90, 24%);
 			}
 			.hint {
 				margin: 0.6em 0 0;
@@ -364,20 +373,7 @@ const relatedCharacters = (
 							</span>
 						)
 					}
-					{
-						videoCredit && (
-							<span class="pair">
-								<dt>视频制作</dt>
-								<dd>{videoCredit}</dd>
-							</span>
-						)
-					}
 				</dl>
-				{pvUrl && (
-					<p class="pv">
-						<a href={pvUrl} target="_blank" rel="noreferrer">观看 PV →</a>
-					</p>
-				)}
 				<p class="hint" id="hint" hidden>浏览器阻止了自动播放，点上面的 ▶ 或底部播放条开始。</p>
 			</header>
 
@@ -430,6 +426,9 @@ const relatedCharacters = (
 			<button class="toggle" type="button" id="toggle" aria-label="播放 / 暂停">▶</button>
 			<input class="seek" id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="播放进度" />
 			<span class="time"><span id="cur">0:00</span> / {duration ?? '--:--'}</span>
+			{pvUrl && (
+				<a class="pv" href={pvUrl} target="_blank" rel="noreferrer">观看 PV</a>
+			)}
 			<audio id="audio" src={audio} autoplay preload="auto"></audio>
 		</div>
 

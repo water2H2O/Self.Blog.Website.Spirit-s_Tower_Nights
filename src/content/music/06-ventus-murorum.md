@@ -4,7 +4,6 @@ number: 6
 artist: 米虾Fomiki
 artistUrl: 'https://space.bilibili.com/325873849'
 illustrator: 胖藤蛇13
-videoCredit: '@扌免酉禾酱'
 cover: '../../assets/oc/music/06-ventus-murorum.webp'
 audio: '/audio/06-ventus-murorum.mp3'
 duration: '2:15'

@@ -4,7 +4,6 @@ number: 2
 artist: ああああ
 artistUrl: 'https://x.com/q07a_'
 illustrator: 茶地XD
-videoCredit: '@轩轩七不饱'
 cover: '../../assets/oc/music/02-adventure-parade.webp'
 audio: '/audio/02-adventure-parade.mp3'
 duration: '2:18'

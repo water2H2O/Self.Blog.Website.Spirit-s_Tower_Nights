@@ -129,6 +129,13 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 		<Header />
 		<main>
 			<h1>回响之殿</h1>
+
+			<p class="notice">
+				<strong>本页音乐不适用 CC BY 4.0</strong>
+				—— 全部曲目均为与曲师合作的委托 / 共创作品，版权由各曲师与企划共同所有。
+				如需使用请先<a href="/license/">阅读授权说明</a>。
+			</p>
+
 			<ul class="tracks">
 				{
 					tracks.map((track) => (
@@ -172,20 +179,14 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 					))
 				}
 			</ul>
-
-			<p class="license-note">
-				<strong>本站音乐不适用 CC BY 4.0</strong>
-				—— 全部曲目为与曲师合作的委托 / 共创作品，版权由各曲师与企划共同所有。
-				如需使用请先<a href="/license/">阅读授权说明</a>。
-			</p>
 		</main>
 		<Footer />
 	</body>
 </html>
 
 <style>
-	.license-note {
-		margin-top: 2.5em;
+	.notice {
+		margin: 1em 0 0;
 		padding: 0.9em 1.1em;
 		border-radius: 12px;
 		font-size: 0.82em;
@@ -194,10 +195,10 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 		background: rgba(255, 200, 90, 8%);
 		border: 1px solid rgba(255, 200, 90, 28%);
 	}
-	.license-note strong {
+	.notice strong {
 		color: #ffe6ad;
 	}
-	.license-note a {
+	.notice a {
 		color: #ffe6ad;
 	}
 </style>
