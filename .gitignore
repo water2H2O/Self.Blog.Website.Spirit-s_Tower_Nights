@@ -25,3 +25,7 @@ pnpm-debug.log*
 
 # Í¼Æ¬Ñ¹ËõÔİ´æÇø£¨×÷ÕßÖØĞÂÃüÃû·Ö×éÇ°µÄÖĞ¼ä²úÎï£¬²»Èë¿â£©
 assets-staging/
+
+# Python å­—èŠ‚ç ç¼“å­˜ï¼ˆtools/extract-docx.py ç­‰ä¼šç”Ÿæˆï¼‰
+__pycache__/
+*.pyc

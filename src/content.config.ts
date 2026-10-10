@@ -65,7 +65,12 @@ const characters = defineCollection({
 	schema: ({ image }) =>
 		z.object({
 			name: z.string(),
-			race: reference('races'),
+			/** 种族引用。档案里没写明种族（或不属于 13 支主要种族）时留空 */
+			race: reference('races').optional(),
+			/** 归属：原创（本家）还是联动（别人家的 OC） */
+			ownership: z.enum(['原创', '联动']).default('原创'),
+			/** 联动角色的设主 */
+			owner: z.string().optional(),
 			aliases: z.array(z.string()).default([]),
 			/** 称号 / 他称 */
 			title: z.string().optional(),

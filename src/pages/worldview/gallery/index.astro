@@ -9,6 +9,8 @@ import meta from '../../../data/gallery-meta.json';
 
 /** 每次访问从图池里抽多少张 */
 const SAMPLE_SIZE = 60;
+/** 不参与照片墙的分类（鼠标指针套装等周边素材，留在图池但不铺墙） */
+const EXCLUDED_KINDS = ['指针'];
 
 const POOL = path.join(process.cwd(), 'public', 'gallery');
 const stored = (meta as { items?: Record<string, Record<string, unknown>> }).items ?? {};
@@ -31,7 +33,8 @@ const items = fs
 			character: String(info.character ?? ''),
 			title: String(info.title ?? ''),
 		};
-	});
+	})
+	.filter((item) => !EXCLUDED_KINDS.includes(item.kind));
 
 const count = (predicate: (item: (typeof items)[number]) => boolean) => items.filter(predicate).length;
 const filters = [
@@ -227,6 +230,9 @@ const filters = [
 			<p class="lead">
 				图池共 {items.length} 张，每次打开随机抽 {SAMPLE_SIZE} 张铺成照片墙 —— 大小、横竖、顺序都随机，刷新即换。
 			</p>
+			<p class="lead">
+				（鼠标指针套装等周边素材不参与铺墙，只留在图池里。）
+			</p>
 			<p class="notice">
 				<strong>图片不适用 CC BY 4.0。</strong>
 				原创设定版权归我（{SITE_AUTHOR}）所有；<strong>联动设定版权归各设主所有</strong>
@@ -290,11 +296,20 @@ const filters = [
 
 			/** 每张图的宽度档位：1 = 一列，2 = 两列（大图） */
 			const sizeOf = (tile: HTMLElement) => {
+				// 表情包固定一列，避免糊成一片大图
+				if (tile.dataset.kind === '表情包') return 1;
 				const ar = Number(tile.dataset.ar) || 1;
 				// 竖图更容易占一列，横图更容易占两列，再掺一点随机
 				const wide = ar > 1.25 ? Math.random() < 0.55 : Math.random() < 0.15;
 				const big = Math.random() < 0.22;
 				return wide || big ? 2 : 1;
+			};
+
+			/** 每类图的尺寸区间（相对宽度） */
+			const ratioRange = (tile: HTMLElement): [number, number] => {
+				// 表情包限制成小方块
+				if (tile.dataset.kind === '表情包') return [0.85, 1];
+				return [0.55, 1.9];
 			};
 
 			/** 从当前放行的图里随机抽 SAMPLE_SIZE 张 */
@@ -319,8 +334,9 @@ const filters = [
 					const span = Math.min(sizeOf(tile), cols);
 					const tileW = colW * span + GAP * (span - 1);
 					const ar = Number(tile.dataset.ar) || 1;
-					// 高度由比例决定，限制在合理区间，避免极端长条
-					const tileH = Math.round(Math.min(Math.max(tileW / ar, tileW * 0.55), tileW * 1.9));
+					// 高度由比例决定，按类型限制在合理区间
+					const [minRatio, maxRatio] = ratioRange(tile);
+					const tileH = Math.round(Math.min(Math.max(tileW / ar, tileW * minRatio), tileW * maxRatio));
 
 					// 找出能放下这张图的、最矮的起始列
 					let best = 0;

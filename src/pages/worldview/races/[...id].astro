@@ -1,4 +1,4 @@
-﻿---
+---
 import { getCollection, render } from 'astro:content';
 import DetailPage from '../../../layouts/DetailPage.astro';
 
@@ -33,7 +33,7 @@ if (population) meta.push({ label: '人口与分布', value: population });
 if (habitat) meta.push({ label: '聚居地', value: habitat });
 
 const members = (
-	await getCollection('characters', ({ data }) => !data.draft && data.race.id === entry.id)
+	await getCollection('characters', ({ data }) => !data.draft && data.race?.id === entry.id)
 ).sort((a, b) => a.data.order - b.data.order);
 ---
 

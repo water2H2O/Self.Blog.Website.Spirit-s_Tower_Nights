@@ -1,4 +1,4 @@
-﻿---
+---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import TagList from './TagList.astro';
@@ -8,14 +8,14 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const { name, aliases, summary, role, portrait, themeColor, tags } = entry.data;
+const { name, aliases, summary, title, portrait, themeColor, tags, ownership, owner } = entry.data;
 
 // 没有立绘时用名字首字做一个色块，避免列表里出现空洞
 const monogram = name.replace(/[（()）·\s]/g, '').slice(0, 1) || '?';
 const aliasText = aliases.filter(Boolean).join(' / ');
 ---
 
-<article class="card" style={`--card-color:${themeColor}`}>
+<article class="card" style={`--card-color:${themeColor}`} data-ownership={ownership}>
 	<a href={`/worldview/characters/${entry.id}/`}>
 		<div class="thumb">
 			{
@@ -25,11 +25,15 @@ const aliasText = aliases.filter(Boolean).join(' / ');
 					<span class="monogram">{monogram}</span>
 				)
 			}
+			{ownership === '联动' && <span class="collab">联动</span>}
 		</div>
 		<div class="body">
 			<h3>{name}</h3>
-			{role && <p class="role">{role}</p>}
+			{title && <p class="role">{title}</p>}
 			{aliasText && <p class="aliases">{aliasText}</p>}
+			{ownership === '联动' && (
+				<p class="owner">设主：{owner || '待补'}</p>
+			)}
 			<p class="summary">{summary}</p>
 			<TagList tags={tags.slice(0, 4)} color={themeColor} />
 		</div>
@@ -60,7 +64,24 @@ const aliasText = aliases.filter(Boolean).join(' / ');
 		display: grid;
 		place-items: center;
 		overflow: hidden;
+		position: relative;
 		background: color-mix(in srgb, var(--card-color) 12%, var(--surface));
+	}
+	.collab {
+		position: absolute;
+		left: 8px;
+		top: 8px;
+		padding: 2px 7px;
+		border-radius: 999px;
+		font-size: 10px;
+		line-height: 1.5;
+		color: #2a1a00;
+		background: rgba(255, 214, 138, 92%);
+	}
+	.owner {
+		margin: 0.2em 0 0;
+		font-size: 0.75em;
+		color: #ffd68a;
 	}
 	.thumb :global(img) {
 		width: 100%;

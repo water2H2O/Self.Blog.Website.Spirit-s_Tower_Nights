@@ -325,6 +325,27 @@ tools/
 | `astro.config.mjs` 的 `vite.resolve.preserveSymlinks: true` | Vite 在 Windows 上执行 `net use` 挑选 realpath 实现，沙箱禁止带管道的子进程（spawn EPERM），异常被静默吞掉后所有依赖解析返回空 → 纯 CommonJS 包报 `require is not defined` |
 | `ASTRO_TELEMETRY_DISABLED=1`（见 `dev.cmd`） | Astro 遥测要写 `%APPDATA%\astro`，沙箱外不可写 |
 
+## 导入 docx 档案（角色 / 种族）
+
+角色与种族档案原本是 docx，导入分三步：
+
+```sh
+# 1) 提取成纯文本（保留段落顺序与表格，空文件会跳过并列在 _index.txt）
+python tools/extract-docx.py "<源目录>" "<输出目录>" --recursive
+
+# 2) 按 schema 写成 src/content/{characters,races}/*.md
+
+# 3) 逐字校验：确认没有被改写或漏段
+node tools/verify-verbatim.mjs --map=<映射.json>
+```
+
+- `extract-docx.py` 依赖 python-docx（DSH 自带；也可 `pip install python-docx`）。
+  0 字节的 docx 不是合法 zip，会报 `Package not found` 并计入失败数 —— 那是源文件本身是空的
+- `verify-verbatim.mjs` 把源文本按空行切段、去掉 markdown 标记与空白，逐段检查是否原样
+  出现在 md 正文里。**任何改写、润色、漏抄都会让那一段匹配失败**，是防止"顺手改字"的保险
+- **不要把中间产物写进 `src/content/` 目录**：glob loader 会把任何 `.md` 都当成内容条目，
+  缺字段就直接让构建失败。临时文件放到 `src/` 之外
+
 ## 画廊图池与品牌资源
 
 ### 画廊图池

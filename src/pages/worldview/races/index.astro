@@ -1,4 +1,4 @@
-﻿---
+---
 import { getCollection } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
@@ -10,7 +10,7 @@ const races = (await getCollection('races', ({ data }) => !data.draft)).sort(
 
 const characters = await getCollection('characters', ({ data }) => !data.draft);
 
-const countOf = (raceId: string) => characters.filter((c) => c.data.race.id === raceId).length;
+const countOf = (raceId: string) => characters.filter((c) => c.data.race?.id === raceId).length;
 ---
 
 <!doctype html>

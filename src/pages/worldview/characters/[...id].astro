@@ -19,6 +19,8 @@ const { Content } = await render(entry);
 const {
 	name,
 	race,
+	ownership,
+	owner,
 	aliases,
 	title,
 	summary,
@@ -34,10 +36,11 @@ const {
 	spoiler,
 } = entry.data;
 
-const raceEntry = await getEntry(race);
+const raceEntry = race ? await getEntry(race) : undefined;
 
 const meta: { label: string; value: string }[] = [];
 if (raceEntry) meta.push({ label: '种族', value: raceEntry.data.name });
+if (ownership === '联动') meta.push({ label: '归属', value: `联动设定 · 设主 ${owner || '待补'}` });
 if (title) meta.push({ label: '称号', value: title });
 if (pronouns) meta.push({ label: '性别表现', value: pronouns });
 if (height) meta.push({ label: '身高', value: height });

@@ -1,4 +1,4 @@
-﻿---
+---
 import { getCollection } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import CharacterCard from '../../../components/CharacterCard.astro';
@@ -16,7 +16,7 @@ const races = (await getCollection('races', ({ data }) => !data.draft)).sort(
 const groups = races
 	.map((race) => ({
 		race,
-		members: characters.filter((character) => character.data.race.id === race.id),
+		members: characters.filter((character) => character.data.race?.id === race.id),
 	}))
 	.filter((group) => group.members.length > 0);
 
@@ -107,7 +107,7 @@ const ungrouped = characters.filter((character) => !known.has(character.id));
 				ungrouped.length > 0 && (
 					<section>
 						<div class="race-head">
-							<h2>未分组</h2>
+							<h2>种族未定</h2>
 						</div>
 						<div class="grid">
 							{ungrouped.map((character) => (
