@@ -185,4 +185,23 @@ const music = defineCollection({
 		}),
 });
 
-export const collections = { blog, races, characters, lore, stories, music };
+/**
+ * 企划（附属目录）：我参与的其他世界观。
+ * 「伊甸园」是一个群创末日世界观，这里只收我写的那些稿件。
+ * 内容以该企划的 wiki 为准，这里相当于自己的存档。
+ */
+const eden = defineCollection({
+	loader: glob({ base: './src/content/eden', pattern: '**/*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			title: z.string(),
+			category: z.enum(['现象', '矿物', '物种', '个体', '阵营', '其他']).default('其他'),
+			summary: z.string().optional(),
+			/** 原稿文件名，方便和归档对照 */
+			source: z.string().optional(),
+			draft: z.boolean().default(false),
+			order: z.number().default(100),
+		}),
+});
+
+export const collections = { blog, races, characters, lore, stories, music, eden };

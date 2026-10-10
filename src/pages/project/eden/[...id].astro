@@ -1,0 +1,121 @@
+---
+import { getCollection, render } from 'astro:content';
+import DetailPage from '../../../layouts/DetailPage.astro';
+
+const WikiUrl = 'https://yidianyuanguichenm.fandom.com/zh/wiki/';
+
+export async function getStaticPaths() {
+	const entries = await getCollection('eden', ({ data }) => !data.draft);
+	return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, category, summary, source } = entry.data;
+
+const all = (await getCollection('eden', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.order - b.data.order,
+);
+const position = all.findIndex((item) => item.id === entry.id);
+const prev = position > 0 ? all[position - 1] : null;
+const next = position < all.length - 1 ? all[position + 1] : null;
+
+const meta = [
+	{ label: '类别', value: category },
+	{ label: '出处', value: '群创企划「伊甸园」' },
+	{ label: 'wiki', value: 'yidianyuanguichenm.fandom.com', href: WikiUrl },
+	...(source ? [{ label: '原稿', value: source }] : []),
+];
+---
+
+<DetailPage
+	title={title}
+	subtitle={`伊甸园 · ${category}`}
+	summary={summary ?? `${title}（伊甸园 · ${category}）`}
+	themeColor="#AFFFFF"
+	meta={meta}
+	backHref="/project/eden/"
+	backLabel="伊甸园"
+>
+	<Content />
+
+	<p class="note">
+		本文是群创世界观「伊甸园」的稿件，世界观与最终设定归该企划所有；以
+		<a href={WikiUrl} target="_blank" rel="noopener">企划 wiki</a> 为准。
+	</p>
+
+	<nav class="pager">
+		{
+			prev ? (
+				<a href={`/project/eden/${prev.id}/`}>
+					<span class="dir">← 上一篇</span>
+					<span class="name">{prev.data.title}</span>
+				</a>
+			) : (
+				<span />
+			)
+		}
+		{
+			next ? (
+				<a class="next" href={`/project/eden/${next.id}/`}>
+					<span class="dir">下一篇 →</span>
+					<span class="name">{next.data.title}</span>
+				</a>
+			) : (
+				<span />
+			)
+		}
+	</nav>
+
+	<style>
+		.note {
+			margin: 3em 0 0;
+			padding-top: 1.4em;
+			border-top: 1px solid rgb(var(--gray-light));
+			font-size: 0.8em;
+			line-height: 1.9;
+			color: rgb(var(--gray));
+		}
+		.note a {
+			color: var(--glow);
+		}
+		.pager {
+			display: flex;
+			justify-content: space-between;
+			gap: 1em;
+			margin-top: 2em;
+		}
+		.pager a {
+			flex: 1 1 0;
+			padding: 0.9em 1.1em;
+			border-radius: 12px;
+			background: var(--surface);
+			border: 1px solid rgb(var(--gray-light));
+			text-decoration: none;
+			color: rgb(var(--gray-dark));
+			font-size: 0.86em;
+			transition: 0.2s ease;
+		}
+		.pager a:hover {
+			border-color: rgba(175, 255, 255, 45%);
+			box-shadow: var(--glow-shadow);
+		}
+		.pager a.next {
+			text-align: right;
+		}
+		.pager .dir {
+			display: block;
+			font-size: 0.8em;
+			letter-spacing: 0.1em;
+			color: rgb(var(--gray));
+		}
+		.pager .name {
+			color: var(--glow);
+		}
+		@media (max-width: 720px) {
+			.pager {
+				flex-direction: column;
+			}
+		}
+	</style>
+</DetailPage>
