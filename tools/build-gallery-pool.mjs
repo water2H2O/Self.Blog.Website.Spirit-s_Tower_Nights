@@ -208,11 +208,25 @@ if (!dryRun) {
 	);
 }
 
-console.log(`${dryRun ? '（dry-run）' : ''}图池：${Object.keys(withSize).length} 张`);
-console.log(`职责分配：${Object.entries(byOwnership).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
+console.log(`${dryRun ? '（dry-run）' : ''}图池：${Object.keys(withSize).length} 张`);console.log(`职责分配：${Object.entries(byOwnership).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
 console.log(`分类：${Object.entries(byKind).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
 if (removed.length) console.log(`清单中已不存在的图（${removed.length}）：${removed.slice(0, 5).join(', ')}${removed.length > 5 ? ' …' : ''}`);
 console.log(`\n输出目录：${path.relative(ROOT, OUT)}`);
 console.log(`标注清单：${path.relative(ROOT, META)}`);
+
+// 收尾自检：磁盘上的图必须和清单条目一一对应，否则画廊会静默少图
+if (!dryRun) {
+	const onDisk = new Set(fs.readdirSync(OUT).filter((f) => /\.webp$/i.test(f)));
+	const inMeta = Object.keys(withSize);
+	const missingOnDisk = inMeta.filter((name) => !onDisk.has(name));
+	const staleInMeta = [...onDisk].filter((name) => !withSize[name]);
+	if (missingOnDisk.length || staleInMeta.length) {
+		console.log('\n⚠ 自检未通过：');
+		if (missingOnDisk.length) console.log(`  清单里有、磁盘上没有（${missingOnDisk.length}）：${missingOnDisk.slice(0, 5).join(', ')}`);
+		if (staleInMeta.length) console.log(`  磁盘上有、清单里没有（${staleInMeta.length}）：${staleInMeta.slice(0, 5).join(', ')}`);
+	} else {
+		console.log(`\n自检通过：磁盘 ${onDisk.size} 张 = 清单 ${inMeta.length} 条`);
+	}
+}
 if (dryRun) console.log('\n示例文件名：');
 if (dryRun) for (const name of Object.keys(withSize).slice(0, 12)) console.log(`  ${name}`);
