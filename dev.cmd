@@ -1,7 +1,8 @@
 @echo off
 rem ---------------------------------------------------------------
-rem  Run this project inside the DSH sandbox (node is not on PATH,
-rem  so the bundled runtime is wired in explicitly).
+rem  Dev helper for this project. Node is not installed system-wide,
+rem  so the runtime bundled with DSH is wired in from a known path.
+rem  Works both inside DSH shells and from a plain terminal / double click.
 rem
 rem  Usage:
 rem    dev.cmd install    install dependencies
@@ -11,11 +12,17 @@ rem    dev.cmd preview    preview the build
 rem ---------------------------------------------------------------
 setlocal
 set "PROJ=%~dp0"
-set "DEP=%DSH_HOME%\dsh-runtimes\dsh-primary-runtime\dependencies"
 set "CACHE=%~dp0..\.dsh-cache"
+set "REL=dsh-runtimes\dsh-primary-runtime\dependencies"
 
-if not exist "%DEP%\node\bin\node.exe" (
-  echo [dev.cmd] DSH bundled Node runtime not found, falling back to pnpm on PATH.
+rem 1) DSH sets DSH_HOME inside its own shells.
+rem 2) Otherwise use the default user-level DSH home.
+set "DEP="
+if defined DSH_HOME if exist "%DSH_HOME%\%REL%\node\bin\node.exe" set "DEP=%DSH_HOME%\%REL%"
+if not defined DEP if exist "%USERPROFILE%\.dsh\%REL%\node\bin\node.exe" set "DEP=%USERPROFILE%\.dsh\%REL%"
+
+if not defined DEP (
+  echo [dev.cmd] Bundled Node runtime not found, falling back to pnpm on PATH.
   cd /d "%PROJ%"
   pnpm %*
   exit /b %ERRORLEVEL%
