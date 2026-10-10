@@ -4,6 +4,7 @@ category: 个体
 summary: 晶体网络名义上最高权限的持有者，六棱瞳孔丈量生死，晶丝炫彩执掌存续的权柄。
 source: 晶体生物：“蔚蓝”.docx
 display: creature
+danger: '8'
 order: 70
 ---
 

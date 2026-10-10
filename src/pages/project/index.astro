@@ -87,26 +87,30 @@ const eden = await getCollection('eden', ({ data }) => !data.draft);
 		<main>
 			<h1>企划</h1>
 			<p class="lead">
-				这里放的是<strong>别人的世界观里、我写的那部分</strong>。我自己的世界观在
+				这里放的是<strong>我参与的其他企划</strong> —— 别人的项目里我负责或写的那部分。我自己的世界观在
 				<a href="/worldview/">水塔夜谈</a>。
 			</p>
+
+			<a class="card" href="https://blophy.com/" target="_blank" rel="noreferrer">
+				<span class="kind">音游</span>
+				<h2>Blophy 方菱律动</h2>
+				<p>
+					一款音乐节奏游戏。我负责的音游企划，详情、曲目与下载都在官网 —— 这里只放个入口。
+				</p>
+				<span class="more">去 blophy.com 看看 →</span>
+			</a>
 
 			<a class="card" href="/project/eden/">
 				<span class="kind">群创 · 末日</span>
 				<h2>伊甸园</h2>
 				<p>
 					一个以「晶体」为核心的末日世界观：超高辐射环境下的细胞劫持、晶体群系与晶体共振网络。
-					这是<strong>群创企划</strong>，我写了其中关于晶体现象、矿物、物种与个体的几份稿件。全文以该企划的
-					wiki 为准，这里是我的存档。
+					这是<strong>群创企划</strong>，我写了其中关于晶体现象、矿物、物种与个体的几份稿件；基础设定与最终解释以该企划为准。
 				</p>
 				<span class="more">
 					{eden.length} 篇稿件 →
 				</span>
 			</a>
-
-			<p class="home">
-				{SITE_TITLE} 是 {SITE_AUTHOR} 的个人站；主体世界观见 <a href="/worldview/">水塔夜谈</a>。
-			</p>
 		</main>
 		<Footer />
 	</body>

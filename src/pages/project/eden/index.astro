@@ -4,15 +4,8 @@ import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import { SITE_AUTHOR, SITE_TITLE } from '../../../consts';
-import { dangerColor, dangerNumber } from '../../../lib/eden';
 
 const WikiUrl = 'https://yidianyuanguichenm.fandom.com/zh/wiki/';
-
-/** 危险等级小标的配色，与条目页同一套 */
-const dangerVars = (label: string) => {
-	const { h, s, l } = dangerColor(dangerNumber(label));
-	return `--h:${h}; --s:${s}%; --l:${l}%`;
-};
 
 const entries = (await getCollection('eden', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order,
@@ -109,18 +102,6 @@ const groups = CATEGORIES.map((category) => ({
 				border: 1px solid rgba(255, 200, 90, 28%);
 				white-space: nowrap;
 			}
-			/* 危险等级小标：配色与条目页一致 */
-			.lv {
-				margin-left: 0.6em;
-				padding: 0.1em 0.6em;
-				border-radius: 999px;
-				font-size: 0.72em;
-				letter-spacing: 0.04em;
-				white-space: nowrap;
-				color: hsl(var(--h) var(--s) var(--l));
-				background: hsl(var(--h) var(--s) 60% / 12%);
-				border: 1px solid hsl(var(--h) var(--s) 60% / 40%);
-			}
 			.group ul {
 				list-style: none;
 				margin: 0;
@@ -198,11 +179,6 @@ const groups = CATEGORIES.map((category) => ({
 									{group.items.map((entry) => (
 										<li>
 											<a href={`/project/eden/${entry.id}/`}>{entry.data.title}</a>
-											{entry.data.danger && (
-												<span class="lv" style={dangerVars(entry.data.danger)}>
-													危险等级 {entry.data.danger}
-												</span>
-											)}
 											{entry.data.summary && <span class="summary">{entry.data.summary}</span>}
 										</li>
 									))}
