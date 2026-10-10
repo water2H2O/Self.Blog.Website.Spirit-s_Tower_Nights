@@ -32,18 +32,17 @@ const items = fs
 			kind: String(info.kind ?? '其他'),
 			character: String(info.character ?? ''),
 			title: String(info.title ?? ''),
-			/** 额外标签，例如「企划」（绿色小标） */
-			tag: String(info.tag ?? ''),
 		};
 	})
 	.filter((item) => !EXCLUDED_KINDS.includes(item.kind));
 
 const count = (predicate: (item: (typeof items)[number]) => boolean) => items.filter(predicate).length;
+/** 四个同级、互斥的归属分类 */
 const filters = [
 	{ key: 'all', label: '全部', n: items.length },
 	{ key: '原创', label: '原创设定', n: count((i) => i.ownership === '原创') },
 	{ key: '联动', label: '联动设定', n: count((i) => i.ownership === '联动') },
-	{ key: '企划', label: '企划', n: count((i) => i.tag === '企划') },
+	{ key: '企划', label: '企划', n: count((i) => i.ownership === '企划') },
 	{ key: '其他', label: '其他', n: count((i) => i.ownership === '其他') },
 ];
 ---
@@ -174,10 +173,7 @@ const filters = [
 				color: #2a1a00;
 				background: rgba(255, 214, 138, 92%);
 			}
-			/* 「企划」标签：绿色，固定在右上角，和归属标分开 */
 			.tile .tag.project {
-				left: auto;
-				right: 6px;
 				color: #05230f;
 				background: rgba(150, 255, 178, 92%);
 			}
@@ -246,7 +242,9 @@ const filters = [
 			<p class="notice">
 				<strong>图片不适用 CC BY 4.0。</strong>
 				原创设定版权归我（{SITE_AUTHOR}）所有；<strong>联动设定版权归各设主所有</strong>
-				（已在图上标出）；委托插画版权归原画师。<a href="/license/">详见授权说明</a>。
+				（已在图上标出）；企划是「水塔 OC 补完计划」的成品；委托插画版权归原画师。<a
+					href="/license/">详见授权说明</a
+				>。
 			</p>
 
 			<div class="filters" id="filters">
@@ -265,20 +263,18 @@ const filters = [
 						<figure
 							class="tile hidden"
 							data-ownership={item.ownership}
-							data-keys={`${item.ownership}${item.tag ? ` ${item.tag}` : ''}`}
 							data-ar={item.ar}
 							data-url={item.url}
 							data-character={item.character}
 							data-owner={item.owner}
 							data-kind={item.kind}
 							data-title={item.title}
-							data-tag={item.tag}
 						>
 							<img src={item.url} alt={item.title || `${item.character}${item.kind}`} loading="lazy" decoding="async" />
 							<span class="wm">{SITE_TITLE} · @{SITE_AUTHOR}</span>
 							{item.ownership === '联动' && <span class="tag collab">联动</span>}
 							{item.ownership === '原创' && <span class="tag">原创</span>}
-							{item.tag && <span class="tag project">{item.tag}</span>}
+							{item.ownership === '企划' && <span class="tag project">企划</span>}
 						</figure>
 					))
 				}
@@ -394,9 +390,7 @@ const filters = [
 					other.setAttribute('aria-pressed', String(other === button));
 				}
 				for (const tile of tiles) {
-					// data-keys 里装着这张图的所有可筛键（归属 + 标签）
-					const keys = (tile.dataset.keys ?? '').split(' ');
-					tile.dataset.enabled = active === 'all' || keys.includes(active) ? '1' : '0';
+					tile.dataset.enabled = active === 'all' || tile.dataset.ownership === active ? '1' : '0';
 				}
 				render();
 			});
@@ -409,11 +403,12 @@ const filters = [
 				if (tile.dataset.title) parts.push(`<b>${tile.dataset.title}</b>`);
 				if (tile.dataset.character) parts.push(tile.dataset.character);
 				if (tile.dataset.kind) parts.push(tile.dataset.kind);
-				if (tile.dataset.tag) parts.push(tile.dataset.tag);
 				if (tile.dataset.ownership === '联动') {
 					parts.push(`联动设定 · 设主：${tile.dataset.owner || '待补'}`);
 				} else if (tile.dataset.ownership === '原创') {
 					parts.push('原创设定');
+				} else if (tile.dataset.ownership === '企划') {
+					parts.push('企划');
 				}
 				lbImg.src = tile.dataset.url ?? '';
 				lbCaption.innerHTML = parts.join(' · ');

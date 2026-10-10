@@ -367,10 +367,11 @@ node tools/build-gallery-pool.mjs            # 把 assets-staging 摊平进图�
 node tools/build-gallery-pool.mjs --dry-run  # 只看会做什么
 ```
 
-- 标注文件 **`src/data/gallery-meta.json`**：`ownership`（原创／联动／其他）、`owner`（联动设主）、
-  `kind`、`title`、`tag`。重新跑脚本只补新文件与尺寸，**不会覆盖手改过的值**
-- `tag` 是额外标签，目前只有「企划」一种（页面上显示为右上角的绿色小标，并且有独立筛选项）。
-  往 `tools/build-gallery-pool.mjs` 顶部的 `PROJECT_DIR` 那一组常量里加目录，就能再挂一批
+- 标注文件 **`src/data/gallery-meta.json`**：`ownership`、`owner`（联动设主）、`kind`、`title`。
+  重新跑脚本只补新文件与尺寸，**不会覆盖手改过的值**
+- `ownership` 有四个**同级、互斥**的分类：`原创` / `联动` / `企划` / `其他`。页面按它筛选，
+  每张图只属于其中一类（`企划` 是「水塔 OC 补完计划」的成品，页面上是绿色小标）
+- 想再挂一批图进 `企划`：改 `tools/build-gallery-pool.mjs` 顶部的 `PROJECT_DIR` / `PROJECT_OWNERSHIP`
 - `EXCLUDE` 数组里的文件名片段不会进图池（例如明确不要用的某张图）
 - 归属对照表在脚本顶部的 `CHARACTERS` 里，改那里就能挪动原创／联动
 - 文件名只保留「中文 + 字母数字 + `-` `_` + 全角括号」：实测 `&` `,` `#` 和空格

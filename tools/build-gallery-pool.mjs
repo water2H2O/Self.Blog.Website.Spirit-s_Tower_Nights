@@ -46,9 +46,12 @@ const CATEGORIES = {
 	'讯息（重要的和通信邮件记录）': { kind: '资料', ownership: '其他' },
 };
 
-/** 「水塔 OC 补完计划」的成品：文件名即角色名，整批打绿色「企划」标签 */
+/**
+ * 「水塔 OC 补完计划」的成品：文件名即角色名。
+ * 这批整批算作「企划」—— 和「原创 / 联动」同一维度的互斥分类，不是附加标签。
+ */
 const PROJECT_DIR = '【企划】水塔OC补完计划';
-const PROJECT_TAG = '企划';
+const PROJECT_OWNERSHIP = '企划';
 
 /** 明确不放进图池的文件（文件名片段） */
 const EXCLUDE = ['淼渺_女仆'];
@@ -68,9 +71,8 @@ function classify(relPath) {
 		return {
 			character: hit ?? name,
 			kind: '设定',
-			ownership: hit ? CHARACTERS[hit].ownership : '原创',
+			ownership: PROJECT_OWNERSHIP,
 			owner: hit ? (CHARACTERS[hit].owner ?? '') : '',
-			tag: PROJECT_TAG,
 		};
 	}
 
@@ -169,8 +171,6 @@ for (const rel of files) {
 		ownership: info.ownership,
 		owner: info.owner ?? '',
 		kind: info.kind,
-		/** 额外的标签，例如「企划」（页面上显示为绿色小标） */
-		tag: info.tag ?? '',
 		title: '',
 		source: rel.split(path.sep).join('/'),
 	};
@@ -190,7 +190,7 @@ for (const [name, item] of Object.entries(items)) {
 	const old = previous.items?.[name];
 	if (!old) continue;
 	// 保留人工改过的分类字段；尺寸等生成字段稍后覆盖
-	for (const key of ['ownership', 'owner', 'kind', 'title', 'character', 'tag']) {
+	for (const key of ['ownership', 'owner', 'kind', 'title', 'character']) {
 		if (typeof old[key] === 'string') item[key] = old[key];
 	}
 }
@@ -216,11 +216,9 @@ for (const [name, item] of Object.entries(items)) {
 
 const byOwnership = {};
 const byKind = {};
-const byTag = {};
 for (const item of Object.values(withSize)) {
 	byOwnership[item.ownership] = (byOwnership[item.ownership] ?? 0) + 1;
 	byKind[item.kind] = (byKind[item.kind] ?? 0) + 1;
-	if (item.tag) byTag[item.tag] = (byTag[item.tag] ?? 0) + 1;
 }
 
 if (!dryRun) {
@@ -243,9 +241,6 @@ if (!dryRun) {
 
 console.log(`${dryRun ? '（dry-run）' : ''}图池：${Object.keys(withSize).length} 张`);console.log(`职责分配：${Object.entries(byOwnership).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
 console.log(`分类：${Object.entries(byKind).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
-if (Object.keys(byTag).length) {
-	console.log(`标签：${Object.entries(byTag).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
-}
 if (removed.length) console.log(`清单中已不存在的图（${removed.length}）：${removed.slice(0, 5).join(', ')}${removed.length > 5 ? ' …' : ''}`);
 console.log(`\n输出目录：${path.relative(ROOT, OUT)}`);
 console.log(`标注清单：${path.relative(ROOT, META)}`);
