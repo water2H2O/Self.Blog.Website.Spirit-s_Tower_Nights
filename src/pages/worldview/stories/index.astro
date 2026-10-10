@@ -6,11 +6,6 @@ import { groupByArc, publishedEpisodes } from '../../../lib/stories';
 
 const episodes = await publishedEpisodes();
 const acts = groupByArc(episodes);
-
-/** 幕的补充说明 */
-const ACT_NOTES: Record<string, string> = {
-	别传: '非主线的外传与支线 —— 龙族篇、未冕之时篇、血疫纷争篇、银辉之沐，以及支线《穿行时间的猫》。这几篇不全是我写的，作者标在每一话后面。',
-};
 ---
 
 <!doctype html>
@@ -41,16 +36,6 @@ const ACT_NOTES: Record<string, string> = {
 				font-size: 0.8em;
 				letter-spacing: 0.08em;
 				color: rgb(var(--gray));
-			}
-			.act > .act-note {
-				margin: -0.8em 0 1.8em;
-				padding: 0.75em 1em;
-				border-radius: 10px;
-				font-size: 0.82em;
-				line-height: 1.8;
-				color: rgb(var(--gray));
-				background: var(--surface);
-				border-left: 2px solid rgba(175, 255, 255, 30%);
 			}
 			.arc {
 				margin: 0 0 1.8em;
@@ -133,7 +118,6 @@ const ACT_NOTES: Record<string, string> = {
 								{act.arcs.length} 篇 ·{' '}
 								{act.arcs.reduce((sum, arc) => sum + arc.episodes.length, 0)} 话
 							</p>
-							{ACT_NOTES[act.act] && <p class="act-note">{ACT_NOTES[act.act]}</p>}
 							{act.arcs.map((arc) => (
 								<div class="arc">
 									<h3>{arc.arc}</h3>
