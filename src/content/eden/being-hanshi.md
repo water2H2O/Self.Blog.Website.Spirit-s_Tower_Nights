@@ -3,6 +3,8 @@ title: 晶体生物个体：寒蚀
 category: 个体
 summary: 危险等级 7 级，晶体群系三位「量子处理层」个体之一，专注战斗的「极寒处刑者」。
 source: 晶体生物个体：寒蚀.docx
+display: creature
+danger: '7级'
 order: 60
 ---
 

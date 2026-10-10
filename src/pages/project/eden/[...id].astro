@@ -1,7 +1,15 @@
 ---
 import { getCollection, render } from 'astro:content';
 import DetailPage from '../../../layouts/DetailPage.astro';
-import { LEVEL_BANDS, levelColor, parseThreatLevels } from '../../../lib/eden';
+import {
+	LEVEL_BANDS,
+	dangerColor,
+	dangerNumber,
+	levelColor,
+	parseCreatureDoc,
+	parseThreatLevels,
+	type CreatureBlock,
+} from '../../../lib/eden';
 
 const WikiUrl = 'https://yidianyuanguichenm.fandom.com/zh/wiki/';
 
@@ -12,11 +20,29 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, category, summary, source, by, display } = entry.data;
+const { title, category, summary, source, by, display, danger } = entry.data;
 /** 本人稿件 or 企划公开资料 */
 const isMine = by === 'water2H2O';
+
 /** 等级阶梯排版：正文一字不动，只按结构重组 */
 const threat = display === 'levels' ? parseThreatLevels(entry.body ?? '') : null;
+
+/**
+ * 生物档案排版：同样是重组。
+ * 危险等级优先用 frontmatter 里的标注，没有就看正文里那一行。
+ */
+const creature = (() => {
+	if (display !== 'creature') return null;
+	const blocks = parseCreatureDoc(entry.body ?? '', title);
+	const levelIndex = blocks.findIndex((block) => block.type === 'level');
+	const fromBody =
+		levelIndex >= 0 && blocks[levelIndex].type === 'level'
+			? (blocks[levelIndex] as Extract<CreatureBlock, { type: 'level' }>).label
+			: null;
+	const rest = levelIndex >= 0 ? blocks.filter((_, index) => index !== levelIndex) : blocks;
+	return { level: danger ?? fromBody, blocks: rest };
+})();
+const creatureDanger = creature?.level ? dangerNumber(creature.level) : null;
 
 const all = (await getCollection('eden', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order,
@@ -40,6 +66,10 @@ const colorVars = (n: number) => {
 	const { h, s, l } = levelColor(n);
 	return `--h:${h}; --s:${s}%; --l:${l}%`;
 };
+const dangerVars = (n: number | null) => {
+	const { h, s, l } = dangerColor(n);
+	return `--h:${h}; --s:${s}%; --l:${l}%`;
+};
 ---
 
 <DetailPage
@@ -52,7 +82,39 @@ const colorVars = (n: number) => {
 	backLabel="伊甸园"
 >
 	{
-		threat ? (
+		creature ? (
+			<div class="creature">
+				{creature.level && (
+					<div class="badge" style={dangerVars(creatureDanger)}>
+						<span class="ring">{creature.level}</span>
+						<span class="cap">危险等级</span>
+					</div>
+				)}
+
+				{creature.blocks.map((block) => {
+					if (block.type === 'epigraph') return <p class="epigraph">{block.text}</p>;
+					if (block.type === 'heading') return <h3 class="sec">{block.text}</h3>;
+					if (block.type === 'divider') return <hr class="rule" />;
+					if (block.type === 'field')
+						return (
+							<div class="field">
+								<span class="label">{block.label}</span>
+								<span class="value">{block.value}</span>
+							</div>
+						);
+					return (
+						<p class="para">
+							{block.lines.map((line, index) => (
+								<>
+									{index > 0 && <br />}
+									{line}
+								</>
+							))}
+						</p>
+					);
+				})}
+			</div>
+		) : threat ? (
 			<div class="threat">
 				{threat.preamble.length > 0 && (
 					<section class="preamble">
@@ -62,7 +124,6 @@ const colorVars = (n: number) => {
 					</section>
 				)}
 
-				{/* 一眼看清分档；范围数字是原文里的原话 */}
 				<div class="bands">
 					{LEVEL_BANDS.map((band) => (
 						<span class="band" style={colorVars(band.n)}>
@@ -145,14 +206,96 @@ const colorVars = (n: number) => {
 	</nav>
 
 	<style>
-		/* 前言：比正文轻一点，作为引子 */
+		/* ---------- 生物档案 ---------- */
+		.creature .badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.9em;
+			margin: 0 0 1.8em;
+			padding: 0.7em 1.2em 0.7em 0.8em;
+			border-radius: 999px;
+			background: hsl(var(--h) var(--s) 60% / 10%);
+			border: 1px solid hsl(var(--h) var(--s) 60% / 38%);
+		}
+		.creature .badge .ring {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 3.2em;
+			height: 3.2em;
+			padding: 0 0.6em;
+			border-radius: 999px;
+			font-size: 1.25em;
+			font-variant-numeric: tabular-nums;
+			color: hsl(var(--h) var(--s) var(--l));
+			background: hsl(var(--h) var(--s) 60% / 14%);
+			border: 1px solid hsl(var(--h) var(--s) 60% / 45%);
+			box-shadow: 0 0 24px hsl(var(--h) var(--s) 60% / 18%);
+		}
+		.creature .badge .cap {
+			font-size: 0.78em;
+			letter-spacing: 0.2em;
+			color: rgb(var(--gray));
+		}
+
+		/* 题记 */
+		.creature .epigraph {
+			margin: 0 0 2em;
+			padding: 0 0 0 1.1em;
+			border-left: 2px solid rgba(175, 255, 255, 30%);
+			font-size: 0.92em;
+			line-height: 1.95;
+			color: var(--accent);
+		}
+
+		/* 小节：左侧一小段竖条 */
+		.creature .sec {
+			margin: 2.4em 0 0.9em;
+			padding-left: 0.7em;
+			border-left: 3px solid rgba(175, 255, 255, 45%);
+			font-size: 1em;
+			font-weight: 400;
+			letter-spacing: 0.14em;
+			color: var(--glow);
+		}
+
+		/* 字段行：标签固定宽度，值跟在后面 —— 原来这些行会被并成一段 */
+		.creature .field {
+			display: grid;
+			grid-template-columns: 6.2em 1fr;
+			gap: 0.9em;
+			padding: 0.42em 0;
+			line-height: 1.95;
+		}
+		.creature .field .label {
+			color: var(--accent);
+			font-size: 0.9em;
+			letter-spacing: 0.06em;
+		}
+		.creature .field .value {
+			color: rgb(var(--gray-dark));
+		}
+
+		/* 正文段落：行内换行照原稿保留 */
+		.creature .para {
+			margin: 0 0 0.9em;
+			line-height: 2;
+			color: rgb(var(--gray-dark));
+		}
+		.creature .rule {
+			width: 40%;
+			margin: 2.4em auto;
+			border: none;
+			border-top: 1px solid rgb(var(--gray-light));
+		}
+
+		/* ---------- 危险等级阶梯 ---------- */
 		.threat .preamble p {
 			margin: 0 0 1.1em;
 			font-size: 0.92em;
 			line-height: 2;
 			color: rgb(var(--gray));
 		}
-
 		.threat .bands {
 			display: flex;
 			flex-wrap: wrap;
@@ -172,8 +315,6 @@ const colorVars = (n: number) => {
 			font-weight: 400;
 			font-variant-numeric: tabular-nums;
 		}
-
-		/* 等级阶梯：数字的颜色沿 1→10 由青转红，越危险越亮越烫 */
 		.threat .ladder {
 			list-style: none;
 			margin: 0;
@@ -216,7 +357,6 @@ const colorVars = (n: number) => {
 			line-height: 2;
 			color: rgb(var(--gray-dark));
 		}
-		/* 等级末尾那句引言：像题记 */
 		.threat .body blockquote {
 			margin: 1em 0 0;
 			padding: 0 0 0 1.1em;
@@ -225,7 +365,6 @@ const colorVars = (n: number) => {
 			line-height: 1.95;
 			color: rgb(var(--gray));
 		}
-
 		.threat .notes {
 			margin-top: 2.6em;
 			padding: 1.3em 1.5em;
@@ -249,6 +388,7 @@ const colorVars = (n: number) => {
 			margin-bottom: 0;
 		}
 
+		/* ---------- 通用 ---------- */
 		.note {
 			margin: 3em 0 0;
 			padding-top: 1.4em;
@@ -305,6 +445,10 @@ const colorVars = (n: number) => {
 				width: 2.9em;
 				height: 2.9em;
 				font-size: 1.1em;
+			}
+			.creature .field {
+				grid-template-columns: 1fr;
+				gap: 0;
 			}
 			.pager {
 				flex-direction: column;

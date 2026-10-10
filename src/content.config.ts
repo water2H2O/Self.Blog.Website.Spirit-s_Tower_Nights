@@ -203,10 +203,13 @@ const eden = defineCollection({
 			by: z.string().default('water2H2O'),
 			/**
 			 * 正文的展示方式：
-			 *   prose  —— 普通排版（默认）
-			 *   levels —— 按「危险等级阶梯」排版（见 src/lib/eden.ts）
+			 *   prose    —— 普通排版（默认）
+			 *   levels   —— 按「危险等级阶梯」排版（见 src/lib/eden.ts）
+			 *   creature —— 按「生物档案」排版：危险等级徽章 + 字段行 + 小节
 			 */
-			display: z.enum(['prose', 'levels']).default('prose'),
+			display: z.enum(['prose', 'levels', 'creature']).default('prose'),
+			/** 危险等级，原文写法照录（7级 / III级 / 0）；页面按它配色 */
+			danger: z.string().optional(),
 			draft: z.boolean().default(false),
 			order: z.number().default(100),
 		}),

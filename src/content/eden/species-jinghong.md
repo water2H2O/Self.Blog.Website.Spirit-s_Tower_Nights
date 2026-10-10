@@ -3,6 +3,8 @@ title: 晶体物种：晶虹
 category: 物种
 summary: 最早与人类接触的晶体生物之一，危险等级 III 级；它的出现意味着晶体群系已发育完整。
 source: 晶体物种：晶虹.docx
+display: creature
+danger: 'III级'
 order: 40
 ---
 

@@ -3,6 +3,8 @@ title: 晶体物种：繁星水母
 category: 物种
 summary: Aurelia Astrolux，危险等级 0；深渊与星空间的和弦，以星核调和生死。
 source: 晶体物种：繁星水母（aurelia astrolux）.docx
+display: creature
+danger: '0'
 order: 50
 ---
 
