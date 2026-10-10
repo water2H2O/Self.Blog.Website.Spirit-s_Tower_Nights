@@ -4,65 +4,52 @@ import { getCollection } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
-import { SITE_AUTHOR } from '../../../consts';
 
 const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.number - b.data.number,
 );
-const characters = await getCollection('characters');
-const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
-
-const totalDuration = tracks.reduce((sum, track) => {
-	const [m, s] = (track.data.duration ?? '0:0').split(':').map(Number);
-	return sum + m * 60 + (s || 0);
-}, 0);
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead
-			title="音乐"
-			description="水塔夜谈原创音乐企划：与不同曲师合作的曲目、曲绘与创作笔记。"
+			title="回响之殿"
+			description="水塔夜谈音乐企划：与不同曲师合作的曲目与曲绘。"
 		/>
 		<style>
 			main {
-				width: 900px;
+				width: 880px;
 			}
-			.lead {
-				color: rgb(var(--gray));
-				font-size: 0.9em;
-			}
-			.notice {
+			.tracks {
+				list-style: none;
 				margin: 1.5em 0 0;
-				padding: 0.9em 1.1em;
-				border-radius: 12px;
-				font-size: 0.84em;
-				line-height: 1.8;
-				color: #ffd68a;
-				background: rgba(255, 200, 90, 8%);
-				border: 1px solid rgba(255, 200, 90, 28%);
-			}
-			.notice strong {
-				color: #ffe6ad;
-			}
-			.notice a {
-				color: #ffe6ad;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 1.1em;
 			}
 			.track {
 				display: grid;
-				grid-template-columns: 240px 1fr;
-				gap: 1.5em;
-				margin-top: 2.2em;
-				padding: 1.3em;
-				border-radius: 16px;
+				grid-template-columns: 150px 1fr;
+				gap: 1.3em;
+				padding: 1em;
+				border-radius: 14px;
 				background: var(--surface);
 				border: 1px solid rgb(var(--gray-light));
-				border-left: 4px solid var(--track-color);
+				transition: 0.2s ease;
 			}
+			.track:hover {
+				border-color: rgba(175, 255, 255, 38%);
+				box-shadow: var(--glow-shadow);
+			}
+			/* 曲绘预览：列表里收成左侧小图，详情页才放大展示 */
 			.cover {
-				overflow: hidden;
+				position: relative;
+				display: block;
 				border-radius: 10px;
+				overflow: hidden;
+				align-self: start;
 			}
 			.cover :global(img) {
 				display: block;
@@ -70,49 +57,65 @@ const totalDuration = tracks.reduce((sum, track) => {
 				height: auto;
 				border-radius: 10px;
 			}
-			.info h2 {
-				margin: 0;
-				font-size: 1.4em;
+			.cover::after {
+				content: '▶';
+				position: absolute;
+				inset: 0;
+				display: grid;
+				place-items: center;
+				font-size: 1.6em;
+				color: var(--glow);
+				background: rgba(6, 14, 22, 55%);
+				opacity: 0;
+				transition: 0.2s ease;
+			}
+			.cover:hover::after {
+				opacity: 1;
+			}
+			.info {
+				min-width: 0;
 			}
 			.no {
-				font-size: 0.75em;
-				letter-spacing: 0.14em;
-				color: var(--track-color);
-			}
-			.artist {
-				margin: 0.3em 0 0;
-				font-size: 0.88em;
+				font-size: 0.78em;
+				letter-spacing: 0.12em;
 				color: rgb(var(--gray));
 			}
-			.artist b {
+			.info h2 {
+				margin: 0.15em 0 0.3em;
+				font-size: 1.35em;
+				line-height: 1.3;
+			}
+			.info h2 a {
+				text-decoration: none;
+				color: rgb(var(--black));
+			}
+			.info h2 a:hover {
 				color: var(--glow);
-				font-weight: 400;
+			}
+			.artist {
+				margin: 0 0 0.7em;
+				font-size: 0.86em;
+				color: rgb(var(--gray));
+			}
+			.artist a {
+				color: var(--accent);
+				text-decoration: none;
+			}
+			.artist a:hover {
+				color: var(--glow);
 			}
 			audio {
 				width: 100%;
-				margin-top: 0.9em;
+				height: 34px;
 				filter: invert(92%) hue-rotate(160deg);
 			}
-			.tags {
-				margin-top: 0.7em;
-				font-size: 0.78em;
-				color: rgb(var(--gray));
-			}
-			.links {
-				margin: 0.7em 0 0;
-				font-size: 0.85em;
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.6em 1.2em;
-			}
-			.note {
-				margin: 0.7em 0 0;
-				font-size: 0.8em;
-				color: rgb(var(--gray));
-			}
-			@media (max-width: 720px) {
+			@media (max-width: 640px) {
 				.track {
-					grid-template-columns: 1fr;
+					grid-template-columns: 110px 1fr;
+					gap: 1em;
+				}
+				.info h2 {
+					font-size: 1.15em;
 				}
 			}
 		</style>
@@ -120,64 +123,76 @@ const totalDuration = tracks.reduce((sum, track) => {
 	<body>
 		<Header />
 		<main>
-			<h1>音乐</h1>
-			<p class="lead">
-				这是一个 OC 世界观音乐企划：{tracks.length} 首曲子，每一首都与不同的曲师合作，并配有专属曲绘。
-				总时长约 {Math.floor(totalDuration / 60)} 分钟。
-			</p>
-
-			<p class="notice">
-				<strong>版权提示：本站音乐不适用 CC BY 4.0。</strong>
-				全部曲目均为与曲师合作的委托 / 共创作品，版权由各曲师与企划共同所有。
-				如需转载、商用、二创或用于视频配乐，请先<a href="/license/">阅读授权说明</a>并联系我（{SITE_AUTHOR}）。
-			</p>
-
-			{
-				tracks.map((track) => (
-					<article class="track" style={`--track-color:${track.data.themeColor}`}>
-						{track.data.cover && (
-							<div class="cover">
-								<Image src={track.data.cover} alt={track.data.title} width={480} />
-							</div>
-						)}
-						<div class="info">
-							<span class="no">
-								#{String(track.data.number).padStart(2, '0')}
-								{track.data.duration && ` · ${track.data.duration}`}
-							</span>
-							<h2>{track.data.title}</h2>
-							<p class="artist">
-								曲师 <b>{track.data.artist}</b>
-								{track.data.characters.length > 0 &&
-									` ／ 关联角色 ${track.data.characters
-										.map((ref) => characterName.get(ref.id) ?? ref.id)
-										.join('、')}`}
-							</p>
-							{track.data.audio ? (
-								<audio controls preload="none">
-									<source src={track.data.audio} type="audio/mpeg" />
-									{track.data.audioAlt && (
-										<source src={track.data.audioAlt} type={track.data.audioAltType ?? 'audio/ogg'} />
+			<h1>回响之殿</h1>
+			<ul class="tracks">
+				{
+					tracks.map((track) => (
+						<li class="track">
+							<a class="cover" href={`/worldview/music/${track.id}/`} aria-label={track.data.title}>
+								{track.data.cover ? (
+									<Image src={track.data.cover} alt={track.data.title} width={320} />
+								) : (
+									<span />
+								)}
+							</a>
+							<div class="info">
+								<span class="no">
+									#{String(track.data.number).padStart(2, '0')}
+									{track.data.duration && ` · ${track.data.duration}`}
+								</span>
+								<h2>
+									<a href={`/worldview/music/${track.id}/`}>{track.data.title}</a>
+								</h2>
+								<p class="artist">
+									曲师{' '}
+									{track.data.artistUrl ? (
+										<a href={track.data.artistUrl} target="_blank" rel="noreferrer">
+											{track.data.artist}
+										</a>
+									) : (
+										track.data.artist
 									)}
-									你的浏览器不支持音频播放。
-								</audio>
-							) : (
-								<p class="note">音频制作中。</p>
-							)}
-							{track.data.tags.length > 0 && <p class="tags">{track.data.tags.join(' · ')}</p>}
-							{track.data.pvUrl && (
-								<p class="links">
-									<a href={track.data.pvUrl} target="_blank" rel="noreferrer">
-										观看 PV →
-									</a>
 								</p>
-							)}
-							{track.data.note && <p class="note">{track.data.note}</p>}
-						</div>
-					</article>
-				))
-			}
+								{track.data.audio && (
+									<audio controls preload="none">
+										<source src={track.data.audio} type="audio/mpeg" />
+										{track.data.audioAlt && (
+											<source src={track.data.audioAlt} type={track.data.audioAltType ?? 'audio/ogg'} />
+										)}
+										你的浏览器不支持音频播放。
+									</audio>
+								)}
+							</div>
+						</li>
+					))
+				}
+			</ul>
+
+			<p class="license-note">
+				<strong>本站音乐不适用 CC BY 4.0</strong>
+				—— 全部曲目为与曲师合作的委托 / 共创作品，版权由各曲师与企划共同所有。
+				如需使用请先<a href="/license/">阅读授权说明</a>。
+			</p>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	.license-note {
+		margin-top: 2.5em;
+		padding: 0.9em 1.1em;
+		border-radius: 12px;
+		font-size: 0.82em;
+		line-height: 1.8;
+		color: #ffd68a;
+		background: rgba(255, 200, 90, 8%);
+		border: 1px solid rgba(255, 200, 90, 28%);
+	}
+	.license-note strong {
+		color: #ffe6ad;
+	}
+	.license-note a {
+		color: #ffe6ad;
+	}
+</style>

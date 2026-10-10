@@ -1,0 +1,488 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import Header from '../../../components/Header.astro';
+import LicenseBadge from '../../../components/LicenseBadge.astro';
+
+export async function getStaticPaths() {
+	const tracks = await getCollection('music', ({ data }) => !data.draft);
+	return tracks.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const {
+	title,
+	number,
+	artist,
+	artistUrl,
+	illustrator,
+	illustratorUrl,
+	cover,
+	audio,
+	audioAlt,
+	audioAltType,
+	duration,
+	characters,
+	pvUrl,
+	themeColor,
+} = entry.data;
+
+/** 关联角色 */
+const relatedCharacters = (
+	await Promise.all(characters.map((ref) => getEntry(ref)))
+).filter((item): item is NonNullable<typeof item> => Boolean(item));
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={`${title} · ${artist}`} description={`${title} — 曲师 ${artist}｜水塔夜谈音乐企划`} />
+		<style>
+			body {
+				/* 给底部固定播放条留出空间 */
+				padding-bottom: 108px;
+			}
+			main {
+				width: 820px;
+				--track-color: #afffff;
+			}
+			.crumb {
+				font-size: 0.8em;
+				text-decoration: none;
+				color: rgb(var(--gray));
+			}
+			.crumb:hover {
+				color: var(--glow);
+			}
+
+			/* 曲绘 */
+			.artwork {
+				position: relative;
+				margin: 1.2em auto 2em;
+				max-width: 560px;
+			}
+			.artwork :global(img) {
+				display: block;
+				width: 100%;
+				height: auto;
+				border-radius: 16px;
+				box-shadow: var(--box-shadow);
+			}
+			.artwork .play-overlay {
+				position: absolute;
+				inset: 0;
+				display: grid;
+				place-items: center;
+				border: none;
+				border-radius: 16px;
+				background: rgba(6, 14, 22, 35%);
+				color: var(--glow);
+				font-size: 2.6em;
+				cursor: pointer;
+				opacity: 0;
+				transition: 0.2s ease;
+			}
+			.artwork:hover .play-overlay,
+			.artwork .play-overlay:focus-visible {
+				opacity: 1;
+			}
+
+			.head {
+				text-align: center;
+			}
+			.no {
+				font-size: 0.82em;
+				letter-spacing: 0.16em;
+				color: var(--glow);
+			}
+			.head h1 {
+				margin: 0.2em 0 0.9em;
+				font-size: 2.2em;
+			}
+			.credits {
+				display: inline-flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.4em 1.6em;
+				margin: 0 0 1em;
+				padding: 0.7em 1.4em;
+				border-radius: 12px;
+				background: color-mix(in srgb, var(--track-color) 8%, var(--surface));
+				border: 1px solid color-mix(in srgb, var(--track-color) 25%, transparent);
+				font-size: 0.86em;
+			}
+			.credits dt {
+				display: inline;
+				color: rgb(var(--gray));
+			}
+			.credits dd {
+				display: inline;
+				margin: 0 0 0 0.4em;
+				color: rgb(var(--gray-dark));
+			}
+			.credits a {
+				color: var(--accent);
+				text-decoration: none;
+			}
+			.credits a:hover {
+				color: var(--glow);
+				text-decoration: underline;
+			}
+			.credits .pair {
+				display: inline-flex;
+				align-items: baseline;
+			}
+			.pv {
+				display: inline-block;
+				margin: 0.3em 0 0;
+				font-size: 0.85em;
+			}
+			.hint {
+				margin: 0.6em 0 0;
+				font-size: 0.78em;
+				color: rgb(var(--gray));
+			}
+
+			/* 小故事话题框 */
+			.story {
+				margin: 3em 0 0;
+				padding: 1.4em 1.6em 1.6em;
+				border-radius: 16px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-left: 4px solid var(--glow);
+			}
+			.story > h2 {
+				margin: 0 0 1em;
+				font-size: 1.05em;
+				letter-spacing: 0.16em;
+				color: var(--glow);
+			}
+			.story :global(p) {
+				margin: 0 0 1.2em;
+				line-height: 1.95;
+				text-align: justify;
+				text-justify: inter-ideograph;
+			}
+			.story :global(p:last-child) {
+				margin-bottom: 0;
+			}
+
+			/* 关联角色 */
+			.related {
+				margin: 2.4em 0 0;
+				padding-top: 1.4em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.related > h2 {
+				margin: 0 0 0.9em;
+				font-size: 1em;
+				letter-spacing: 0.12em;
+				color: rgb(var(--gray));
+			}
+			.related ul {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.related li {
+				padding: 0.8em 1em;
+				border-radius: 12px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				margin-bottom: 0.7em;
+			}
+			.related li:last-child {
+				margin-bottom: 0;
+			}
+			.related .who {
+				font-size: 1em;
+			}
+			.related .who a {
+				color: var(--accent);
+				text-decoration: none;
+			}
+			.related .who a:hover {
+				color: var(--glow);
+			}
+			.related .desc {
+				margin: 0.35em 0 0;
+				font-size: 0.85em;
+				line-height: 1.75;
+				color: rgb(var(--gray));
+			}
+
+			/* 固定在底部的播放条 */
+			.player {
+				position: fixed;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: 30;
+				display: flex;
+				align-items: center;
+				gap: 0.9em;
+				padding: 0.6em max(1em, calc((100% - 820px) / 2));
+				background: rgba(10, 21, 32, 92%);
+				backdrop-filter: blur(12px);
+				border-top: 1px solid rgba(175, 255, 255, 20%);
+			}
+			.player .mini {
+				width: 44px;
+				height: 44px;
+				flex: none;
+				border-radius: 8px;
+				overflow: hidden;
+			}
+			.player .mini :global(img) {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				border-radius: 0;
+			}
+			.player .now {
+				flex: none;
+				min-width: 0;
+				max-width: 34%;
+			}
+			.player .now strong {
+				display: block;
+				font-size: 0.9em;
+				color: rgb(var(--black));
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.player .now span {
+				font-size: 0.75em;
+				color: rgb(var(--gray));
+			}
+			.player .toggle {
+				flex: none;
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+				border: 1px solid rgba(175, 255, 255, 40%);
+				background: rgba(175, 255, 255, 10%);
+				color: var(--glow);
+				font-size: 0.95em;
+				cursor: pointer;
+				transition: 0.15s ease;
+			}
+			.player .toggle:hover {
+				background: rgba(175, 255, 255, 22%);
+			}
+			.player .seek {
+				flex: 1 1 auto;
+				-webkit-appearance: none;
+				appearance: none;
+				height: 4px;
+				border-radius: 999px;
+				background: rgba(175, 255, 255, 18%);
+				cursor: pointer;
+			}
+			.player .seek::-webkit-slider-thumb {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				background: var(--glow);
+			}
+			.player .seek::-moz-range-thumb {
+				width: 12px;
+				height: 12px;
+				border: none;
+				border-radius: 50%;
+				background: var(--glow);
+			}
+			.player .time {
+				flex: none;
+				font-size: 0.76em;
+				color: rgb(var(--gray));
+				font-variant-numeric: tabular-nums;
+			}
+			@media (max-width: 640px) {
+				.player {
+					gap: 0.6em;
+				}
+				.player .now {
+					max-width: 26%;
+				}
+				.head h1 {
+					font-size: 1.7em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main style={`--track-color:${themeColor}`}>
+			<a class="crumb" href="/worldview/music/">← 回响之殿</a>
+
+			{
+				cover && (
+					<div class="artwork">
+						<Image src={cover} alt={`${title} 曲绘`} width={1120} />
+						<button class="play-overlay" type="button" data-play aria-label="播放">
+							▶
+						</button>
+					</div>
+				)
+			}
+
+			<header class="head">
+				<span class="no">
+					#{String(number).padStart(2, '0')}
+					{duration && ` · ${duration}`}
+				</span>
+				<h1>{title}</h1>
+				<dl class="credits">
+					<span class="pair">
+						<dt>曲师</dt>
+						<dd>
+							{artistUrl ? <a href={artistUrl} target="_blank" rel="noreferrer">{artist}</a> : artist}
+						</dd>
+					</span>
+					{
+						illustrator && (
+							<span class="pair">
+								<dt>画师</dt>
+								<dd>
+									{illustratorUrl ? (
+										<a href={illustratorUrl} target="_blank" rel="noreferrer">
+											{illustrator}
+										</a>
+									) : (
+										illustrator
+									)}
+								</dd>
+							</span>
+						)
+					}
+				</dl>
+				{pvUrl && (
+					<p class="pv">
+						<a href={pvUrl} target="_blank" rel="noreferrer">观看 PV →</a>
+					</p>
+				)}
+				<p class="hint" id="hint" hidden>浏览器阻止了自动播放，点上面的 ▶ 或底部播放条开始。</p>
+			</header>
+
+			{
+				Content && (
+					<section class="story">
+						<Content />
+					</section>
+				)
+			}
+
+			{
+				relatedCharacters.length > 0 && (
+					<section class="related">
+						<h2>关联角色</h2>
+						<ul>
+							{relatedCharacters.map((character) => (
+								<li>
+									<p class="who">
+										<a href={`/worldview/characters/${character.id}/`}>{character.data.name}</a>
+										{character.data.title && <span> · {character.data.title}</span>}
+									</p>
+									<p class="desc">{character.data.summary}</p>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
+
+			<LicenseBadge
+				kind="reserved"
+				note={`曲绘版权归画师${illustrator ? ` ${illustrator}` : ''}所有，曲目版权归曲师与企划共同所有。`}
+			/>
+		</main>
+
+		<!-- 固定播放条：无论怎么滚都停在底部 -->
+		<div class="player">
+			{
+				cover && (
+					<div class="mini">
+						<Image src={cover} alt="" width={88} />
+					</div>
+				)
+			}
+			<div class="now">
+				<strong>{title}</strong>
+				<span>曲师 {artist}</span>
+			</div>
+			<button class="toggle" type="button" id="toggle" aria-label="播放 / 暂停">▶</button>
+			<input class="seek" id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="播放进度" />
+			<span class="time"><span id="cur">0:00</span> / {duration ?? '--:--'}</span>
+			<audio id="audio" src={audio} autoplay preload="auto"></audio>
+		</div>
+
+		<script>
+			const audio = document.getElementById('audio') as HTMLAudioElement | null;
+			const toggle = document.getElementById('toggle');
+			const seek = document.getElementById('seek') as HTMLInputElement | null;
+			const cur = document.getElementById('cur');
+			const hint = document.getElementById('hint');
+			if (audio && toggle && seek && cur) {
+				const fmt = (seconds: number) => {
+					if (!Number.isFinite(seconds)) return '0:00';
+					const m = Math.floor(seconds / 60);
+					const s = Math.floor(seconds % 60);
+					return `${m}:${String(s).padStart(2, '0')}`;
+				};
+
+				let seeking = false;
+
+				const syncButton = () => {
+					toggle.textContent = audio.paused ? '▶' : '❚❚';
+				};
+
+				const startPlayback = () => {
+					audio.play().catch(() => {
+						if (hint) hint.hidden = false;
+						syncButton();
+					});
+				};
+
+				toggle.addEventListener('click', () => {
+					if (audio.paused) startPlayback();
+					else audio.pause();
+				});
+
+				for (const button of document.querySelectorAll('[data-play]')) {
+					button.addEventListener('click', startPlayback);
+				}
+
+				audio.addEventListener('play', () => {
+					syncButton();
+					if (hint) hint.hidden = true;
+				});
+				audio.addEventListener('pause', syncButton);
+				audio.addEventListener('timeupdate', () => {
+					if (!seeking) seek.value = String(Math.round((audio.currentTime / (audio.duration || 1)) * 1000));
+					cur.textContent = fmt(audio.currentTime);
+				});
+				seek.addEventListener('input', () => {
+					seeking = true;
+					cur.textContent = fmt((Number(seek.value) / 1000) * (audio.duration || 0));
+				});
+				seek.addEventListener('change', () => {
+					audio.currentTime = (Number(seek.value) / 1000) * (audio.duration || 0);
+					seeking = false;
+				});
+
+				// 尝试自动播放；被浏览器拦下时给出提示
+				startPlayback();
+				syncButton();
+			}
+		</script>
+		<Footer />
+	</body>
+</html>

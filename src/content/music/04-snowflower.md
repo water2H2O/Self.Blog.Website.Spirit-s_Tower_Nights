@@ -6,7 +6,6 @@ cover: '../../assets/oc/music/04-snowflower.webp'
 audio: '/audio/04-snowflower.mp3'
 duration: '2:37'
 characters: ['miaomiao']
-tags: ['原创曲', '合作曲', '有曲绘']
 themeColor: '#AFFFFF'
 order: 40
 ---

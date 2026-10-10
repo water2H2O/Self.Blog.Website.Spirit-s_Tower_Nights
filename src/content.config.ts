@@ -173,6 +173,12 @@ const music = defineCollection({
 			number: z.number(),
 			/** 曲师 */
 			artist: z.string(),
+			/** 曲师的主页 / 社交账号；填写后曲师名会变成链接 */
+			artistUrl: z.string().url().optional(),
+			/** 曲绘画师 */
+			illustrator: z.string().optional(),
+			/** 画师主页（可选） */
+			illustratorUrl: z.string().url().optional(),
 			cover: z.optional(image()),
 			/** 站内音频（MP3，全平台通用，含 Safari/iOS）。以 / 开头即指向 public/ 下的文件 */
 			audio: z.string().optional(),
@@ -185,7 +191,6 @@ const music = defineCollection({
 			duration: z.string().optional(),
 			characters: z.array(reference('characters')).default([]),
 			races: z.array(reference('races')).default([]),
-			tags: z.array(z.string()).default([]),
 			note: z.string().optional(),
 			themeColor: themeColor.default('#AFFFFF'),
 			draft: z.boolean().default(false),
