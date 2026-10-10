@@ -1,0 +1,69 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import DetailPage from '../../layouts/DetailPage.astro';
+
+export async function getStaticPaths() {
+	const characters = await getCollection('characters', ({ data }) => !data.draft);
+	return characters.map((entry) => ({
+		params: { id: entry.id },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const {
+	name,
+	aliases,
+	summary,
+	role,
+	affiliation,
+	pronouns,
+	age,
+	themeColor,
+	portrait,
+	tags,
+	lore,
+	spoiler,
+} = entry.data;
+
+const meta: { label: string; value: string }[] = [];
+if (role) meta.push({ label: '定位', value: role });
+if (affiliation) meta.push({ label: '所属', value: affiliation });
+if (pronouns) meta.push({ label: '人称', value: pronouns });
+if (age) meta.push({ label: '年龄', value: age });
+if (aliases.length > 0) meta.push({ label: '别名', value: aliases.join(' / ') });
+
+const relatedLore = (await Promise.all(lore.map((ref) => getEntry(ref)))).filter(
+	(item): item is NonNullable<typeof item> => Boolean(item),
+);
+---
+
+<DetailPage
+	title={name}
+	subtitle={role}
+	summary={summary}
+	themeColor={themeColor}
+	cover={portrait}
+	tags={tags}
+	meta={meta}
+	spoiler={spoiler}
+	backHref="/characters/"
+	backLabel="角色档案"
+>
+	<Content />
+	{
+		relatedLore.length > 0 && (
+			<div class="related">
+				<h2>相关设定</h2>
+				<ul>
+					{relatedLore.map((item) => (
+						<li>
+							<a href={`/world/${item.id}/`}>{item.data.title}</a>
+						</li>
+					))}
+				</ul>
+			</div>
+		)
+	}
+</DetailPage>

@@ -1,0 +1,81 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import TagList from './TagList.astro';
+
+interface Props {
+	entry: CollectionEntry<'lore'>;
+}
+
+const { entry } = Astro.props;
+const { title, summary, category, cover, themeColor, tags } = entry.data;
+---
+
+<article class="card" style={`--card-color:${themeColor}`}>
+	<a href={`/world/${entry.id}/`}>
+		{cover && (
+			<div class="thumb">
+				<Image src={cover} alt={title} width={640} />
+			</div>
+		)}
+		<div class="body">
+			<span class="category">{category}</span>
+			<h3>{title}</h3>
+			<p class="summary">{summary}</p>
+			<TagList tags={tags.slice(0, 4)} color={themeColor} />
+		</div>
+	</a>
+</article>
+
+<style>
+	.card {
+		background: #fff;
+		border-radius: 14px;
+		overflow: hidden;
+		box-shadow: 0 2px 6px rgba(var(--gray), 18%);
+		border: 1px solid rgb(var(--gray-light));
+		border-left: 4px solid var(--card-color);
+		transition: 0.2s ease;
+	}
+	.card:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--box-shadow);
+	}
+	.card a {
+		display: block;
+		text-decoration: none;
+		color: inherit;
+		height: 100%;
+	}
+	.thumb {
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+		background: color-mix(in srgb, var(--card-color) 12%, #fff);
+	}
+	.thumb :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 0;
+		display: block;
+	}
+	.body {
+		padding: 0.9em 1.1em 1.1em;
+	}
+	.category {
+		font-size: 0.72em;
+		letter-spacing: 0.08em;
+		color: var(--card-color);
+	}
+	.body h3 {
+		margin: 0.15em 0 0;
+		font-size: 1.1em;
+		color: rgb(var(--black));
+	}
+	.summary {
+		margin: 0.5em 0 0;
+		font-size: 0.85em;
+		line-height: 1.6;
+		color: rgb(var(--gray-dark));
+	}
+</style>

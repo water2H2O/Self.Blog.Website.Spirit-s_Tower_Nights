@@ -1,0 +1,185 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import SpoilerNote from '../components/SpoilerNote.astro';
+import TagList from '../components/TagList.astro';
+
+interface MetaItem {
+	label: string;
+	value: string;
+}
+
+interface Props {
+	title: string;
+	subtitle?: string;
+	summary: string;
+	themeColor: string;
+	cover?: ImageMetadata;
+	tags?: string[];
+	/** 右侧信息栏：角色页放年龄/所属，设定页放分类/别名等 */
+	meta?: MetaItem[];
+	spoiler?: 'none' | 'mild' | 'heavy';
+	backHref: string;
+	backLabel: string;
+}
+
+const {
+	title,
+	subtitle,
+	summary,
+	themeColor,
+	cover,
+	tags = [],
+	meta = [],
+	spoiler = 'none',
+	backHref,
+	backLabel,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={summary} image={cover} />
+		<style>
+			main {
+				width: 860px;
+			}
+			.back {
+				font-size: 0.82em;
+				text-decoration: none;
+				color: rgb(var(--gray));
+			}
+			.back:hover {
+				color: var(--entry-color);
+			}
+			.hero {
+				margin: 1em 0 1.6em;
+				padding-bottom: 1.2em;
+				border-bottom: 2px solid color-mix(in srgb, var(--entry-color) 35%, transparent);
+			}
+			.hero h1 {
+				margin: 0;
+			}
+			.subtitle {
+				margin: 0.2em 0 0;
+				color: var(--entry-color);
+				letter-spacing: 0.04em;
+			}
+			.cover {
+				margin: 1.2em 0 0;
+			}
+			.cover :global(img) {
+				display: block;
+				width: 100%;
+				border-radius: 14px;
+				box-shadow: var(--box-shadow);
+			}
+			.meta {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 0.4em 1.2em;
+				margin: 0 0 2em;
+				padding: 1em 1.2em;
+				background: color-mix(in srgb, var(--entry-color) 7%, #fff);
+				border: 1px solid color-mix(in srgb, var(--entry-color) 22%, transparent);
+				border-radius: 12px;
+				font-size: 0.88em;
+			}
+			.meta dt {
+				color: rgb(var(--gray));
+			}
+			.meta dd {
+				margin: 0;
+				color: rgb(var(--gray-dark));
+			}
+			.prose {
+				color: rgb(var(--gray-dark));
+			}
+			.prose :global(h2) {
+				margin-top: 2em;
+				padding-bottom: 0.2em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			.prose :global(h3) {
+				margin-top: 1.6em;
+			}
+			.prose :global(blockquote) {
+				border-left-color: var(--entry-color);
+			}
+			/* 页面正文里用 <div class="related"> 输出的关联区块 */
+			.prose :global(.related) {
+				margin-top: 3em;
+				padding-top: 1.5em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.prose :global(.related h2) {
+				margin: 0 0 0.6em;
+				font-size: 1.1em;
+				border: none;
+			}
+			.prose :global(.related ul) {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.prose :global(.related a) {
+				display: inline-block;
+				padding: 0.4em 0.85em;
+				border-radius: 999px;
+				font-size: 0.85em;
+				text-decoration: none;
+				color: var(--entry-color);
+				background: color-mix(in srgb, var(--entry-color) 10%, #fff);
+				border: 1px solid color-mix(in srgb, var(--entry-color) 28%, transparent);
+			}
+			.prose :global(.related a:hover) {
+				background: color-mix(in srgb, var(--entry-color) 18%, #fff);
+			}
+			@media (max-width: 720px) {
+				.meta {
+					grid-template-columns: 1fr;
+					gap: 0.1em;
+				}
+				.meta dd {
+					margin-bottom: 0.6em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main style={`--entry-color:${themeColor}`}>
+			<a class="back" href={backHref}>← {backLabel}</a>
+			<header class="hero">
+				<h1>{title}</h1>
+				{subtitle && <p class="subtitle">{subtitle}</p>}
+				<SpoilerNote level={spoiler} />
+				<TagList tags={tags} color={themeColor} />
+				{cover && <div class="cover"><Image src={cover} alt={title} width={1020} /></div>}
+			</header>
+			{
+				meta.length > 0 && (
+					<dl class="meta">
+						{meta.map((item) => (
+							<>
+								<dt>{item.label}</dt>
+								<dd>{item.value}</dd>
+							</>
+						))}
+					</dl>
+				)
+			}
+			<div class="prose">
+				<slot />
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>

@@ -1,0 +1,62 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import CharacterCard from '../../components/CharacterCard.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+
+const characters = (await getCollection('characters', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name, 'zh-Hans-CN'),
+);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="角色档案"
+			description="Spirit's Tower Nights 的角色一览：立绘、定位、别名与关联设定。"
+		/>
+		<style>
+			main {
+				width: 1000px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+				gap: 1.6rem;
+				margin-top: 2em;
+			}
+			.empty {
+				color: rgb(var(--gray));
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>角色档案</h1>
+			<p class="lead">
+				{characters.length} 位角色。点开任意一位，可以看到 TA 的设定、别名与相关条目。
+			</p>
+			{
+				characters.length > 0 ? (
+					<div class="grid">
+						{characters.map((entry) => (
+							<CharacterCard entry={entry} />
+						))}
+					</div>
+				) : (
+					<p class="empty">
+						还没有角色。在 <code>src/content/characters/</code> 下新建一个 markdown 文件即可。
+					</p>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

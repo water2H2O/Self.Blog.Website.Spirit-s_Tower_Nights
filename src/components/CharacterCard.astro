@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import TagList from './TagList.astro';
+
+interface Props {
+	entry: CollectionEntry<'characters'>;
+}
+
+const { entry } = Astro.props;
+const { name, aliases, summary, role, portrait, themeColor, tags } = entry.data;
+
+// 没有立绘时用名字首字做一个色块，避免列表里出现空洞
+const monogram = name.replace(/[（()）·\s]/g, '').slice(0, 1) || '?';
+const aliasText = aliases.filter(Boolean).join(' / ');
+---
+
+<article class="card" style={`--card-color:${themeColor}`}>
+	<a href={`/characters/${entry.id}/`}>
+		<div class="thumb">
+			{
+				portrait ? (
+					<Image src={portrait} alt={name} width={480} />
+				) : (
+					<span class="monogram">{monogram}</span>
+				)
+			}
+		</div>
+		<div class="body">
+			<h3>{name}</h3>
+			{role && <p class="role">{role}</p>}
+			{aliasText && <p class="aliases">{aliasText}</p>}
+			<p class="summary">{summary}</p>
+			<TagList tags={tags.slice(0, 4)} color={themeColor} />
+		</div>
+	</a>
+</article>
+
+<style>
+	.card {
+		background: #fff;
+		border-radius: 14px;
+		overflow: hidden;
+		box-shadow: 0 2px 6px rgba(var(--gray), 18%);
+		border: 1px solid rgb(var(--gray-light));
+		transition: 0.2s ease;
+	}
+	.card:hover {
+		transform: translateY(-3px);
+		box-shadow: var(--box-shadow);
+		border-color: color-mix(in srgb, var(--card-color) 45%, transparent);
+	}
+	.card a {
+		display: block;
+		text-decoration: none;
+		color: inherit;
+	}
+	.thumb {
+		aspect-ratio: 1;
+		display: grid;
+		place-items: center;
+		overflow: hidden;
+		background: color-mix(in srgb, var(--card-color) 14%, #fff);
+	}
+	.thumb :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 0;
+		display: block;
+	}
+	.monogram {
+		font-size: 3.6em;
+		font-weight: 700;
+		color: var(--card-color);
+	}
+	.body {
+		padding: 0.9em 1em 1.1em;
+	}
+	.body h3 {
+		margin: 0;
+		font-size: 1.15em;
+		color: rgb(var(--black));
+	}
+	.role {
+		margin: 0.15em 0 0;
+		font-size: 0.78em;
+		letter-spacing: 0.06em;
+		color: var(--card-color);
+	}
+	.aliases {
+		margin: 0.2em 0 0;
+		font-size: 0.75em;
+		color: rgb(var(--gray));
+	}
+	.summary {
+		margin: 0.5em 0 0;
+		font-size: 0.85em;
+		line-height: 1.6;
+		color: rgb(var(--gray-dark));
+	}
+</style>

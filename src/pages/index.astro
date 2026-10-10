@@ -1,58 +1,175 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const characters = await getCollection('characters', ({ data }) => !data.draft);
+const lore = await getCollection('lore', ({ data }) => !data.draft);
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+const rooms = [
+	{
+		href: '/world/',
+		title: '世界观',
+		desc: '地理、种族、体系、组织与历史 —— 这座塔是怎么立起来的。',
+		count: `${lore.length} 条设定`,
+	},
+	{
+		href: '/characters/',
+		title: '角色档案',
+		desc: '在这个世界里活着的人，以及他们彼此的关系。',
+		count: `${characters.length} 位角色`,
+	},
+	{
+		href: '/blog/',
+		title: '随笔',
+		desc: '制作花絮、灵感笔记，以及一些不成体系的日常记录。',
+		count: `${posts.length} 篇文章`,
+	},
+	{
+		href: '/about/',
+		title: '关于',
+		desc: '关于这座塔、关于我，以及作品的使用与授权说明。',
+		count: '',
+	},
+];
+
+const upcoming = [
+	{ title: '画廊', desc: '插画、立绘与场景，按角色与系列归档。' },
+	{ title: '音乐', desc: '主题曲与 BGM 的试听与创作笔记。' },
+	{ title: '故事', desc: '短篇与连载章节，可以按角色和事件串联阅读。' },
+];
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+			}
+			.intro {
+				font-size: 1.05em;
+			}
+			.intro .placeholder {
+				color: rgb(var(--gray));
+				font-size: 0.85em;
+				font-style: italic;
+			}
+			.rooms {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+				gap: 1.4rem;
+				margin-top: 2.5em;
+			}
+			.room {
+				display: block;
+				padding: 1.2em 1.3em 1.4em;
+				border-radius: 14px;
+				background: #fff;
+				border: 1px solid rgb(var(--gray-light));
+				box-shadow: 0 2px 6px rgba(var(--gray), 18%);
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			.room:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--box-shadow);
+				border-color: var(--accent);
+			}
+			.room h2 {
+				margin: 0;
+				font-size: 1.35em;
+				color: rgb(var(--black));
+			}
+			.room .count {
+				font-size: 0.75em;
+				color: var(--accent);
+				letter-spacing: 0.06em;
+			}
+			.room p {
+				margin: 0.5em 0 0;
+				font-size: 0.88em;
+				line-height: 1.6;
+				color: rgb(var(--gray-dark));
+			}
+			.upcoming {
+				margin-top: 3em;
+				padding-top: 1.5em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.upcoming h2 {
+				font-size: 1.1em;
+			}
+			.upcoming ul {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+				gap: 1rem;
+				list-style: none;
+				margin: 1em 0 0;
+				padding: 0;
+			}
+			.upcoming li {
+				padding: 0.9em 1.1em;
+				border-radius: 12px;
+				border: 1px dashed rgb(var(--gray-light));
+				font-size: 0.85em;
+				color: rgb(var(--gray-dark));
+			}
+			.upcoming .badge {
+				display: inline-block;
+				margin-left: 0.4em;
+				padding: 0.1em 0.5em;
+				border-radius: 999px;
+				font-size: 0.75em;
+				color: rgb(var(--gray));
+				background: rgb(var(--gray-light));
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to
-				build a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your{' '}
-				<code>astro.config.mjs</code> file. You can customize your setup with{' '}
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like
-				Tailwind, React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>
-					Edit this page in <code>src/pages/index.astro</code>
-				</li>
-				<li>
-					Edit the site header items in <code>src/components/Header.astro</code>
-				</li>
-				<li>
-					Add your name to the footer in <code>src/components/Footer.astro</code>
-				</li>
-				<li>
-					Check out the included blog posts in <code>src/content/blog/</code>
-				</li>
-				<li>
-					Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code>
-				</li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to{' '}
-				<a href="https://docs.astro.build/">read the docs</a> or{' '}
-				<a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out{' '}
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a> by{' '}
-				<a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
+			<h1>{SITE_TITLE}</h1>
+			<div class="intro">
+				<p>
+					这里存放一个原创世界观的全部零件：设定、角色、故事、画作，以及为它写的曲子。
+				</p>
+				<p class="placeholder">
+					（这段简介是模板占位，改成你自己的开场白 —— 一两句话说明这是个什么样的世界就够了。）
+				</p>
+			</div>
+
+			<div class="rooms">
+				{
+					rooms.map((room) => (
+						<a class="room" href={room.href}>
+							<h2>{room.title}</h2>
+							{room.count && <span class="count">{room.count}</span>}
+							<p>{room.desc}</p>
+						</a>
+					))
+				}
+			</div>
+
+			<section class="upcoming">
+				<h2>还在修的房间</h2>
+				<ul>
+					{
+						upcoming.map((item) => (
+							<li>
+								<strong>{item.title}</strong>
+								<span class="badge">筹备中</span>
+								<br />
+								{item.desc}
+							</li>
+						))
+					}
+				</ul>
+			</section>
 		</main>
 		<Footer />
 	</body>
