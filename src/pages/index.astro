@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
+import githubData from '../data/github.json';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
@@ -24,6 +25,34 @@ const posts = (await getCollection('blog')).filter(isPublic);
 const characters = (await getCollection('characters')).filter(isPublic);
 const stories = (await getCollection('stories', ({ data }) => data.status === 'published'));
 const eden = (await getCollection('eden', ({ data }) => !data.draft));
+
+/**
+ * GitHub 动态：数据由 tools/fetch-github.mjs 抓好缓存在 src/data/github.json，
+ * 构建本身不联网 —— 想更新就跑一次那个脚本。
+ */
+const github = githubData as {
+	user: { login: string; url: string; publicRepos: number; followers: number; createdAt: string };
+	repos: {
+		name: string;
+		description: string;
+		language: string;
+		url: string;
+		pushedAt: string;
+		sizeKb: number;
+		empty: boolean;
+	}[];
+};
+const repos = github.repos.filter((repo) => !repo.empty).slice(0, 4);
+const sinceYear = new Date(github.user.createdAt).getFullYear();
+const daysAgo = (iso: string) =>
+	Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86400000));
+const ago = (iso: string) => {
+	const days = daysAgo(iso);
+	if (days === 0) return '今天';
+	if (days === 1) return '昨天';
+	if (days < 30) return `${days} 天前`;
+	return `${Math.round(days / 30)} 个月前`;
+};
 ---
 
 <!doctype html>
@@ -181,6 +210,96 @@ const eden = (await getCollection('eden', ({ data }) => !data.draft));
 				height: auto;
 				border-radius: 10px;
 			}
+			/* GitHub 动态 */
+			.github {
+				margin-top: 1.2em;
+				padding: 1.4em 1.6em 1.2em;
+				border-radius: 16px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.gh-head {
+				display: flex;
+				align-items: baseline;
+				flex-wrap: wrap;
+				gap: 0.8em;
+				padding-bottom: 0.9em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			.gh-login {
+				font-size: 1.1em;
+				color: var(--glow);
+			}
+			.gh-stats {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+			}
+			.gh-link {
+				margin-left: auto;
+				font-size: 0.82em;
+				text-decoration: none;
+				color: var(--accent);
+			}
+			.gh-link:hover {
+				color: var(--glow);
+			}
+			.repos {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.repos li + li {
+				border-top: 1px dashed rgb(var(--gray-light));
+			}
+			.repos a {
+				display: block;
+				padding: 0.85em 0;
+				text-decoration: none;
+				color: inherit;
+			}
+			.repos a:hover .repo-name {
+				color: var(--glow);
+			}
+			.repo-head {
+				display: flex;
+				align-items: baseline;
+				flex-wrap: wrap;
+				gap: 0.7em;
+			}
+			.repo-name {
+				font-size: 0.92em;
+				color: rgb(var(--black));
+				transition: color 0.15s ease;
+				word-break: break-all;
+			}
+			.lang {
+				padding: 0.05em 0.5em;
+				border-radius: 999px;
+				font-size: 0.7em;
+				color: var(--accent);
+				background: rgba(175, 255, 255, 10%);
+				border: 1px solid rgba(175, 255, 255, 22%);
+			}
+			.when {
+				margin-left: auto;
+				font-size: 0.74em;
+				color: rgb(var(--gray));
+				white-space: nowrap;
+			}
+			.repo-desc {
+				display: block;
+				margin-top: 0.35em;
+				font-size: 0.84em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			.gh-note {
+				margin: 0.9em 0 0;
+				padding-top: 0.9em;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+			}
 			@media (max-width: 720px) {
 				.card.featured {
 					flex-direction: column;
@@ -258,6 +377,33 @@ const eden = (await getCollection('eden', ({ data }) => !data.draft));
 					<p>关于我、联系方式，以及作品的使用与授权说明。</p>
 					<p class="stats">{BILIBILI_NAME} · {GITHUB_NAME}</p>
 				</a>
+			</div>
+			<h2 class="section-title">最近在写什么</h2>
+			<div class="github">
+				<div class="gh-head">
+					<span class="gh-login">{github.user.login}</span>
+					<span class="gh-stats">
+						{github.user.publicRepos} 个公开仓库 · 关注者 {github.user.followers} · {sinceYear} 年注册
+					</span>
+					<a class="gh-link" href={github.user.url} target="_blank" rel="noreferrer">去 GitHub →</a>
+				</div>
+				<ul class="repos">
+					{repos.map((repo) => (
+						<li>
+							<a href={repo.url} target="_blank" rel="noreferrer">
+								<span class="repo-head">
+									<span class="repo-name">{repo.name}</span>
+									{repo.language && <span class="lang">{repo.language}</span>}
+									<span class="when">{ago(repo.pushedAt)}</span>
+								</span>
+								{repo.description && <span class="repo-desc">{repo.description}</span>}
+							</a>
+						</li>
+					))}
+				</ul>
+				<p class="gh-note">
+					这个站本身也在上面。绿格子最近才开始长 —— 见谅（
+				</p>
 			</div>
 		</main>
 		<Footer />

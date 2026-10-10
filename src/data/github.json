@@ -1,0 +1,47 @@
+{
+  "fetchedAt": "2026-10-10T15:11:24.057Z",
+  "user": {
+    "login": "water2H2O",
+    "name": "",
+    "url": "https://github.com/water2H2O",
+    "avatar": "https://avatars.githubusercontent.com/u/189988544?v=4",
+    "publicRepos": 3,
+    "followers": 1,
+    "createdAt": "2024-11-28T12:20:28Z"
+  },
+  "repos": [
+    {
+      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
+      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
+      "language": "Astro",
+      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
+      "stars": 0,
+      "pushedAt": "2026-10-10T15:04:56Z",
+      "createdAt": "2026-10-09T07:50:22Z",
+      "sizeKb": 41114,
+      "empty": false
+    },
+    {
+      "name": "dsh-damage-number",
+      "description": "因为找不到这个效果的来源于是自己让harness搓了一个",
+      "language": "JavaScript",
+      "url": "https://github.com/water2H2O/dsh-damage-number",
+      "stars": 0,
+      "pushedAt": "2026-10-10T05:55:40Z",
+      "createdAt": "2026-10-09T06:33:47Z",
+      "sizeKb": 148,
+      "empty": false
+    },
+    {
+      "name": "Spirit-s_Tower_Nights-Tales_of_the_Elemental_Aftermath",
+      "description": "包含水水个人世界观《水塔夜谈》的大部分可公开资料",
+      "language": "",
+      "url": "https://github.com/water2H2O/Spirit-s_Tower_Nights-Tales_of_the_Elemental_Aftermath",
+      "stars": 0,
+      "pushedAt": "2026-09-22T06:46:58Z",
+      "createdAt": "2026-09-22T06:45:40Z",
+      "sizeKb": 1,
+      "empty": false
+    }
+  ]
+}
