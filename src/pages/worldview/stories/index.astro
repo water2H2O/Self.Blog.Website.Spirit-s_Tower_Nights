@@ -1,4 +1,4 @@
-﻿---
+---
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
@@ -6,6 +6,11 @@ import { groupByArc, publishedEpisodes } from '../../../lib/stories';
 
 const episodes = await publishedEpisodes();
 const acts = groupByArc(episodes);
+
+/** 幕的补充说明 */
+const ACT_NOTES: Record<string, string> = {
+	别传: '非主线的外传与支线 —— 龙族篇、未冕之时篇、血疫纷争篇、银辉之沐，以及支线《穿行时间的猫》。这几篇不全是我写的，作者标在每一话后面。',
+};
 ---
 
 <!doctype html>
@@ -36,6 +41,16 @@ const acts = groupByArc(episodes);
 				font-size: 0.8em;
 				letter-spacing: 0.08em;
 				color: rgb(var(--gray));
+			}
+			.act > .act-note {
+				margin: -0.8em 0 1.8em;
+				padding: 0.75em 1em;
+				border-radius: 10px;
+				font-size: 0.82em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+				background: var(--surface);
+				border-left: 2px solid rgba(175, 255, 255, 30%);
 			}
 			.arc {
 				margin: 0 0 1.8em;
@@ -78,6 +93,18 @@ const acts = groupByArc(episodes);
 			.arc a:hover {
 				color: var(--glow);
 			}
+			/* 非本人执笔的话，在标题后面标出作者 */
+			.author {
+				margin-left: 0.6em;
+				padding: 0.1em 0.5em;
+				border-radius: 999px;
+				font-size: 0.72em;
+				letter-spacing: 0.04em;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 12%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+				white-space: nowrap;
+			}
 			.summary {
 				display: block;
 				margin-top: 0.15em;
@@ -106,6 +133,7 @@ const acts = groupByArc(episodes);
 								{act.arcs.length} 篇 ·{' '}
 								{act.arcs.reduce((sum, arc) => sum + arc.episodes.length, 0)} 话
 							</p>
+							{ACT_NOTES[act.act] && <p class="act-note">{ACT_NOTES[act.act]}</p>}
 							{act.arcs.map((arc) => (
 								<div class="arc">
 									<h3>{arc.arc}</h3>
@@ -113,8 +141,11 @@ const acts = groupByArc(episodes);
 										{arc.episodes.map((episode) => (
 											<li>
 												<span class="code">{episode.data.code}</span>
-												<span>
+												<span class="entry">
 													<a href={`/worldview/stories/${episode.id}/`}>{episode.data.title}</a>
+													{episode.data.author !== '水水' && (
+														<span class="author">{episode.data.author}</span>
+													)}
 													{episode.data.summary && <span class="summary">{episode.data.summary}</span>}
 												</span>
 											</li>

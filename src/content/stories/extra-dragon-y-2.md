@@ -1,8 +1,9 @@
 ---
 title: 龙王之心的悸动
-act: 第一幕：囚笼与飞翔
+act: 别传
 arc: 龙族篇
 code: 'y-2'
+author: '浅羽'
 status: published
 ---
 

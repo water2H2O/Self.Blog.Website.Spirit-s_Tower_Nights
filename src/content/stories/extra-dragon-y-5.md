@@ -1,9 +1,10 @@
 ---
 title: 黑曜之乱
-act: 第一幕：囚笼与飞翔
+act: 别传
 characters: ['liliana-salambo']
 arc: 龙族篇
 code: 'y-5'
+author: '浅羽'
 status: published
 ---
 

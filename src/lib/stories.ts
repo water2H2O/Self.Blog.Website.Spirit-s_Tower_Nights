@@ -1,7 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 
-/** 幕的先后顺序。新增幕时在这里补一个前缀即可 */
-const ACT_ORDER = ['第一幕', '第二幕', '第三幕', '第四幕', '第五幕'];
+/**
+ * 幕的先后顺序。新增幕时在这里补一个前缀即可。
+ * 「别传」放在最后 —— 收录 x / y / z 三篇非主线，以及支线《穿行时间的猫》。
+ */
+const ACT_ORDER = ['第一幕', '第二幕', '第三幕', '第四幕', '第五幕', '别传'];
 
 export type Episode = CollectionEntry<'stories'>;
 

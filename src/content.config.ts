@@ -133,6 +133,11 @@ const stories = defineCollection({
 			arc: z.string(),
 			/** 话号，例如 2-3 / 2-ed / sp-1，同时决定篇内排序 */
 			code: z.string(),
+			/**
+			 * 作者。主线正文都是作者本人写的，所以默认「水水」；
+			 * 别传里 x / y 是浅羽写的，x-3 是合作，支线前两章是墨白写的。
+			 */
+			author: z.string().default('水水'),
 			summary: z.string().optional(),
 			characters: z.array(reference('characters')).default([]),
 			races: z.array(reference('races')).default([]),

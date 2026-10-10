@@ -1,9 +1,10 @@
 ---
 title: 边境烽火与龙枪血镰
-act: 第一幕：囚笼与飞翔
+act: 别传
 characters: ['liliana-salambo']
 arc: 未冕之时篇
 code: 'x-2'
+author: '浅羽'
 status: published
 ---
 

@@ -1,8 +1,9 @@
 ---
 title: 雷娜
-act: 第一幕：囚笼与飞翔
+act: 别传
 arc: 龙族篇
 code: 'y-1'
+author: '浅羽'
 status: published
 ---
 
