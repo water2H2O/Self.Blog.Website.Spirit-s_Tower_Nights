@@ -12,13 +12,54 @@ const races = (await getCollection('races', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order,
 );
 
-/** 按种族分组 —— 呼应用户“先定种族”的创作流程 */
-const groups = races
-	.map((race) => ({
-		race,
-		members: characters.filter((character) => character.data.race?.id === race.id),
-	}))
-	.filter((group) => group.members.length > 0);
+/**
+ * 按种族分组 —— 呼应用户“先定种族”的创作流程。
+ * 同源的种族并到一行显示：天翼种由风元素精灵演化而来，所以两支合成
+ * 「元素精灵 / 天翼种」一组。
+ */
+const COMBOS: { ids: string[]; label: string }[] = [
+	{ ids: ['elemental-spirit', 'winged'], label: '元素精灵 / 天翼种' },
+];
+
+const raceById = new Map(races.map((race) => [race.id, race]));
+const used = new Set<string>();
+const groups: {
+	label: string;
+	links: { href: string; text: string }[];
+	epithets: string[];
+	color: string;
+	members: typeof characters;
+}[] = [];
+
+// 先放合并组
+for (const combo of COMBOS) {
+	const present = combo.ids.filter((id) => raceById.has(id));
+	if (present.length === 0) continue;
+	const members = characters.filter((character) => present.includes(character.data.race?.id ?? ''));
+	if (members.length === 0) continue;
+	for (const id of present) used.add(id);
+	groups.push({
+		label: combo.label,
+		links: present.map((id) => ({ href: `/worldview/races/${id}/`, text: raceById.get(id)!.data.name })),
+		epithets: present.map((id) => raceById.get(id)!.data.epithet ?? '').filter(Boolean),
+		color: raceById.get(present[0])!.data.themeColor,
+		members,
+	});
+}
+
+// 再放单独的种族
+for (const race of races) {
+	if (used.has(race.id)) continue;
+	const members = characters.filter((character) => character.data.race?.id === race.id);
+	if (members.length === 0) continue;
+	groups.push({
+		label: race.data.name,
+		links: [{ href: `/worldview/races/${race.id}/`, text: race.data.name }],
+		epithets: race.data.epithet ? [race.data.epithet] : [],
+		color: race.data.themeColor,
+		members,
+	});
+}
 
 const known = new Set(groups.flatMap((group) => group.members.map((m) => m.id)));
 const ungrouped = characters.filter((character) => !known.has(character.id));
@@ -62,6 +103,11 @@ const ungrouped = characters.filter((character) => !known.has(character.id));
 			.race-head a:hover {
 				color: var(--glow);
 			}
+			/* 同源种族合并显示时的分隔符 */
+			.race-head .sep {
+				color: rgb(var(--gray));
+				font-weight: 400;
+			}
 			.race-head .epithet {
 				font-size: 0.78em;
 				letter-spacing: 0.06em;
@@ -87,12 +133,19 @@ const ungrouped = characters.filter((character) => !known.has(character.id));
 
 			{
 				groups.map((group) => (
-					<section style={`--race-color:${group.race.data.themeColor}`}>
+					<section style={`--race-color:${group.color}`}>
 						<div class="race-head">
 							<h2>
-								<a href={`/worldview/races/${group.race.id}/`}>{group.race.data.name}</a>
+								{group.links.map((link, index) => (
+									<>
+										{index > 0 && <span class="sep"> / </span>}
+										<a href={link.href}>{link.text}</a>
+									</>
+								))}
 							</h2>
-							{group.race.data.epithet && <span class="epithet">[{group.race.data.epithet}]</span>}
+							{group.epithets.length > 0 && (
+								<span class="epithet">{group.epithets.map((e) => `[${e}]`).join(' ')}</span>
+							)}
 						</div>
 						<div class="grid">
 							{group.members.map((character) => (
