@@ -4,6 +4,7 @@ summary: 精灵王为隔绝熵增而提出的“破碎神器，构筑结界”�
 category: 历史
 tags: ['精灵王', '结界', '元素精灵', '两次牺牲']
 related: ['cataclysm', 'miasma', 'artifacts', 'borderland', 'cloudspire']
+characters: ['miaomiao']
 canon: open
 order: 70
 ---

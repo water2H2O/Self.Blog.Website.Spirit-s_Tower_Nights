@@ -4,6 +4,7 @@ summary: 元素本源的至高结晶，诞生时蕴含对抗“规则”的“�
 category: 神器
 tags: ['元素本源', '原始可能性', '结界']
 related: ['cataclysm', 'elf-arc', 'cloudspire', 'miasma']
+characters: ['fengxi-lingyue']
 canon: open
 order: 60
 ---

@@ -4,6 +4,7 @@ summary: 精灵王以自身 90% 生命与力量本源，把不完整、不稳定
 category: 地理
 tags: ['结界', '时空不稳', '精灵国度']
 related: ['elf-arc', 'artifacts', 'cataclysm', 'miasma', 'cloudspire']
+characters: ['viola', 'fengxi-lingyue']
 canon: open
 order: 80
 ---
