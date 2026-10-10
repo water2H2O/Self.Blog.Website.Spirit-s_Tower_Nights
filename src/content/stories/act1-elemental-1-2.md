@@ -1,6 +1,7 @@
 ---
 title: 乱七八糟的相遇
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan']
 arc: 元素精灵篇
 code: '1-2'
 status: published

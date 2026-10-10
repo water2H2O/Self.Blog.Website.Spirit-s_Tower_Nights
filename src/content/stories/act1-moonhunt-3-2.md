@@ -1,6 +1,7 @@
 ---
 title: 血影
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'fengxi-lingyue', 'liliana-salambo']
 arc: 寻月觅影篇
 code: '3-2'
 status: published

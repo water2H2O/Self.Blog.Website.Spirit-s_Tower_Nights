@@ -1,6 +1,7 @@
 ---
 title: 殿下，代课是严重违纪行为
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'liliana-salambo']
 arc: 未冕之时篇
 code: 'x-4'
 status: published

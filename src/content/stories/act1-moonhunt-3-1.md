@@ -1,6 +1,7 @@
 ---
 title: 铃月村
 act: 第一幕：囚笼与飞翔
+characters: ['fengxi-lingyue']
 arc: 寻月觅影篇
 code: '3-1'
 status: published

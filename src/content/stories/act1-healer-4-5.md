@@ -1,6 +1,7 @@
 ---
 title: 潮涌之夜
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'liliana-salambo', 'viola', 'weilan']
 arc: 愈者之契
 code: '4-5'
 status: published

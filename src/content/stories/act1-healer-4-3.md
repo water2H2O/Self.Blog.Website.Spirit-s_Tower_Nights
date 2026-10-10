@@ -1,6 +1,7 @@
 ---
 title: 拂晓之前
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'fengxi-lingyue', 'liliana-salambo', 'weilan']
 arc: 愈者之契
 code: '4-3'
 status: published

@@ -1,6 +1,7 @@
 ---
 title: 风止云归
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'fengxi-lingyue', 'weilan']
 arc: 风眼密云
 code: '5-ep'
 status: published

@@ -1,6 +1,7 @@
 ---
 title: 密谋
 act: 第一幕：囚笼与飞翔
+characters: ['liliana-salambo']
 arc: 血疫纷争篇
 code: 'z-1'
 status: published

@@ -1,6 +1,7 @@
 ---
 title: 风止
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'viola', 'weilan']
 arc: 风眼密云
 code: '5-9'
 status: published

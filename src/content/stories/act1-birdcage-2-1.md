@@ -1,6 +1,7 @@
 ---
 title: 笼与蔷薇
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'liliana-salambo']
 arc: 囚鸟篇
 code: '2-1'
 status: published

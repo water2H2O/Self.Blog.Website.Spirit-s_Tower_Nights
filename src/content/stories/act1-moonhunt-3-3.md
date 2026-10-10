@@ -1,6 +1,7 @@
 ---
 title: 信标与启程
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'liliana-salambo', 'viola']
 arc: 寻月觅影篇
 code: '3-3'
 status: published

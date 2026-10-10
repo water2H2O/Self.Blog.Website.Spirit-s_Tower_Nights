@@ -1,6 +1,7 @@
 ---
 title: 莉莉安娜•萨拉姆博
 act: 第一幕：囚笼与飞翔
+characters: ['liliana-salambo']
 arc: 未冕之时篇
 code: 'x-1'
 status: published

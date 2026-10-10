@@ -1,6 +1,7 @@
 ---
 title: 余烬与回响
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'viola']
 arc: 寻月觅影篇
 code: '3-4'
 status: published

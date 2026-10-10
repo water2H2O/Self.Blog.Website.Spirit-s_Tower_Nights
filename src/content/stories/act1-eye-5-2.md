@@ -1,6 +1,7 @@
 ---
 title: 枫栖之宴
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-2'
 status: published

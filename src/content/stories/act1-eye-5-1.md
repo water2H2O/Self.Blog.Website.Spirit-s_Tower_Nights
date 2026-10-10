@@ -1,6 +1,7 @@
 ---
 title: 云上之城
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'liliana-salambo']
 arc: 风眼密云
 code: '5-1'
 status: published

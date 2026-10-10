@@ -1,6 +1,7 @@
 ---
 title: 边界
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-2'
 status: published

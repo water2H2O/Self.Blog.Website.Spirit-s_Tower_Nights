@@ -1,6 +1,7 @@
 ---
 title: 惊蛰
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'viola', 'weilan']
 arc: 风眼密云
 code: '5-7'
 status: published

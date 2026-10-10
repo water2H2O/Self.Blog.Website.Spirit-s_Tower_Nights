@@ -1,6 +1,7 @@
 ---
 title: 北境
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-3'
 status: published

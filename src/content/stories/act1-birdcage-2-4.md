@@ -1,6 +1,7 @@
 ---
 title: 冰原上的暖光
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'viola']
 arc: 囚鸟篇
 code: '2-4'
 status: published

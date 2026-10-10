@@ -1,6 +1,7 @@
 ---
 title: 银色狂欢节
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan']
 arc: 银辉之沐
 code: 'sp-1'
 status: published

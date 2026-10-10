@@ -1,6 +1,7 @@
 ---
 title: “水”与“茶”的配方
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'liliana-salambo', 'weilan']
 arc: 愈者之契
 code: '4-4'
 status: published

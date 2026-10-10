@@ -1,6 +1,7 @@
 ---
 title: 风暴眼
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha']
 arc: 风眼密云
 code: '5-8'
 status: published

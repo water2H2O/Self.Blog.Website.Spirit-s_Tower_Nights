@@ -1,6 +1,7 @@
 ---
 title: 风起之时
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'viola', 'weilan']
 arc: 愈者之契
 code: '4-ep'
 status: published

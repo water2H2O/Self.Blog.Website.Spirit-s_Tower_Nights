@@ -1,6 +1,7 @@
 ---
 title: 风铃与铃铛
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue']
 arc: 愈者之契
 code: '4-1'
 status: published

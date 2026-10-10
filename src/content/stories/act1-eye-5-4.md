@@ -1,6 +1,7 @@
 ---
 title: 暗涌
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-4'
 status: published

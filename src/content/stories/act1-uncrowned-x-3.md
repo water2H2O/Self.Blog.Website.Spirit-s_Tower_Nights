@@ -1,6 +1,7 @@
 ---
 title: 以为麻袋只是一个古老的传说
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'liliana-salambo']
 arc: 未冕之时篇
 code: 'x-3'
 status: published

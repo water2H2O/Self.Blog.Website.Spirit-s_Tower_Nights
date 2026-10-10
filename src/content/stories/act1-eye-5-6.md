@@ -1,6 +1,7 @@
 ---
 title: 棋局
 act: 第一幕：囚笼与飞翔
+characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-6'
 status: published

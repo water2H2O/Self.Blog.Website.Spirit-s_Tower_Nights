@@ -1,6 +1,7 @@
 ---
 title: 黑曜之乱
 act: 第一幕：囚笼与飞翔
+characters: ['liliana-salambo']
 arc: 龙族篇
 code: 'y-5'
 status: published
