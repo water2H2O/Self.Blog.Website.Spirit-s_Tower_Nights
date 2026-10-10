@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# 图片压缩暂存区（作者重新命名分组前的中间产物，不入库）
+assets-staging/

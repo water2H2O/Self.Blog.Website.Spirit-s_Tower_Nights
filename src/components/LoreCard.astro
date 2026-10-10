@@ -1,4 +1,4 @@
----
+﻿---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import TagList from './TagList.astro';
@@ -12,7 +12,7 @@ const { title, summary, category, cover, themeColor, tags } = entry.data;
 ---
 
 <article class="card" style={`--card-color:${themeColor}`}>
-	<a href={`/world/${entry.id}/`}>
+	<a href={`/worldview/lore/${entry.id}/`}>
 		{cover && (
 			<div class="thumb">
 				<Image src={cover} alt={title} width={640} />

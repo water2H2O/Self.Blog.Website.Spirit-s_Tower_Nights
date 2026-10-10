@@ -1,4 +1,4 @@
-import { defineCollection, reference } from 'astro:content';
+﻿import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
@@ -59,7 +59,7 @@ const races = defineCollection({
 		}),
 });
 
-/** 角色档案。种族是必填引用 —— 呼应用户「先定种族」的创作流程 */
+/** 角色档案。种族是必填引用 —— 呼应用户“先定种族”的创作流程 */
 const characters = defineCollection({
 	loader: glob({ base: './src/content/characters', pattern: '**/*.{md,mdx}' }),
 	schema: ({ image }) =>

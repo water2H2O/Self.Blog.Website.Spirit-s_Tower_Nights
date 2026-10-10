@@ -5,160 +5,123 @@ import logo from '../assets/oc/logo.webp';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR, SITE_DESCRIPTION } from '../consts';
 
 const isPublic = (entry: { data: { draft?: boolean } }) => !entry.data.draft;
-
-const races = (await getCollection('races')).filter(isPublic);
-const characters = (await getCollection('characters')).filter(isPublic);
-const stories = (await getCollection('stories')).filter(isPublic);
-const gallery = (await getCollection('gallery')).filter(isPublic);
-const music = (await getCollection('music')).filter(isPublic);
 const posts = (await getCollection('blog')).filter(isPublic);
-const lore = (await getCollection('lore')).filter(isPublic);
-
-const rooms = [
-	{
-		href: '/world/',
-		title: '世界观',
-		count: `${lore.length} 条`,
-		desc: '熵增、大灾变、瘴素与魔法分级 —— 这座塔立在哪块地基上。',
-	},
-	{
-		href: '/races/',
-		title: '种族',
-		count: `${races.length} 支`,
-		desc: '灾后的世界由谁分享。每一个新角色，都从确定种族开始。',
-	},
-	{
-		href: '/characters/',
-		title: '角色',
-		count: `${characters.length} 位`,
-		desc: '在这个世界里活着的人，以及他们之间的关系。',
-	},
-	{
-		href: '/stories/',
-		title: '故事',
-		count: `${stories.length} 话`,
-		desc: '主线正文，按「幕 → 篇 → 话」组织。',
-	},
-	{
-		href: '/gallery/',
-		title: '画廊',
-		count: `${gallery.length} 张`,
-		desc: '立绘、插画、曲绘与周边，按角色归档。',
-	},
-	{
-		href: '/music/',
-		title: '音乐',
-		count: `${music.length} 首`,
-		desc: '与曲师合作的原创曲。',
-	},
-];
+const characters = (await getCollection('characters')).filter(isPublic);
+const stories = (await getCollection('stories', ({ data }) => data.status === 'published'));
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} image={logo} />
+		<BaseHead title={`${SITE_AUTHOR} · 个人站点`} description={SITE_DESCRIPTION} />
 		<style>
 			main {
 				width: 1000px;
 			}
-			.hero {
-				display: flex;
-				align-items: center;
-				gap: 2em;
-				flex-wrap: wrap;
-				margin-bottom: 1em;
+			.intro h1 {
+				margin: 0 0 0.1em;
+				font-size: 2.4em;
 			}
-			.hero .logo {
-				width: 220px;
-				flex: none;
-			}
-			.hero .logo :global(img) {
-				width: 100%;
-				height: auto;
-				border-radius: 0;
-			}
-			.hero .intro {
-				flex: 1 1 320px;
-			}
-			.hero h1 {
-				margin: 0 0 0.2em;
-				font-size: 2.6em;
-				color: var(--glow);
-				text-shadow: 0 0 24px rgba(175, 255, 255, 25%);
-			}
-			.hero .sub {
-				margin: 0 0 1em;
+			.intro .sub {
+				margin: 0 0 1.2em;
+				font-size: 0.8em;
+				letter-spacing: 0.2em;
 				color: rgb(var(--gray));
-				letter-spacing: 0.18em;
-				font-size: 0.78em;
 				text-transform: uppercase;
 			}
-			.hero p.lead {
-				margin: 0;
+			.intro p {
 				font-size: 1.02em;
 			}
-			.rooms {
+			.intro .placeholder {
+				color: rgb(var(--gray));
+				font-size: 0.82em;
+				font-style: italic;
+			}
+			.cards {
 				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-				gap: 1.2rem;
+				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+				gap: 1.3rem;
 				margin-top: 2.5em;
 			}
-			.room {
-				display: block;
-				padding: 1.2em 1.3em 1.4em;
-				border-radius: 14px;
+			.card {
+				display: flex;
+				flex-direction: column;
+				padding: 1.4em 1.5em 1.6em;
+				border-radius: 16px;
 				background: var(--surface);
 				border: 1px solid rgb(var(--gray-light));
 				text-decoration: none;
+				color: inherit;
 				transition: 0.2s ease;
 			}
-			.room:hover {
+			.card:hover {
 				transform: translateY(-3px);
 				box-shadow: var(--glow-shadow);
 				border-color: rgba(175, 255, 255, 45%);
 			}
-			.room h2 {
+			.card h2 {
 				margin: 0;
-				font-size: 1.3em;
+				font-size: 1.35em;
 				color: rgb(var(--black));
 			}
-			.room .count {
-				float: right;
-				font-size: 0.75em;
-				color: var(--glow);
+			.card .badge {
+				align-self: flex-start;
+				margin: 0 0 0.8em;
+				padding: 0.2em 0.6em;
+				border-radius: 999px;
+				font-size: 0.72em;
 				letter-spacing: 0.06em;
-				padding-top: 0.5em;
+				color: var(--glow);
+				background: rgba(175, 255, 255, 10%);
+				border: 1px solid rgba(175, 255, 255, 28%);
 			}
-			.room p {
-				margin: 0.5em 0 0;
-				font-size: 0.86em;
-				line-height: 1.65;
+			.card .badge.soon {
+				color: rgb(var(--gray));
+				background: rgba(255, 255, 255, 4%);
+				border-color: rgb(var(--gray-light));
+			}
+			.card p {
+				margin: 0.6em 0 0;
+				font-size: 0.88em;
+				line-height: 1.7;
 				color: rgb(var(--gray));
 			}
-			.note {
-				margin-top: 3em;
-				padding-top: 1.5em;
-				border-top: 1px solid rgb(var(--gray-light));
-				font-size: 0.85em;
+			.card .stats {
+				margin-top: auto;
+				padding-top: 1em;
+				font-size: 0.78em;
 				color: rgb(var(--gray));
 			}
-			.note a {
-				color: var(--accent);
+			/* 主推卡片：世界观企划 */
+			.card.featured {
+				grid-column: span 2;
+				flex-direction: row;
+				align-items: center;
+				gap: 1.6em;
+				background:
+					radial-gradient(600px 240px at 0% 0%, rgba(175, 255, 255, 8%), transparent 70%),
+					var(--surface);
 			}
-			@media (max-width: 720px) {
-				.hero {
-					gap: 1em;
+			.card.featured .thumb {
+				width: 160px;
+				flex: none;
+			}
+			.card.featured .thumb :global(img) {
+				width: 100%;
+				height: auto;
+				border-radius: 0;
+			}
+			@media (max-width: 760px) {
+				.card.featured {
+					grid-column: span 1;
+					flex-direction: column;
+					align-items: flex-start;
 				}
-				.hero .logo {
-					width: 140px;
-					margin: 0 auto;
-				}
-				.hero h1 {
-					font-size: 2em;
+				.card.featured .thumb {
+					width: 120px;
 				}
 			}
 		</style>
@@ -166,37 +129,53 @@ const rooms = [
 	<body>
 		<Header />
 		<main>
-			<section class="hero">
-				<div class="logo">
-					<Image src={logo} alt="水塔夜谈" width={440} />
-				</div>
-				<div class="intro">
-					<h1>水塔夜谈</h1>
-					<p class="sub">Spirit's Tower Nights</p>
-					<p class="lead">
-						铃月镇边上那座废弃的水塔里，住着一个总说自己是笨蛋的水精灵。
-						这里存放她所在世界的全部零件——<strong>设定、种族、角色、故事、画作，以及为它写的曲子</strong>。
-					</p>
-				</div>
+			<section class="intro">
+				<h1>{SITE_AUTHOR}</h1>
+				<p class="sub">Personal Site</p>
+				<p class="placeholder">
+					（这段是占位。把我换成你的自我介绍 —— 一两句话说明你是谁、这里会放什么就够。）
+				</p>
 			</section>
 
-			<div class="rooms">
-				{
-					rooms.map((room) => (
-						<a class="room" href={room.href}>
-							<span class="count">{room.count}</span>
-							<h2>{room.title}</h2>
-							<p>{room.desc}</p>
-						</a>
-					))
-				}
-			</div>
+			<div class="cards">
+				<a class="card featured" href="/worldview/">
+					<div class="thumb">
+						<Image src={logo} alt={PROJECT_TITLE} width={320} />
+					</div>
+					<div>
+						<span class="badge">原创世界观企划</span>
+						<h2>{PROJECT_TITLE}</h2>
+						<p>
+							{PROJECT_SUBTITLE} —— 设定、种族、角色、故事、画作与音乐。
+							灾变之后的世界里，一个水精灵在废弃水塔中熬着她的药剂。
+						</p>
+						<p class="stats">
+							{characters.length} 位角色 · {stories.length} 话正文 · 画作与曲目若干
+						</p>
+					</div>
+				</a>
 
-			<p class="note">
-				另外还有 <a href="/blog/">随笔</a>（制作花絮与日常记录，{posts.length} 篇）与
-				<a href="/about/">关于</a>（作品授权与联系方式）。
-				音乐页的音频正在重新制作网页版本，曲绘与曲目信息已可查看。
-			</p>
+				<a class="card" href="/blog/">
+					<span class="badge">记录</span>
+					<h2>随笔</h2>
+					<p>制作花絮、灵感笔记，以及一些不成体系的日常记录。</p>
+					<p class="stats">{posts.length} 篇</p>
+				</a>
+
+				<div class="card">
+					<span class="badge soon">筹备中</span>
+					<h2>个人内容</h2>
+					<p>
+						这里预留给你自己的东西 —— 想放什么（日记、读书笔记、作品集、乱七八糟的收藏）告诉我，我来搭。
+					</p>
+				</div>
+
+				<a class="card" href="/about/">
+					<span class="badge">关于</span>
+					<h2>关于</h2>
+					<p>关于我、联系方式，以及作品的使用与授权说明。</p>
+				</a>
+			</div>
 		</main>
 		<Footer />
 	</body>

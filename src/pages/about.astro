@@ -1,7 +1,7 @@
 ---
 import AboutHeroImage from '../assets/blog-placeholder-about.jpg';
 import Layout from '../layouts/BlogPost.astro';
-import { GITHUB_URL } from '../consts';
+import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../consts';
 ---
 
 <Layout
@@ -16,17 +16,22 @@ import { GITHUB_URL } from '../consts';
 
 	<h2>关于这个站点</h2>
 	<p>
-		这里放一个原创世界观的设定、角色、故事、画作与音乐。名字叫 Spirit's Tower Nights
-		——（写一句你希望访客先知道的事。）
+		这里是我的个人站点。目前主要的部分是一个原创世界观企划 ——
+		<a href="/worldview/">{PROJECT_TITLE}</a>（{PROJECT_SUBTITLE}），
+		收录它的设定、种族、角色、故事、画作与音乐；其余是随笔与个人内容。
+	</p>
+	<p>
+		站点的结构是：根目录放个人内容，世界观企划整体收在 <code>/worldview/</code> 下，互不打扰。
 	</p>
 
 	<h2>关于我</h2>
 	<p>
-		（一两句自我介绍：怎么称呼、平时做什么、为什么开始写这个世界。）
+		（一两句自我介绍：怎么称呼、平时做什么、为什么开始写这个世界。署名目前显示为
+		<strong>{SITE_AUTHOR}</strong>，可在 <code>src/consts.ts</code> 里改。）
 	</p>
 
 	<h2>作品使用与授权</h2>
-	<p>站内文字、画作与音乐均为原创，版权归作者所有。简单说明：</p>
+	<p>站内文字、画作与音乐均为原创（合作曲目版权归各曲师与企划共同所有）。简单说明：</p>
 	<ul>
 		<li>个人欣赏、转载并注明出处与原链接：可以</li>
 		<li>二次创作（同人图、同人文）：欢迎，请标注原作</li>

@@ -1,4 +1,4 @@
----
+﻿---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import TagList from './TagList.astro';
@@ -16,7 +16,7 @@ const aliasText = aliases.filter(Boolean).join(' / ');
 ---
 
 <article class="card" style={`--card-color:${themeColor}`}>
-	<a href={`/characters/${entry.id}/`}>
+	<a href={`/worldview/characters/${entry.id}/`}>
 		<div class="thumb">
 			{
 				portrait ? (

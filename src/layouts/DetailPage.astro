@@ -1,4 +1,4 @@
----
+﻿---
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
@@ -22,7 +22,7 @@ interface Props {
 	/** 信息栏：角色页放年龄/所属，设定页放分类/别名等 */
 	meta?: MetaItem[];
 	spoiler?: 'none' | 'mild' | 'heavy';
-	/** 正典档位，locked 会在标题下显示「不可变更」徽章 */
+	/** 正典档位，locked 会在标题下显示“不可变更”徽章 */
 	canon?: 'locked' | 'open' | 'draft';
 	backHref: string;
 	backLabel: string;

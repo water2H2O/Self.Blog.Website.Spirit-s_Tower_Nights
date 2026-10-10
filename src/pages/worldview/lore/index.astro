@@ -1,0 +1,84 @@
+﻿---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import Header from '../../../components/Header.astro';
+import LoreCard from '../../../components/LoreCard.astro';
+
+const CATEGORY_ORDER = ['世界规则', '瘴素', '神器', '魔法体系', '势力', '地理', '历史', '概念'] as const;
+
+const lore = await getCollection('lore', ({ data }) => !data.draft);
+
+const groups = CATEGORY_ORDER.map((category) => ({
+	category,
+	items: lore
+		.filter((entry) => entry.data.category === category)
+		.sort((a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title, 'zh-Hans-CN')),
+})).filter((group) => group.items.length > 0);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="世界观"
+			description="Spirit's Tower Nights 的设定集：地理、种族、体系、组织与历史。"
+		/>
+		<style>
+			main {
+				width: 1000px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+			}
+			section {
+				margin-top: 2.5em;
+			}
+			section h2 {
+				font-size: 1.3em;
+				margin-bottom: 0.8em;
+				padding-left: 0.6em;
+				border-left: 4px solid var(--accent);
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+				gap: 1.4rem;
+			}
+			.empty {
+				color: rgb(var(--gray));
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>世界观</h1>
+			<p class="lead">
+				{lore.length} 条设定。按类别分组；每条设定都可以关联角色，角色页也会反向指回来。
+			</p>
+			{
+				groups.length > 0 ? (
+					groups.map((group) => (
+						<section>
+							<h2>
+								{group.category}（{group.items.length}）
+							</h2>
+							<div class="grid">
+								{group.items.map((entry) => (
+									<LoreCard entry={entry} />
+								))}
+							</div>
+						</section>
+					))
+				) : (
+					<p class="empty">
+						还没有设定条目。在 <code>src/content/lore/</code> 下新建一个 markdown 文件即可。
+					</p>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

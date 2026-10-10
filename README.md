@@ -1,10 +1,34 @@
-# 水塔夜谈 · Spirit's Tower Nights
+﻿# 水塔夜谈 · Spirit's Tower Nights
 
 一个原创 OC 世界观的网站：**世界观 · 种族 · 角色 · 故事 · 画廊 · 音乐**。基于 [Astro](https://astro.build/) 构建。
 
 > 铃月镇边上那座废弃的水塔里，住着一个总说自己是笨蛋的水精灵。
 > 这个仓库存放她所在世界的全部零件。
 
+## 站点结构：个人区 + 企划区
+
+站点分成两块，互不打扰：
+
+| 区域 | 路径 | 放什么 |
+| --- | --- | --- |
+| **个人区** | `/`、`/blog/`、`/about/` | 个人首页、随笔、关于 —— 属于你自己的内容 |
+| **企划区** | `/worldview/…` | 水塔夜谈世界观的全部内容（设定 / 种族 / 角色 / 故事 / 画廊 / 音乐） |
+
+进入企划区后，页头会出现一条二级导航；离开企划区就消失。路径前缀定义在 `src/consts.ts` 的 `WORLDVIEW_BASE`。
+（注意：改前缀时，`src/pages/worldview/` 下各页面里的内部链接也要一起改。）
+
+### 标点约定
+
+站内**正文与设定档案全部沿用你原始文档的引号风格**：对话与术语用 `“”` 和 `‘’`（不是 `“”`）。
+这条规则是为了让站上的文字与你的文稿逐字一致 —— 尤其是故事正文，导入时不做任何字符替换。
+
+## 图片暂存区（作者重新命名用）
+
+`assets-staging/` 是**压缩后图片的暂存区**（已加入 `.gitignore`，不会进仓库）：
+所有素材图片按源目录结构镜像存放在这里，保留原文件名，只把扩展名换成 `.webp`。
+`assets-staging/_index.csv` 是完整的压缩对照表（UTF-8 带 BOM，可直接用 Excel 打开）。
+你可以在这里随意重命名、分组，完成后告诉我新结构，我再导入 `src/assets/oc/`。
+（`src/assets/oc/` 是**站上正在使用**的图片，删掉它页面会缺图。）
 ## 快速开始
 
 ```sh
@@ -25,13 +49,13 @@ dev.cmd preview     # 预览构建结果
 
 | 集合 | 目录 | 访问地址 | 用途 |
 | --- | --- | --- | --- |
-| `races` | `src/content/races/` | `/races/文件名/` | 种族档案：灾后状态、瘴素耐受、核心矛盾 |
-| `characters` | `src/content/characters/` | `/characters/文件名/` | 角色档案 |
-| `lore` | `src/content/lore/` | `/world/文件名/` | 设定条目：世界规则、瘴素、神器、魔法体系…… |
-| `stories` | `src/content/stories/` | `/stories/文件名/` | 故事正文，按「幕 → 篇 → 话」 |
-| `gallery` | `src/content/gallery/` | `/gallery/` | 一张图一条记录 |
-| `music` | `src/content/music/` | `/music/` | 与曲师合作的曲目 |
-| `blog` | `src/content/blog/` | `/blog/文件名/` | 随笔与制作花絮 |
+| `races` | `src/content/races/` | `/worldview/races/文件名/` | 种族档案：灾后状态、瘴素耐受、核心矛盾 |
+| `characters` | `src/content/characters/` | `/worldview/characters/文件名/` | 角色档案 |
+| `lore` | `src/content/lore/` | `/worldview/lore/文件名/` | 设定条目：世界规则、瘴素、神器、魔法体系…… |
+| `stories` | `src/content/stories/` | `/worldview/stories/文件名/` | 故事正文，按“幕 → 篇 → 话” |
+| `gallery` | `src/content/gallery/` | `/worldview/gallery/` | 一张图一条记录 |
+| `music` | `src/content/music/` | `/worldview/music/` | 与曲师合作的曲目 |
+| `blog` | `src/content/blog/` | `/blog/文件名/` | 随笔（个人区，不在 /worldview/ 下） |
 
 新增内容 = 在对应目录下新建 `.md`，**文件名就是网址的最后一段**。
 
@@ -49,7 +73,7 @@ population: 仅存少量个体
 habitat: 瘴素浓度较低的地区
 conflicts:                     # 核心矛盾，会在详情页顶部单独成块
   - 生存与消亡：……
-canon: locked                  # 见下方「吃书防线」
+canon: locked                  # 见下方“吃书防线”
 tags: ['核心种族']
 order: 10
 ---
@@ -62,7 +86,7 @@ order: 10
 name: 淼渺
 race: 'elemental-spirit'       # 必填，指向种族文件名
 aliases: ['水水']
-title: 莉莉安娜的「小药剂师」
+title: 莉莉安娜的“小药剂师”
 summary: 一句话简介
 pronouns: 女
 height: 145cm
@@ -72,7 +96,7 @@ portrait: '../../assets/oc/characters/miaomiao-portrait.webp'
 tags: ['主角', '药剂师']
 relations:                     # 人际关系，指向其他角色
   - to: 'liliana'
-    note: 庇护者与「绑架犯」
+    note: 庇护者与“绑架犯”
 lore: ['miasma']               # 关联设定
 canon: locked
 order: 10
@@ -139,7 +163,7 @@ title: Snowflower
 number: 4
 artist: Halv                 # 曲师（合作企划，必须署名）
 cover: '../../assets/oc/music/halv-snowflower.webp'
-audioOgg: '/audio/snowflower.ogg'   # 音频做好后填，见下方「音频规范」
+audioOgg: '/audio/snowflower.ogg'   # 音频做好后填，见下方“音频规范”
 audioM4a: '/audio/snowflower.m4a'
 pvUrl: 'https://www.bilibili.com/video/…'
 characters: ['miaomiao']
@@ -150,9 +174,9 @@ characters: ['miaomiao']
 
 | 值 | 含义 | 站点表现 |
 | --- | --- | --- |
-| `locked` | 钉死的设定，写作时绝不能违背 | 详情页显示「正典 · 不可变更」绿色徽章 |
-| `open` | 大方向已定，细节可继续长 | 显示「可扩展」 |
-| `draft` | 随时可能推翻 | 显示「草稿」 |
+| `locked` | 钉死的设定，写作时绝不能违背 | 详情页显示“正典 · 不可变更”绿色徽章 |
+| `open` | 大方向已定，细节可继续长 | 显示“可扩展” |
+| `draft` | 随时可能推翻 | 显示“草稿” |
 
 目前标为 `locked` 的：世界观正文里的世界规则、大灾变真相、瘴素、魔法分级 T0–T6，以及元素精灵与天翼种两支种族的完整档案。
 **当你怀疑某处是不是吃书了，就看这个徽章。**
@@ -190,7 +214,7 @@ node tools/optimize-images.mjs --manifest=其它清单.json
 清单每项：`{ "src": 源图绝对路径, "out": "src/assets/oc/…webp", "maxEdge": 1600, "quality": 82 }`
 
 脚本会：缩放到长边不超过 `maxEdge`（小图不放大）→ 转 WebP（保留透明通道）→ 打印体积对比 →
-失败项只警告不中断，退出码 = 失败数。采用「先写 .tmp 再原子改名」，中途失败不留半截文件。
+失败项只警告不中断，退出码 = 失败数。采用“先写 .tmp 再原子改名”，中途失败不留半截文件。
 
 **已完成的样本（13 张）**：67.60 MB → **1.71 MB（压缩率 97.48%）**
 
@@ -252,7 +276,7 @@ tools/
   （zip 里有 `[trash]/0000.dat` 修复痕迹，A1 单元格无内容）。时间线需要重建；
   建议直接做成站内结构化数据，这样 git 会替你留版本，也不会再无声损坏。
 - **音乐音频**：等网页版 ogg + m4a 导出后接入。
-- **全量导入**：13 位角色 / 13 支种族 / 约 50 话主线 / 7 首曲，目前只上了样本。
+- **全量导入**：主线正文（第一幕 + 第二幕，约 50 话）已批量导入；13 位角色 / 13 支种族 / 7 首曲仍是样本量，待逐批补齐。
 
 ## 当前环境下的必要配置
 

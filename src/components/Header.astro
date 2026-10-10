@@ -1,27 +1,47 @@
 ---
-import { GITHUB_URL, SITE_TITLE } from '../consts';
-import HeaderLink from './HeaderLink.astro';
+import { GITHUB_URL, SITE_TITLE, WORLDVIEW_BASE } from '../consts';
 
-const links = [
+/** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
+const mainLinks = [
 	{ href: '/', label: '首页' },
-	{ href: '/world', label: '世界观' },
-	{ href: '/races', label: '种族' },
-	{ href: '/characters', label: '角色' },
-	{ href: '/stories', label: '故事' },
-	{ href: '/gallery', label: '画廊' },
-	{ href: '/music', label: '音乐' },
+	{ href: WORLDVIEW_BASE, label: '世界观' },
 	{ href: '/blog', label: '随笔' },
 	{ href: '/about', label: '关于' },
 ];
+
+/** 世界观企划内部的二级导航，只在 /worldview/ 下显示 */
+const worldviewLinks = [
+	{ href: `${WORLDVIEW_BASE}`, label: '总览' },
+	{ href: `${WORLDVIEW_BASE}/lore`, label: '设定' },
+	{ href: `${WORLDVIEW_BASE}/races`, label: '种族' },
+	{ href: `${WORLDVIEW_BASE}/characters`, label: '角色' },
+	{ href: `${WORLDVIEW_BASE}/stories`, label: '故事' },
+	{ href: `${WORLDVIEW_BASE}/gallery`, label: '画廊' },
+	{ href: `${WORLDVIEW_BASE}/music`, label: '音乐' },
+];
+
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const inWorldview = path === WORLDVIEW_BASE || path.startsWith(`${WORLDVIEW_BASE}/`);
+const isActive = (href: string) => {
+	const target = href.replace(/\/+$/, '') || '/';
+	if (target === WORLDVIEW_BASE) return path === WORLDVIEW_BASE;
+	return path === target || path.startsWith(`${target}/`);
+};
 ---
 
 <header>
-	<nav>
+	<nav class="main">
 		<h2>
 			<a href="/">{SITE_TITLE}</a>
 		</h2>
 		<div class="internal-links">
-			{links.map((link) => <HeaderLink href={link.href}>{link.label}</HeaderLink>)}
+			{
+				mainLinks.map((link) => (
+					<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
+						{link.label}
+					</a>
+				))
+			}
 		</div>
 		<div class="social-links">
 			<a href={GITHUB_URL} target="_blank" rel="noreferrer">
@@ -35,6 +55,20 @@ const links = [
 			</a>
 		</div>
 	</nav>
+	{
+		inWorldview && (
+			<nav class="sub">
+				<span class="tag">世界观</span>
+				{
+					worldviewLinks.map((link) => (
+						<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
+							{link.label}
+						</a>
+					))
+				}
+			</nav>
+		)
+	}
 </header>
 <style>
 	header {
@@ -59,25 +93,25 @@ const links = [
 	h2 a:hover {
 		color: var(--glow);
 	}
-	nav {
+	nav.main {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.8em;
 		flex-wrap: wrap;
 	}
-	nav a {
-		padding: 0.95em 0.45em;
-		font-size: 0.95em;
+	nav.main a {
+		padding: 0.95em 0.5em;
+		font-size: 0.98em;
 		color: rgb(var(--black));
 		border-bottom: 3px solid transparent;
 		text-decoration: none;
 		white-space: nowrap;
 	}
-	nav a:hover {
+	nav.main a:hover {
 		color: var(--glow);
 	}
-	nav a.active {
+	nav.main a.active {
 		text-decoration: none;
 		border-bottom-color: var(--glow);
 		color: var(--glow);
@@ -90,19 +124,57 @@ const links = [
 	.social-links a {
 		display: flex;
 	}
+	/* 二级导航：企划内部栏目 */
+	nav.sub {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.2em 0.4em;
+		padding: 0.35em 0 0.55em;
+		border-top: 1px solid rgba(175, 255, 255, 10%);
+	}
+	nav.sub .tag {
+		font-size: 0.72em;
+		letter-spacing: 0.16em;
+		color: var(--glow);
+		opacity: 0.7;
+		margin-right: 0.6em;
+	}
+	nav.sub :global(a) {
+		padding: 0.3em 0.7em;
+		font-size: 0.86em;
+		border-radius: 999px;
+		border-bottom: none;
+		color: rgb(var(--gray));
+		text-decoration: none;
+	}
+	nav.sub :global(a:hover) {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 8%);
+	}
+	nav.sub :global(a.active) {
+		color: #08131d;
+		background: var(--glow);
+		font-weight: 700;
+		text-decoration: none;
+	}
 	@media (max-width: 900px) {
 		h2 {
 			font-size: 0.9em;
 		}
-		nav a {
-			padding: 0.6em 0.4em;
-			font-size: 0.85em;
+		nav.main a {
+			padding: 0.6em 0.45em;
+			font-size: 0.88em;
 		}
-		nav {
+		nav.main {
 			justify-content: flex-start;
 		}
 		.social-links {
 			display: none;
+		}
+		nav.sub {
+			overflow-x: auto;
+			flex-wrap: nowrap;
 		}
 	}
 </style>

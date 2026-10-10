@@ -1,0 +1,124 @@
+﻿---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import Header from '../../../components/Header.astro';
+
+const races = (await getCollection('races', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name, 'zh-Hans-CN'),
+);
+
+const characters = await getCollection('characters', ({ data }) => !data.draft);
+
+const countOf = (raceId: string) => characters.filter((c) => c.data.race.id === raceId).length;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="种族"
+			description="水塔夜谈的种族档案：灾后世界里每一支族群的状态、瘴素耐受与核心矛盾。"
+		/>
+		<style>
+			main {
+				width: 1000px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.92em;
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+				gap: 1.4rem;
+				margin-top: 2em;
+			}
+			.card {
+				position: relative;
+				display: block;
+				padding: 1.3em 1.4em 1.5em;
+				border-radius: 14px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-top: 3px solid var(--card-color);
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			.card:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--glow-shadow);
+				border-color: color-mix(in srgb, var(--card-color) 45%, transparent);
+			}
+			.epithet {
+				font-size: 0.75em;
+				letter-spacing: 0.06em;
+				color: var(--card-color);
+				opacity: 0.85;
+			}
+			.card h2 {
+				margin: 0.2em 0 0;
+				font-size: 1.35em;
+			}
+			.card .summary {
+				margin: 0.6em 0 0;
+				font-size: 0.87em;
+				line-height: 1.7;
+				color: rgb(var(--gray-dark));
+			}
+			.facts {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5em 1.2em;
+				margin-top: 0.9em;
+				padding-top: 0.9em;
+				border-top: 1px dashed rgb(var(--gray-light));
+				font-size: 0.78em;
+				color: rgb(var(--gray));
+			}
+			.facts b {
+				color: rgb(var(--gray-dark));
+				font-weight: 400;
+			}
+			.lock {
+				position: absolute;
+				top: 1em;
+				right: 1em;
+				font-size: 0.75em;
+				color: #b6ffd8;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>种族</h1>
+			<p class="lead">
+				{races.length} 支族群。种族是这个世界最主要的冲突来源，也是每一个新角色诞生的第一步。
+			</p>
+			<div class="grid">
+				{
+					races.map((race) => (
+						<a class="card" href={`/worldview/races/${race.id}/`} style={`--card-color:${race.data.themeColor}`}>
+							{race.data.canon === 'locked' && <span class="lock" title="正典 · 不可变更">◆</span>}
+							{race.data.epithet && <span class="epithet">[{race.data.epithet}]</span>}
+							<h2>{race.data.name}</h2>
+							<p class="summary">{race.data.summary}</p>
+							<div class="facts">
+								{race.data.miasmaTolerance && (
+									<span>
+										瘴素耐受 <b>{race.data.miasmaTolerance}</b>
+									</span>
+								)}
+								<span>
+									已建档角色 <b>{countOf(race.id)}</b> 位
+								</span>
+							</div>
+						</a>
+					))
+				}
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>

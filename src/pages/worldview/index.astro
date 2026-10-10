@@ -1,0 +1,203 @@
+﻿---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import logo from '../../assets/oc/logo.webp';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { PROJECT_SUBTITLE, PROJECT_TITLE } from '../../consts';
+
+const isPublic = (entry: { data: { draft?: boolean } }) => !entry.data.draft;
+
+const races = (await getCollection('races')).filter(isPublic);
+const characters = (await getCollection('characters')).filter(isPublic);
+const stories = (await getCollection('stories', ({ data }) => data.status === 'published'));
+const gallery = (await getCollection('gallery')).filter(isPublic);
+const music = (await getCollection('music')).filter(isPublic);
+const lore = (await getCollection('lore')).filter(isPublic);
+
+/** 世界观企划内部的房间，链接都在 /worldview/ 下 */
+const rooms = [
+	{
+		href: '/worldview/lore/',
+		title: '设定',
+		count: `${lore.length} 条`,
+		desc: '熵增、大灾变、瘴素与魔法分级 —— 这座塔立在哪块地基上。',
+	},
+	{
+		href: '/worldview/races/',
+		title: '种族',
+		count: `${races.length} 支`,
+		desc: '灾后的世界由谁分享。每一个新角色，都从确定种族开始。',
+	},
+	{
+		href: '/worldview/characters/',
+		title: '角色',
+		count: `${characters.length} 位`,
+		desc: '在这个世界里活着的人，以及他们之间的关系。',
+	},
+	{
+		href: '/worldview/stories/',
+		title: '故事',
+		count: `${stories.length} 话`,
+		desc: '主线正文，按“幕 → 篇 → 话”组织。',
+	},
+	{
+		href: '/worldview/gallery/',
+		title: '画廊',
+		count: `${gallery.length} 张`,
+		desc: '立绘、插画、曲绘与周边，按角色归档。',
+	},
+	{
+		href: '/worldview/music/',
+		title: '音乐',
+		count: `${music.length} 首`,
+		desc: '与曲师合作的原创曲。',
+	},
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title={`${PROJECT_TITLE} · 世界观企划`}
+			description="水塔夜谈世界观企划：设定、种族、角色、故事、画作与音乐。"
+			image={logo}
+		/>
+		<style>
+			main {
+				width: 1000px;
+			}
+			.hero {
+				display: flex;
+				align-items: center;
+				gap: 2em;
+				flex-wrap: wrap;
+				margin-bottom: 1em;
+			}
+			.hero .logo {
+				width: 220px;
+				flex: none;
+			}
+			.hero .logo :global(img) {
+				width: 100%;
+				height: auto;
+				border-radius: 0;
+			}
+			.hero .intro {
+				flex: 1 1 320px;
+			}
+			.hero h1 {
+				margin: 0 0 0.2em;
+				font-size: 2.6em;
+				color: var(--glow);
+				text-shadow: 0 0 24px rgba(175, 255, 255, 25%);
+			}
+			.hero .sub {
+				margin: 0 0 1em;
+				color: rgb(var(--gray));
+				letter-spacing: 0.18em;
+				font-size: 0.78em;
+				text-transform: uppercase;
+			}
+			.hero p.lead {
+				margin: 0;
+				font-size: 1.02em;
+			}
+			.rooms {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				margin-top: 2.5em;
+			}
+			.room {
+				display: block;
+				padding: 1.2em 1.3em 1.4em;
+				border-radius: 14px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			.room:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--glow-shadow);
+				border-color: rgba(175, 255, 255, 45%);
+			}
+			.room h2 {
+				margin: 0;
+				font-size: 1.3em;
+				color: rgb(var(--black));
+			}
+			.room .count {
+				float: right;
+				font-size: 0.75em;
+				color: var(--glow);
+				letter-spacing: 0.06em;
+				padding-top: 0.5em;
+			}
+			.room p {
+				margin: 0.5em 0 0;
+				font-size: 0.86em;
+				line-height: 1.65;
+				color: rgb(var(--gray));
+			}
+			.note {
+				margin-top: 3em;
+				padding-top: 1.5em;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-size: 0.85em;
+				color: rgb(var(--gray));
+			}
+			@media (max-width: 720px) {
+				.hero {
+					gap: 1em;
+				}
+				.hero .logo {
+					width: 140px;
+					margin: 0 auto;
+				}
+				.hero h1 {
+					font-size: 2em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="hero">
+				<div class="logo">
+					<Image src={logo} alt={PROJECT_TITLE} width={440} />
+				</div>
+				<div class="intro">
+					<h1>{PROJECT_TITLE}</h1>
+					<p class="sub">{PROJECT_SUBTITLE}</p>
+					<p class="lead">
+						铃月镇边上那座废弃的水塔里，住着一个总说自己是笨蛋的水精灵。
+						这里存放她所在世界的全部零件——<strong>设定、种族、角色、故事、画作，以及为它写的曲子</strong>。
+					</p>
+				</div>
+			</section>
+
+			<div class="rooms">
+				{
+					rooms.map((room) => (
+						<a class="room" href={room.href}>
+							<span class="count">{room.count}</span>
+							<h2>{room.title}</h2>
+							<p>{room.desc}</p>
+						</a>
+					))
+				}
+			</div>
+
+			<p class="note">
+				音乐页的音频正在重新制作网页版本（ogg + m4a 双格式），曲绘与曲目信息已可查看。
+				站点改动记录见 <a href="/blog/">随笔</a>。
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>

@@ -1,4 +1,4 @@
-/*
+﻿/*
   水塔夜谈 —— 全局样式
   配色思路：水塔之夜的深色底 + #AFFFFF 辉光。
   #AFFFFF 在深色底上非常亮，但在白底上几乎不可读，所以整体走深色主题：
@@ -45,7 +45,7 @@ body {
 	padding: 0;
 	text-align: left;
 	background: var(--bg);
-	/* 顶部一层水色辉光，呼应「水塔夜谈」 */
+	/* 顶部一层水色辉光，呼应“水塔夜谈” */
 	background-image:
 		radial-gradient(1200px 420px at 50% -160px, rgba(175, 255, 255, 8%), transparent 70%),
 		linear-gradient(var(--gray-gradient)) no-repeat;
