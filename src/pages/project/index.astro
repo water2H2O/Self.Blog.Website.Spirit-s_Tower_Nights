@@ -1,8 +1,10 @@
 ---
 /**
- * 企划（附属目录）：收录我参与的其他世界观。
- * 主体是「水塔夜谈」（/worldview/），这里放的是别人的企划里我写的那部分。
+ * 企划（附属目录）：收录我参与或自家的其他企划。
+ * 主体世界观是「水塔夜谈」（/worldview/），这里是它旁边的东西。
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
@@ -10,6 +12,12 @@ import { getCollection } from 'astro:content';
 import { SITE_AUTHOR, SITE_TITLE } from '../../consts';
 
 const eden = await getCollection('eden', ({ data }) => !data.draft);
+
+/** 「水塔 OC 补完计划」的成品图数量（图池里归属为企划的那一批） */
+const OC_POOL = path.join(process.cwd(), 'public', 'gallery');
+const ocCount = fs
+	.readdirSync(OC_POOL)
+	.filter((file) => file.startsWith('企划-') && /\.webp$/i.test(file)).length;
 ---
 
 <!doctype html>
@@ -134,6 +142,18 @@ const eden = await getCollection('eden', ({ data }) => !data.draft);
 					>
 				</span>
 			</div>
+
+			<a class="card" href="/project/oc/">
+				<span class="kind">本家 · 立绘</span>
+				<h2>水塔 OC 补完计划</h2>
+				<p>
+					<strong>水水，和他们的朋友和伙伴</strong>
+					—— 一批已经画完的 OC 立绘。本家的孩子，加上朋友们的孩子，凑在一起就是这座塔里住着的人。
+				</p>
+				<span class="more">
+					{ocCount} 张立绘 →
+				</span>
+			</a>
 
 			<a class="card" href="/project/eden/">
 				<span class="kind">群创 · 末日</span>

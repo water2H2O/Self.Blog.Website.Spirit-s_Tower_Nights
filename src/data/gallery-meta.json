@@ -6,10 +6,9 @@
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
       "ownership": "企划",
-      "owner": "",
+      "owner": "Aurelith",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/Aurelith.webp",
       "w": 914,
       "h": 1600
     },
@@ -19,17 +18,15 @@
       "owner": "",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/北音.webp",
       "w": 914,
       "h": 1600
     },
     "企划-墨白.webp": {
       "character": "墨白",
       "ownership": "企划",
-      "owner": "",
+      "owner": "Ink_Bai",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/墨白.webp",
       "w": 914,
       "h": 1600
     },
@@ -39,17 +36,15 @@
       "owner": "",
       "kind": "设定",
       "title": "屑魔女（薇奥拉的外号）",
-      "source": "【企划】水塔OC补完计划/屑魔女.webp",
       "w": 914,
       "h": 1600
     },
     "企划-应祈.webp": {
       "character": "应祈",
       "ownership": "企划",
-      "owner": "",
+      "owner": "应祈",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/应祈.webp",
       "w": 914,
       "h": 1600
     },
@@ -59,17 +54,15 @@
       "owner": "",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/温雪.webp",
       "w": 914,
       "h": 1600
     },
     "企划-白茶_汉服.webp": {
       "character": "白茶",
       "ownership": "企划",
-      "owner": "",
+      "owner": "白茶",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/白茶_汉服.webp",
       "w": 914,
       "h": 1600
     },
@@ -79,7 +72,6 @@
       "owner": "",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/苯胺.webp",
       "w": 914,
       "h": 1600
     },
@@ -89,7 +81,6 @@
       "owner": "",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/霜霖星.webp",
       "w": 914,
       "h": 1600
     },
@@ -99,7 +90,6 @@
       "owner": "风汐铃月",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/风汐铃月.webp",
       "w": 1600,
       "h": 1600
     },
@@ -109,7 +99,6 @@
       "owner": "风汐铃月",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/风汐铃月_带ui.webp",
       "w": 1600,
       "h": 914
     },
@@ -119,7 +108,6 @@
       "owner": "",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/香菇.webp",
       "w": 914,
       "h": 1600
     },
@@ -129,7 +117,6 @@
       "owner": "",
       "kind": "设定",
       "title": "",
-      "source": "【企划】水塔OC补完计划/鹤戾.webp",
       "w": 913,
       "h": 1600
     },
@@ -1602,6 +1589,15 @@
       "source": "讯息（重要的和通信邮件记录）/和RT的合作提供的资料/插画-魔法药剂师.webp",
       "w": 1600,
       "h": 1131
+    },
+    "企划-缪伊伊.webp": {
+      "character": "缪伊伊",
+      "ownership": "企划",
+      "owner": "缪伊伊",
+      "kind": "设定",
+      "title": "",
+      "w": 1093,
+      "h": 1600
     }
   }
 }

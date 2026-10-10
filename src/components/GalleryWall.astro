@@ -394,7 +394,8 @@ const filters = showFilters
 			} else if (tile.dataset.ownership === '原创') {
 				parts.push('原创设定');
 			} else if (tile.dataset.ownership === '企划') {
-				parts.push('企划');
+				// 企划里也有联动角色，设主知道就一并标出来
+				parts.push(tile.dataset.owner ? `企划 · 设主：${tile.dataset.owner}` : '企划');
 			}
 			img.src = tile.dataset.url ?? '';
 			caption.innerHTML = parts.join(' · ');

@@ -1,0 +1,135 @@
+---
+/**
+ * 「水塔 OC 补完计划」的专题页。
+ * 图片就是图池里归属为「企划」的那一批（public/gallery/企划-*.webp），
+ * 图上已经烧好 sample 水印，表示是样图。
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import GalleryWall from '../../../components/GalleryWall.astro';
+import Header from '../../../components/Header.astro';
+import gallery from '../../../data/gallery-meta.json';
+
+const POOL = path.join(process.cwd(), 'public', 'gallery');
+const stored = (gallery as { items?: Record<string, Record<string, unknown>> }).items ?? {};
+
+const items = fs
+	.readdirSync(POOL)
+	.filter((file) => file.startsWith('企划-') && /\.webp$/i.test(file))
+	.sort()
+	.map((file) => {
+		const info = stored[file] ?? {};
+		const w = Number(info.w) || 0;
+		const h = Number(info.h) || 0;
+		return {
+			url: `/gallery/${encodeURIComponent(file)}`,
+			ar: w > 0 && h > 0 ? Number((w / h).toFixed(3)) : 1,
+			ownership: String(info.ownership ?? '企划'),
+			owner: String(info.owner ?? ''),
+			kind: String(info.kind ?? '设定'),
+			character: String(info.character ?? ''),
+			title: String(info.title ?? ''),
+		};
+	});
+
+/** 有设主的几位，按角色去重后列在下面 */
+const withOwner = [
+	...new Map(
+		items.filter((item) => item.owner).map((item) => [`${item.character}/${item.owner}`, item]),
+	).values(),
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="水塔 OC 补完计划"
+			description="水水，和他们的朋友和伙伴 —— 一批已经画完的 OC 立绘。"
+		/>
+		<style>
+			main {
+				width: min(1180px, 94vw);
+			}
+			.crumb {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+				text-decoration: none;
+			}
+			.crumb:hover {
+				color: var(--glow);
+			}
+			.tagline {
+				margin: 0.3em 0 1.4em;
+				font-size: 1.15em;
+				letter-spacing: 0.06em;
+				color: var(--glow);
+			}
+			.lead {
+				max-width: 46em;
+				font-size: 0.92em;
+				line-height: 2;
+				color: rgb(var(--gray));
+			}
+			.notice {
+				margin: 1.4em 0 0;
+				padding: 0.85em 1.05em;
+				border-radius: 12px;
+				font-size: 0.82em;
+				line-height: 1.9;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 8%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+			}
+			.notice a {
+				color: #ffe6ad;
+			}
+			.owners {
+				margin: 1.2em 0 0;
+				font-size: 0.84em;
+				line-height: 2;
+				color: rgb(var(--gray));
+			}
+			.owners b {
+				font-weight: 400;
+				color: var(--accent);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<a class="crumb" href="/project/">← 企划</a>
+			<h1>水塔 OC 补完计划</h1>
+			<p class="tagline">水水，和他们的朋友和伙伴</p>
+
+			<p class="lead">
+				一批已经画完的 OC 立绘，共 {items.length} 张。名单里有本家的孩子，也有朋友们的孩子 ——
+				凑在一起，就是这座塔里住着的人。
+			</p>
+			<p class="notice">
+				<strong>图上是 sample 水印。</strong>
+				这里放的都是样图，用来展示立绘；正式图不在这批里。<a href="/worldview/gallery/">画廊</a
+				>里按「企划」也能筛到同一批。
+			</p>
+			{
+				withOwner.length > 0 && (
+					<p class="owners">
+						<b>其中有设主的孩子：</b>
+						{withOwner.map((item, index) => (
+							<>
+								{index > 0 && '、'}
+								{item.character}（{item.owner}）
+							</>
+						))}
+					</p>
+				)
+			}
+
+			<GalleryWall items={items} minHeight={420} />
+		</main>
+		<Footer />
+	</body>
+</html>
