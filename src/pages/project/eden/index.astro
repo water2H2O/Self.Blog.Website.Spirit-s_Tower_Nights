@@ -11,11 +11,18 @@ const entries = (await getCollection('eden', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order,
 );
 
-/** 按类别分组，类别顺序固定 */
+/**
+ * 分成两大块：
+ *   基础设定 —— 企划公开的资料，不是我写的
+ *   我写的稿件 —— 按类别分组
+ */
+const shared = entries.filter((entry) => entry.data.by !== 'water2H2O');
+const mine = entries.filter((entry) => entry.data.by === 'water2H2O');
+
 const CATEGORIES = ['现象', '矿物', '阵营', '物种', '个体', '其他'] as const;
 const groups = CATEGORIES.map((category) => ({
 	category,
-	items: entries.filter((entry) => entry.data.category === category),
+	items: mine.filter((entry) => entry.data.category === category),
 })).filter((group) => group.items.length > 0);
 ---
 
@@ -65,6 +72,36 @@ const groups = CATEGORIES.map((category) => ({
 				letter-spacing: 0.1em;
 				color: var(--accent);
 			}
+			.group-note {
+				margin: -0.4em 0 1.1em;
+				font-size: 0.82em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			.group-note strong {
+				color: #ffd68a;
+			}
+			/* 「我写的稿件」下面的类别 */
+			.sub {
+				margin: 0 0 1.4em;
+			}
+			.sub h3 {
+				margin: 0 0 0.3em;
+				font-size: 0.9em;
+				font-weight: 400;
+				letter-spacing: 0.14em;
+				color: rgb(var(--gray));
+			}
+			.by {
+				margin-left: 0.6em;
+				padding: 0.1em 0.5em;
+				border-radius: 999px;
+				font-size: 0.72em;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 12%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+				white-space: nowrap;
+			}
 			.group ul {
 				list-style: none;
 				margin: 0;
@@ -100,29 +137,56 @@ const groups = CATEGORIES.map((category) => ({
 			<a class="crumb" href="/project/">← 企划</a>
 			<h1>伊甸园</h1>
 			<p class="lead">
-				一个以<strong>「晶体」</strong>为核心的<strong>群创末日世界观</strong>：超高辐射环境下的细胞劫持、
-				晶体群系，以及建立在晶脉之上的共振网络。下面的 {entries.length} 篇是我为这个企划写的稿件。
+				一个以<strong>「晶体」</strong>为核心的<strong>群创末日世界观</strong>：菌毯与【质】、两次生物大爆发，
+				以及建立在晶脉之上的共振网络。下面的 {entries.length} 篇里，{shared.length} 篇是企划公开的基础设定（<strong
+					>不是我写的</strong
+				>），{mine.length} 篇是我写的稿件。
 			</p>
 			<p class="notice">
 				<strong>这是群创企划，不是我的个人世界观。</strong>
 				世界观的最终设定以 <a href={WikiUrl} target="_blank" rel="noopener">该企划的 wiki</a> 与主创团队为准，
-				这里只是我写的那部分存档；文中的术语、数值与命名都可能已被企划更新。
+				这里只是把公开资料和我写的部分放在一起存档；文中的术语、数值与命名都可能已被企划更新。
 			</p>
 
 			{
-				groups.map((group) => (
+				shared.length > 0 && (
 					<section class="group">
-						<h2>{group.category}</h2>
+						<h2>基础设定</h2>
+						<p class="group-note">
+							<strong>企划公开资料，不是我写的。</strong>放在这里只是为了让读者看得懂下面那些稿件。
+						</p>
 						<ul>
-							{group.items.map((entry) => (
+							{shared.map((entry) => (
 								<li>
 									<a href={`/project/eden/${entry.id}/`}>{entry.data.title}</a>
+									<span class="by">企划资料</span>
 									{entry.data.summary && <span class="summary">{entry.data.summary}</span>}
 								</li>
 							))}
 						</ul>
 					</section>
-				))
+				)
+			}
+
+			{
+				mine.length > 0 && (
+					<section class="group">
+						<h2>我写的稿件</h2>
+						{groups.map((group) => (
+							<div class="sub">
+								<h3>{group.category}</h3>
+								<ul>
+									{group.items.map((entry) => (
+										<li>
+											<a href={`/project/eden/${entry.id}/`}>{entry.data.title}</a>
+											{entry.data.summary && <span class="summary">{entry.data.summary}</span>}
+										</li>
+									))}
+								</ul>
+							</div>
+						))}
+					</section>
+				)
 			}
 
 			<p class="crumb" style="display:block;margin-top:3em">

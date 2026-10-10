@@ -11,7 +11,9 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, category, summary, source } = entry.data;
+const { title, category, summary, source, by } = entry.data;
+/** 本人稿件 or 企划公开资料 */
+const isMine = by === 'water2H2O';
 
 const all = (await getCollection('eden', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.order - b.data.order,
@@ -22,7 +24,10 @@ const next = position < all.length - 1 ? all[position + 1] : null;
 
 const meta = [
 	{ label: '类别', value: category },
-	{ label: '出处', value: '群创企划「伊甸园」' },
+	{
+		label: isMine ? '撰稿' : '来源',
+		value: isMine ? 'water2H2O' : '企划公开资料（非本站作者）',
+	},
 	{ label: 'wiki', value: 'yidianyuanguichenm.fandom.com', href: WikiUrl },
 	...(source ? [{ label: '原稿', value: source }] : []),
 ];
@@ -40,8 +45,26 @@ const meta = [
 	<Content />
 
 	<p class="note">
-		本文是群创世界观「伊甸园」的稿件，世界观与最终设定归该企划所有；以
-		<a href={WikiUrl} target="_blank" rel="noopener">企划 wiki</a> 为准。
+		{
+			isMine ? (
+				<>
+					本文是群创世界观「伊甸园」的稿件，世界观与最终设定归该企划所有；以{' '}
+					<a href={WikiUrl} target="_blank" rel="noopener">
+						企划 wiki
+					</a>{' '}
+					为准。
+				</>
+			) : (
+				<>
+					<strong>本文是企划公开的基础设定，不是本站作者写的。</strong>
+					转载在这里只是为了让读者看得懂其余稿件；版权与最终解释归该企划所有，以{' '}
+					<a href={WikiUrl} target="_blank" rel="noopener">
+						企划 wiki
+					</a>{' '}
+					为准。
+				</>
+			)
+		}
 	</p>
 
 	<nav class="pager">
@@ -78,6 +101,9 @@ const meta = [
 		}
 		.note a {
 			color: var(--glow);
+		}
+		.note strong {
+			color: #ffd68a;
 		}
 		.pager {
 			display: flex;

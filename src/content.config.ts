@@ -195,10 +195,12 @@ const eden = defineCollection({
 	schema: () =>
 		z.object({
 			title: z.string(),
-			category: z.enum(['现象', '矿物', '物种', '个体', '阵营', '其他']).default('其他'),
+			category: z.enum(['基础', '现象', '矿物', '物种', '个体', '阵营', '其他']).default('其他'),
 			summary: z.string().optional(),
 			/** 原稿文件名，方便和归档对照 */
 			source: z.string().optional(),
+			/** 撰稿人；企划公开的基础设定统一写「企划资料」 */
+			by: z.string().default('water2H2O'),
 			draft: z.boolean().default(false),
 			order: z.number().default(100),
 		}),
