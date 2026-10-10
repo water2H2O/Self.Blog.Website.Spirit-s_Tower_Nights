@@ -78,6 +78,7 @@ const rooms = [
 			.hero .logo {
 				width: 220px;
 				flex: none;
+				margin-left: auto;
 			}
 			.hero .logo :global(img) {
 				width: 100%;
@@ -166,10 +167,8 @@ const rooms = [
 	<body>
 		<Header />
 		<main>
+			{/* 大标题放在最前面：窄屏换行时也是标题在上，logo 在下 */}
 			<section class="hero">
-				<div class="logo">
-					<Image src={logo} alt={PROJECT_TITLE} width={440} />
-				</div>
 				<div class="intro">
 					<h1>{PROJECT_TITLE}</h1>
 					<p class="sub">{PROJECT_SUBTITLE}</p>
@@ -177,6 +176,9 @@ const rooms = [
 						铃月镇边上那座废弃的水塔里，住着一个总说自己是笨蛋的水精灵。
 						这里存放她所在世界的全部零件——<strong>设定、种族、角色、故事、画作，以及为它写的曲子</strong>。
 					</p>
+				</div>
+				<div class="logo">
+					<Image src={logo} alt={PROJECT_TITLE} width={440} />
 				</div>
 			</section>
 
