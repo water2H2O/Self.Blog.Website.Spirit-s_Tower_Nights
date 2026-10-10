@@ -325,10 +325,52 @@ tools/
 | `astro.config.mjs` 的 `vite.resolve.preserveSymlinks: true` | Vite 在 Windows 上执行 `net use` 挑选 realpath 实现，沙箱禁止带管道的子进程（spawn EPERM），异常被静默吞掉后所有依赖解析返回空 → 纯 CommonJS 包报 `require is not defined` |
 | `ASTRO_TELEMETRY_DISABLED=1`（见 `dev.cmd`） | Astro 遥测要写 `%APPDATA%\astro`，沙箱外不可写 |
 
+## 画廊图池与品牌资源
+
+### 画廊图池
+
+画廊不按文件夹分组，而是从 `public/gallery/` 这个**图池**里随机抽图铺墙：
+
+```sh
+node tools/build-gallery-pool.mjs            # 把 assets-staging 摊平进图池，并更新标注
+node tools/build-gallery-pool.mjs --dry-run  # 只看会做什么
+```
+
+- 标注文件 **`src/data/gallery-meta.json`**：`ownership`（原创／联动／其他）、`owner`（联动设主）、
+  `kind`、`title`。重新跑脚本只补新文件与尺寸，**不会覆盖手改过的值**
+- 归属对照表在脚本顶部的 `CHARACTERS` 里，改那里就能挪动原创／联动
+- 文件名只保留「中文 + 字母数字 + `-` `_` + 全角括号」：实测 `&` `,` `#` 和空格
+  会让静态服务器返回 404（147 个文件逐个测过）
+- 页面每次打开随机抽 `SAMPLE_SIZE` 张（在 `src/pages/worldview/gallery/index.astro` 里改），
+  大小、横竖、顺序都随机
+- 水印是**页面叠加**的：截图带，右键另存的原图不带
+
+### 站点图标与分享图
+
+```sh
+node tools/build-brand-assets.mjs [logo.png]
+```
+
+从原始 logo（默认读桌面那份 3072×3072 的 PNG）生成 `public/favicon.ico`、`favicon.png`、
+`apple-touch-icon.png`、`og-default.png`。
+
+站点图标用「水」字：实测缩到 32px 仍然清晰，猫脸会糊，整条字标完全不可读；
+iOS 图标与社交分享图用完整字标。
+
 ## 部署到 GitHub Pages
 
 仓库远端：`git@github.com:water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights.git`
 尚未配置自动部署；需要时在仓库 Settings → Pages 选 GitHub Actions 并添加官方 `withastro/action` 工作流。
+
+> ⚠️ **部署前必须先设 `base`**：`site` 现在带了子路径，但 `base` 没设，构建产物里的资源路径是
+> `/_astro/...`（从域名根算起）。直接发到子路径会**全部 404**。发之前先在 `astro.config.mjs` 里加：
+>
+> ```js
+> base: '/Self.Blog.Website.Spirit-s_Tower_Nights',
+> ```
+>
+> 加完之后本地地址会变成 `http://localhost:4321/Self.Blog.Website.Spirit-s_Tower_Nights/`，
+> 因此建议**等真要发布时再改**。
 使用自定义域名时记得同步改 `astro.config.mjs` 的 `site`。
 
 ## 许可

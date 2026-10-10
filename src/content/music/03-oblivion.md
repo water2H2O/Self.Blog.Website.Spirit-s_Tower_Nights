@@ -7,6 +7,7 @@ illustrator: 茶地XD
 cover: '../../assets/oc/music/03-oblivion.webp'
 audio: '/audio/03-oblivion.mp3'
 duration: '2:41'
+pvUrl: 'https://www.bilibili.com/video/BV1ziSDBeE6H'
 themeColor: '#AFFFFF'
 order: 30
 ---

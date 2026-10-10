@@ -10,10 +10,6 @@ import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../con
 	pubDate={new Date('2026-10-10')}
 	heroImage={AboutHeroImage}
 >
-	<p>
-		<em>（这一页是骨架，下面的小标题和内容都请直接改成你自己的话。）</em>
-	</p>
-
 	<h2>关于这个站点</h2>
 	<p>
 		这里是我的个人站点。目前主要的部分是一个原创世界观企划 ——
@@ -26,9 +22,25 @@ import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../con
 
 	<h2>关于我</h2>
 	<p>
-		（一两句自我介绍：怎么称呼、平时做什么、为什么开始写这个世界。署名目前显示为
-		<strong>{SITE_AUTHOR}</strong>，可在 <code>src/consts.ts</code> 里改。）
+		叫我 <strong>{SITE_AUTHOR}</strong> 或者水水都行。在主站那边是「淼渺_Water2H2O」——
+		淼渺是我在这个世界里最早写下的角色，一个怕高、有点怂、但在正经事上很倔的水精灵实习药剂师。
 	</p>
+	<p>
+		平时做的三件事：写这个世界的设定和故事、给角色画图与约稿、以及做 OC
+		音乐企划（到现在和七位曲师合作过）。也做表情包小剧场一类的轻东西，纯粹因为好玩。
+	</p>
+	<!-- 维护备注：这段是按站内现有内容拟的草稿，改这里就行。 -->
+	<h2>站点改动记录</h2>
+	<p>
+		建站过程都记在随笔里：<a href="/blog/site-changelog/">《站点改动记录》</a>。最近这几次：
+	</p>
+	<ul>
+		<li><strong>2026-10-10</strong>　画廊改成图池 + 随机照片墙（147 张，可按原创／联动筛）</li>
+		<li><strong>2026-10-10</strong>　回响之殿 7 首曲子全部上站（曲绘、小故事、PV 与署名叫齐）</li>
+		<li><strong>2026-10-09</strong>　加《授权与使用说明》，页脚同步改写</li>
+		<li><strong>2026-10-08</strong>　正文入库：第一幕 + 第二幕共 50 话，22.3 万字</li>
+		<li><strong>2026-10-07</strong>　企划内容整体收进 <code>/worldview/</code>，根目录留给个人内容</li>
+	</ul>
 
 	<h2>作品使用与授权</h2>
 	<p>
@@ -44,16 +56,22 @@ import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../con
 		<li>委托插画、第三方素材（字体、图标等）同样不适用，权利归各自权利人</li>
 		<li>如需转载委托作品或音乐，请<a href="/license/">查看授权说明</a>后与我联系</li>
 	</ul>
-	<p class="placeholder">
-		（如需调整授权范围，改 <code>src/pages/license.astro</code> 即可；页面的 CC BY
-		标记由 <code>src/components/LicenseBadge.astro</code> 输出。）
-	</p>
+	<!-- 维护备注：授权范围改 src/pages/license.astro；页面上的 CC BY 标记由 src/components/LicenseBadge.astro 输出。 -->
 
 	<h2>联系</h2>
 	<ul>
 		<li>
+			邮箱：<a href="mailto:ss.water2h2o@gmail.com">ss.water2h2o@gmail.com</a>
+			（授权、转载、合作都发这里）
+		</li>
+		<li>
+			B 站：<a href="https://space.bilibili.com/433383827" target="_blank" rel="noreferrer"
+				>淼渺_Water2H2O</a
+			>
+			（音乐 PV、表情包小剧场都在那边）
+		</li>
+		<li>
 			GitHub：<a href={GITHUB_URL}>{GITHUB_URL.replace('https://github.com/', '')}</a>
 		</li>
-		<li>（其他联系方式：邮箱 / 微博 / B 站 / QQ 群，按需补充）</li>
 	</ul>
 </Layout>
