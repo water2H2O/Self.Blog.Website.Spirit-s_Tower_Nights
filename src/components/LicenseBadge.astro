@@ -1,0 +1,80 @@
+---
+import { SITE_AUTHOR } from '../consts';
+
+interface Props {
+	/** cc-by：文字内容按 CC BY 4.0 授权；reserved：保留所有权利 */
+	kind?: 'cc-by' | 'reserved';
+	/** 追加说明，例如「曲绘适用与曲目相同的说明」 */
+	note?: string;
+}
+
+const { kind = 'cc-by', note } = Astro.props;
+const CC_URL = 'https://creativecommons.org/licenses/by/4.0/deed.zh';
+---
+
+<p class="license" data-kind={kind}>
+	{
+		kind === 'cc-by' ? (
+			<>
+				<a class="badge" href="/license/">
+					CC BY 4.0
+				</a>
+				<span>
+					本页文字内容由 {SITE_AUTHOR} 创作，采用 <a href={CC_URL} target="_blank" rel="noreferrer">
+						CC BY 4.0
+					</a> 授权（署名即可使用）。委托作品与第三方素材不适用。
+				</span>
+			</>
+		) : (
+			<>
+				<span class="badge reserved">保留所有权利</span>
+				<span>本页内容不适用 CC BY 4.0，如需使用请先联系。</span>
+			</>
+		)
+	}
+	{note && <span class="note">{note}</span>}
+	<a class="more" href="/license/">授权说明 →</a>
+</p>
+
+<style>
+	.license {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5em 0.7em;
+		margin: 2.5em 0 0;
+		padding: 0.8em 1em;
+		border-radius: 10px;
+		font-size: 0.78em;
+		line-height: 1.7;
+		color: rgb(var(--gray));
+		background: rgba(255, 255, 255, 3%);
+		border: 1px solid rgb(var(--gray-light));
+	}
+	.license .badge {
+		flex: none;
+		padding: 0.18em 0.6em;
+		border-radius: 999px;
+		font-size: 0.95em;
+		text-decoration: none;
+		color: #b6ffd8;
+		background: rgba(120, 255, 190, 12%);
+		border: 1px solid rgba(120, 255, 190, 32%);
+	}
+	.license .badge.reserved {
+		color: #ffd68a;
+		background: rgba(255, 200, 90, 10%);
+		border-color: rgba(255, 200, 90, 30%);
+	}
+	.license a {
+		color: var(--accent);
+	}
+	.license .note {
+		flex-basis: 100%;
+		color: rgb(var(--gray));
+	}
+	.license .more {
+		margin-left: auto;
+		white-space: nowrap;
+	}
+</style>

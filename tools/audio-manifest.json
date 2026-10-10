@@ -1,0 +1,37 @@
+[
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#1]Lum1n0u2-Late Glow, Twin Trails_.wav",
+    "out": "public/audio/01-late-glow.mp3",
+    "bitrate": 192
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#2]ああああ-アドベンチャー・パレード.wav",
+    "out": "public/audio/02-adventure-parade.mp3",
+    "bitrate": 192
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#3]Kyakii-OBLIVION.wav",
+    "out": "public/audio/03-oblivion.mp3",
+    "bitrate": 192
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#4]Halv - Snowflower.wav",
+    "out": "public/audio/04-snowflower.mp3",
+    "bitrate": 192
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#5]CS4W - Subjugator.wav",
+    "out": "public/audio/05-subjugator.mp3",
+    "bitrate": 192
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#6]米虾Fomiki-Ventus Murorum.wav",
+    "out": "public/audio/06-ventus-murorum.mp3",
+    "bitrate": 192
+  },
+  {
+    "src": "C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/回响之殿（音乐作品）/[#7]Dabbling-梅干茶漬け.wav",
+    "out": "public/audio/07-umeboshi-chazuke.mp3",
+    "bitrate": 192
+  }
+]

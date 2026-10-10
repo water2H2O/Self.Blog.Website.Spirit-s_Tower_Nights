@@ -1,4 +1,4 @@
-﻿---
+---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
@@ -167,6 +167,10 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 			<h1>画廊</h1>
 			<p class="lead">
 				{items.length} 张。所有图片都已压缩为 WebP（原图合计约 68 MB，站内约 1.7 MB），点开看大图。
+			</p>
+			<p class="lead">
+				其中部分作品为委托创作，版权归原画师所有，<strong>不适用 CC BY 4.0</strong> ——
+				使用前请先<a href="/license/">阅读授权说明</a>。
 			</p>
 
 			<div class="filters row" data-group="kind">

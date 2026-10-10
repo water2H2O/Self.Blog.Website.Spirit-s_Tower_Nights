@@ -1,4 +1,4 @@
-﻿import { defineCollection, reference } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
@@ -174,9 +174,12 @@ const music = defineCollection({
 			/** 曲师 */
 			artist: z.string(),
 			cover: z.optional(image()),
-			/** 站内音频：ogg(Opus) 与 m4a(AAC) 双格式，Safari 不支持 ogg */
-			audioOgg: z.string().optional(),
-			audioM4a: z.string().optional(),
+			/** 站内音频（MP3，全平台通用，含 Safari/iOS）。以 / 开头即指向 public/ 下的文件 */
+			audio: z.string().optional(),
+			/** 可选备用格式（例如体积约小 30% 的 ogg/opus），会作为第二个 source 输出 */
+			audioAlt: z.string().optional(),
+			/** 备用格式的 MIME，例如 audio/ogg */
+			audioAltType: z.string().optional(),
 			/** PV 外链（B 站等），视频本体不进仓库 */
 			pvUrl: z.string().url().optional(),
 			duration: z.string().optional(),

@@ -31,12 +31,23 @@ import { GITHUB_URL, PROJECT_SUBTITLE, PROJECT_TITLE, SITE_AUTHOR } from '../con
 	</p>
 
 	<h2>作品使用与授权</h2>
-	<p>站内文字、画作与音乐均为原创（合作曲目版权归各曲师与企划共同所有）。简单说明：</p>
+	<p>
+		完整的授权条款在<a href="/license/">《授权与使用说明》</a>，这里只写要点：
+	</p>
 	<ul>
-		<li>个人欣赏、转载并注明出处与原链接：可以</li>
-		<li>二次创作（同人图、同人文）：欢迎，请标注原作</li>
-		<li>商业使用、用于 AI 训练：请先联系取得授权</li>
+		<li>
+			<strong>文字内容</strong>（世界观设定、种族与角色档案、故事正文）带
+			<span class="cc-badge">CC BY 4.0</span> 标记 —— 署名 <strong>{SITE_AUTHOR}</strong>
+			即可自由转载、二创，甚至商用
+		</li>
+		<li><strong>音乐作品不适用 CC BY 4.0</strong>：全部为与曲师合作的委托 / 共创作品，版权由各曲师与企划共同所有，使用前请先联系</li>
+		<li>委托插画、第三方素材（字体、图标等）同样不适用，权利归各自权利人</li>
+		<li>如需转载委托作品或音乐，请<a href="/license/">查看授权说明</a>后与我联系</li>
 	</ul>
+	<p class="placeholder">
+		（如需调整授权范围，改 <code>src/pages/license.astro</code> 即可；页面的 CC BY
+		标记由 <code>src/components/LicenseBadge.astro</code> 输出。）
+	</p>
 
 	<h2>联系</h2>
 	<ul>

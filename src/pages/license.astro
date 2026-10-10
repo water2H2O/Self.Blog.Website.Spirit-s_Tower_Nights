@@ -1,0 +1,175 @@
+﻿---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_AUTHOR, SITE_TITLE } from '../consts';
+
+const updated = '2026年10月10日';
+const CC_URL = 'https://creativecommons.org/licenses/by/4.0/deed.zh';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="授权与使用说明"
+			description={`${SITE_TITLE} 的授权与使用说明：哪些内容采用 CC BY 4.0，哪些保留所有权利。`}
+		/>
+		<style>
+			main {
+				width: 780px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.86em;
+			}
+			.banner {
+				margin: 1.6em 0 2.5em;
+				padding: 1.1em 1.3em;
+				border-radius: 12px;
+				background: rgba(255, 200, 90, 9%);
+				border: 1px solid rgba(255, 200, 90, 30%);
+				font-size: 0.9em;
+			}
+			.banner strong {
+				color: #ffd68a;
+			}
+			.prose :global(h2) {
+				margin-top: 2.4em;
+				padding-bottom: 0.2em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+				font-size: 1.3em;
+			}
+			.prose :global(ul) {
+				padding-left: 1.2em;
+			}
+			.prose :global(li) {
+				margin-bottom: 0.35em;
+			}
+			.prose :global(.quote-block) {
+				margin: 1.2em 0;
+				padding: 1em 1.2em;
+				border-radius: 10px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				font-size: 0.92em;
+				line-height: 1.9;
+			}
+			a[href^='https://creativecommons'] {
+				word-break: break-all;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>授权与使用说明</h1>
+			<p class="lead">最后更新：{updated}</p>
+
+			<div class="banner">
+				<strong>先看这一条：本站音乐不开放。</strong>
+				所有曲目均为与曲师合作的委托 / 共创作品，<strong>不适用 CC BY 4.0</strong>，
+				版权由各曲师与企划共同所有。想使用请先联系。
+			</div>
+
+			<div class="prose">
+				<h2>1. 总则</h2>
+				<p>
+					本网站中，凡由我（{SITE_AUTHOR}）原创、且我享有版权并有权再许可的内容，若<strong
+						>明确标注“CC BY 4.0”</strong
+					>，均采用 Creative Commons Attribution 4.0 International 许可协议。
+				</p>
+				<p>
+					许可证：<a href={CC_URL} target="_blank" rel="noreferrer">{CC_URL}</a>
+				</p>
+				<p>未明确标注“CC BY 4.0”的内容，保留所有权利。</p>
+
+				<h2>2. 适用 CC BY 4.0 的内容</h2>
+				<p>以下内容在明确标注“CC BY 4.0”时适用：</p>
+				<ul>
+					<li>OC《水塔夜谈》的文字设定、背景故事、世界观文字</li>
+					<li>我本人绘制的原创插图</li>
+					<li>我本人撰写的文章、制作的视频与音频</li>
+					<li>页面上明确标注“CC BY 4.0”的其他原创内容</li>
+				</ul>
+				<p>
+					站内带 <span class="cc-badge">CC BY 4.0</span> 标记的页面即为已明确标注的内容 ——
+					目前包括<strong>世界观设定、种族档案、角色档案与故事正文</strong>。
+				</p>
+
+				<h2>3. 不适用 CC BY 4.0 的内容</h2>
+				<ul>
+					<li>
+						<strong>音乐作品</strong>：本站全部曲目均为与曲师合作的委托 / 共创作品，版权由曲师与企划共同所有。
+						如需使用，请先联系我，我会说明具体权利人
+					</li>
+					<li><strong>委托插画</strong>：如需使用，请联系我，我会进一步说明</li>
+					<li>第三方素材：背景音乐、字体、图标、纹理、模板等，按各自许可证处理</li>
+					<li>商标、Logo、角色名标志、官方标识</li>
+					<li>未明确标注“CC BY 4.0”的内容</li>
+				</ul>
+
+				<h2>4. 你可以做什么</h2>
+				<p>对于明确标注 CC BY 4.0 的内容，你可以：</p>
+				<ul>
+					<li>复制、传播、展示</li>
+					<li>改编、二创、混剪</li>
+					<li>商业使用</li>
+				</ul>
+				<p>前提是遵守 CC BY 4.0。</p>
+
+				<h2>5. 你必须做什么</h2>
+				<p>你必须：</p>
+				<ul>
+					<li>署名：{SITE_AUTHOR}</li>
+					<li>注明是否修改；如修改，简要说明</li>
+					<li>保留许可证名称和链接</li>
+					<li>不增加额外法律或技术限制</li>
+					<li>不暗示我或本 OC 官方认可你</li>
+				</ul>
+
+				<h2>6. 推荐署名格式</h2>
+				<div class="quote-block">
+					“《作品名》由 [你的名字] 创作，来源：[页面链接]，采用 CC BY 4.0 许可。<br />
+					修改：是/否，[修改说明]。”<br />
+					许可证：<a href={CC_URL} target="_blank" rel="noreferrer">{CC_URL}</a>
+				</div>
+
+				<h2>7. 音乐作品说明</h2>
+				<p>
+					本站“<a href="/worldview/music/">音乐</a>”栏目下的全部曲目，均为本企划向曲师约稿或与曲师共同创作的作品。
+				</p>
+				<ul>
+					<li><strong>不适用 CC BY 4.0</strong>，也不随本网站其他原创内容一同授权</li>
+					<li>版权由<strong>各曲师与企划共同所有</strong>，曲目页面会标注具体曲师</li>
+					<li>如需转载、商用、二创或用于视频配乐，请<strong>先联系我</strong>，我会协助对接权利人</li>
+					<li>曲绘（封面插画）适用与曲目相同的说明</li>
+				</ul>
+
+				<h2>8. 委托作品说明</h2>
+				<p>本网站展示的部分图片为委托创作。</p>
+				<p>
+					这些作品仅经权利人许可展示，不随本网站其他原创内容采用 CC BY 4.0。<br />
+					如需转载、商用、二创，请直接联系原画师或相关权利人。
+				</p>
+
+				<h2>9. 联系方式</h2>
+				<p>
+					如对授权范围有疑问，请联系：<a href="mailto:ss.water2h2o@gmail.com"
+						>ss.water2h2o@gmail.com</a
+					>
+				</p>
+
+				<h2>10. 免责声明</h2>
+				<p>本说明仅针对我享有版权并有权许可的内容。</p>
+				<p>
+					CC 许可不授权商标、专利、肖像、隐私、人格权等权利。<br />
+					具体委托作品与第三方素材的权利，以原合同和原许可证为准。<br />
+					本说明不构成法律意见。
+				</p>
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
+

@@ -1,0 +1,11 @@
+---
+title: 梅干茶漬け
+number: 7
+artist: Dabbling
+cover: '../../assets/oc/music/07-umeboshi-chazuke.webp'
+audio: '/audio/07-umeboshi-chazuke.mp3'
+duration: '2:23'
+tags: ['原创曲', '合作曲', '有曲绘']
+themeColor: '#AFFFFF'
+order: 70
+---

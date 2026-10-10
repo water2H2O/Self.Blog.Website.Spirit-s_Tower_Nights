@@ -163,8 +163,8 @@ title: Snowflower
 number: 4
 artist: Halv                 # 曲师（合作企划，必须署名）
 cover: '../../assets/oc/music/halv-snowflower.webp'
-audioOgg: '/audio/snowflower.ogg'   # 音频做好后填，见下方“音频规范”
-audioM4a: '/audio/snowflower.m4a'
+audio: '/audio/04-snowflower.mp3'  # 站内音频（MP3 全平台通用）
+duration: '2:37'
 pvUrl: 'https://www.bilibili.com/video/…'
 characters: ['miaomiao']
 ---
@@ -230,19 +230,24 @@ node tools/optimize-images.mjs --manifest=其它清单.json
 > 源目录里还有更大的图（如 61 MB 的 `Kyakii-OBLIVION.png`、22 MB 的 `多人插-和鸟姐姐一起玩水花.png`），
 > 全量导入时往清单里追加条目就行。**PSD / zip / ANI / 视频一律不进仓库。**
 
-### 音频规范（重要）
+### 音频：已从 WAV 转成 MP3
 
-**只导出 `.ogg` 会让所有 iPhone / iPad / Safari 访客听不到声音** —— Safari 至今不支持 Ogg 容器。
-正确做法是同一首导出两份，用 `<source>` 让浏览器自己挑：
+7 首曲目已全部转换并接入站内（`public/audio/*.mp3`，192 kbps，合计约 25 MB）。
+转换脚本：`tools/audio-to-mp3.mjs` + `tools/audio-manifest.json`
 
-| 格式 | 编码 | 建议码率 | 4 分钟约 | 用途 |
-| --- | --- | --- | --- | --- |
-| `.ogg` | Opus | 96–112 kbps | 约 3 MB | Chrome / Firefox / Edge / Android |
-| `.m4a` | AAC | 128 kbps | 约 4 MB | Safari / iOS 兜底 |
+```sh
+node tools/audio-to-mp3.mjs --dry-run     # 只读元信息，不写文件
+node tools/audio-to-mp3.mjs               # 按清单转换
+```
 
-音乐页的播放器已按双 `<source>` 写好，音频文件放进 `public/audio/` 后填 `audioOgg` / `audioM4a` 即可。
-视频 PV 不进仓库，用 `pvUrl` 外链（B 站等）。
-
+- **为什么用 MP3 而不是 ogg**：`.ogg` 在所有 iPhone / iPad / Safari 上都不受支持，只出 ogg 会让苹果设备完全静音。
+  MP3 全平台通吃。schema 里保留了可选的 `audioAlt` / `audioAltType`，将来想加一份体积更小的
+  ogg/opus 作为备选格式，填上即可（播放器会按 `<source>` 顺序让浏览器自选）。
+- **源 WAV 有三种格式**（16bit PCM / 24bit PCM / 32bit float，44.1k 与 48k 混用），脚本统一解码成 16bit
+  再编码，不需要手动预处理。
+- 编码器是纯 JS 的 **lamejs**（已 vendor 在 `tools/vendor/lamejs/`，LGPL-3.0，见其 `LICENSE`），
+  **不依赖 ffmpeg 二进制** —— 本机网络拉不动那个 70 MB 的平台包。
+- 源 WAV 约 273 MB，**不进仓库**；只有 MP3 进仓库。视频 PV 也不进仓库，用 `pvUrl` 外链。
 ---
 
 ## 目录结构
@@ -275,7 +280,7 @@ tools/
 - **时间线**：`参考文件\历史事件线.xlsx` 与 `行迹（故事）\历史事件线.xlsx` 两份完全相同，且**内部是空的**
   （zip 里有 `[trash]/0000.dat` 修复痕迹，A1 单元格无内容）。时间线需要重建；
   建议直接做成站内结构化数据，这样 git 会替你留版本，也不会再无声损坏。
-- **音乐音频**：等网页版 ogg + m4a 导出后接入。
+- **音乐**：7 首已接入站内；PV 外链（`pvUrl`）待补 B 站地址。
 - **全量导入**：主线正文（第一幕 + 第二幕，约 50 话）已批量导入；13 位角色 / 13 支种族 / 7 首曲仍是样本量，待逐批补齐。
 
 ## 当前环境下的必要配置

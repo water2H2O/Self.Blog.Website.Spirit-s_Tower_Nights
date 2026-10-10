@@ -1,15 +1,21 @@
-﻿---
+---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
+import { SITE_AUTHOR } from '../../../consts';
 
 const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 	(a, b) => a.data.number - b.data.number,
 );
 const characters = await getCollection('characters');
 const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
+
+const totalDuration = tracks.reduce((sum, track) => {
+	const [m, s] = (track.data.duration ?? '0:0').split(':').map(Number);
+	return sum + m * 60 + (s || 0);
+}, 0);
 ---
 
 <!doctype html>
@@ -31,10 +37,17 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 				margin: 1.5em 0 0;
 				padding: 0.9em 1.1em;
 				border-radius: 12px;
-				font-size: 0.85em;
-				color: #b6ffd8;
-				background: rgba(120, 255, 190, 8%);
-				border: 1px solid rgba(120, 255, 190, 25%);
+				font-size: 0.84em;
+				line-height: 1.8;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 8%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+			}
+			.notice strong {
+				color: #ffe6ad;
+			}
+			.notice a {
+				color: #ffe6ad;
 			}
 			.track {
 				display: grid;
@@ -75,22 +88,22 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 				color: var(--glow);
 				font-weight: 400;
 			}
-			.links {
-				margin: 0.7em 0 0;
-				font-size: 0.85em;
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.6em 1.2em;
+			audio {
+				width: 100%;
+				margin-top: 0.9em;
+				filter: invert(92%) hue-rotate(160deg);
 			}
 			.tags {
 				margin-top: 0.7em;
 				font-size: 0.78em;
 				color: rgb(var(--gray));
 			}
-			audio {
-				width: 100%;
-				margin-top: 0.9em;
-				filter: invert(92%) hue-rotate(160deg);
+			.links {
+				margin: 0.7em 0 0;
+				font-size: 0.85em;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em 1.2em;
 			}
 			.note {
 				margin: 0.7em 0 0;
@@ -109,10 +122,14 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 		<main>
 			<h1>音乐</h1>
 			<p class="lead">
-				这是一个 OC 世界观音乐企划：每一首曲子都与不同的曲师合作，并配有专属曲绘。
+				这是一个 OC 世界观音乐企划：{tracks.length} 首曲子，每一首都与不同的曲师合作，并配有专属曲绘。
+				总时长约 {Math.floor(totalDuration / 60)} 分钟。
 			</p>
+
 			<p class="notice">
-				网页版音频正在重新制作（ogg/Opus + m4a/AAC 双格式）。曲目信息与曲绘已就绪，音频文件接入后即可在站内直接播放。
+				<strong>版权提示：本站音乐不适用 CC BY 4.0。</strong>
+				全部曲目均为与曲师合作的委托 / 共创作品，版权由各曲师与企划共同所有。
+				如需转载、商用、二创或用于视频配乐，请先<a href="/license/">阅读授权说明</a>并联系我（{SITE_AUTHOR}）。
 			</p>
 
 			{
@@ -124,7 +141,10 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 							</div>
 						)}
 						<div class="info">
-							<span class="no">#{String(track.data.number).padStart(2, '0')}</span>
+							<span class="no">
+								#{String(track.data.number).padStart(2, '0')}
+								{track.data.duration && ` · ${track.data.duration}`}
+							</span>
 							<h2>{track.data.title}</h2>
 							<p class="artist">
 								曲师 <b>{track.data.artist}</b>
@@ -133,14 +153,16 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 										.map((ref) => characterName.get(ref.id) ?? ref.id)
 										.join('、')}`}
 							</p>
-							{track.data.audioOgg ? (
+							{track.data.audio ? (
 								<audio controls preload="none">
-									<source src={track.data.audioOgg} type="audio/ogg" />
-									{track.data.audioM4a && <source src={track.data.audioM4a} type="audio/mp4" />}
+									<source src={track.data.audio} type="audio/mpeg" />
+									{track.data.audioAlt && (
+										<source src={track.data.audioAlt} type={track.data.audioAltType ?? 'audio/ogg'} />
+									)}
 									你的浏览器不支持音频播放。
 								</audio>
 							) : (
-								<p class="note">音频制作中 —— 曲绘与信息可先行查看。</p>
+								<p class="note">音频制作中。</p>
 							)}
 							{track.data.tags.length > 0 && <p class="tags">{track.data.tags.join(' · ')}</p>}
 							{track.data.pvUrl && (
