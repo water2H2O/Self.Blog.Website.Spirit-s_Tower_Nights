@@ -34,10 +34,20 @@ const items = fs
 		};
 	});
 
-/** 有设主的几位，按角色去重后列在下面 */
+/** 有设主的几位，按角色去重；设主与角色同名时只显示一次 */
 const withOwner = [
 	...new Map(
-		items.filter((item) => item.owner).map((item) => [`${item.character}/${item.owner}`, item]),
+		items
+			.filter((item) => item.owner)
+			.map((item) => [
+				`${item.character}/${item.owner}`,
+				{
+					character: item.character,
+					owner: item.owner,
+					// 「北音（北音）」这种就省掉括号
+					sameName: item.owner === item.character || item.character.startsWith(item.owner),
+				},
+			]),
 	).values(),
 ];
 ---
@@ -87,13 +97,31 @@ const withOwner = [
 				color: #ffe6ad;
 			}
 			.owners {
-				margin: 1.2em 0 0;
+				margin: 1.6em 0 0;
+			}
+			.owners-title {
+				margin: 0 0 0.7em;
 				font-size: 0.84em;
-				line-height: 2;
 				color: rgb(var(--gray));
 			}
-			.owners b {
-				font-weight: 400;
+			.owners ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5em;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.owners li {
+				padding: 0.3em 0.85em;
+				border-radius: 999px;
+				font-size: 0.82em;
+				color: rgb(var(--gray-dark));
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+			}
+			/* 设主与角色不同名时，把设主名标出来 */
+			.owners li .who {
 				color: var(--accent);
 			}
 		</style>
@@ -116,15 +144,17 @@ const withOwner = [
 			</p>
 			{
 				withOwner.length > 0 && (
-					<p class="owners">
-						<b>其中有设主的孩子：</b>
-						{withOwner.map((item, index) => (
-							<>
-								{index > 0 && '、'}
-								{item.character}（{item.owner}）
-							</>
-						))}
-					</p>
+					<div class="owners">
+						<p class="owners-title">其中有设主的孩子：</p>
+						<ul>
+							{withOwner.map((item) => (
+								<li>
+									{item.character}
+									{!item.sameName && <span class="who"> · {item.owner}</span>}
+								</li>
+							))}
+						</ul>
+					</div>
 				)
 			}
 

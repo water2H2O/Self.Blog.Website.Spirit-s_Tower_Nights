@@ -18,8 +18,19 @@ for (const file of fs.readdirSync(CHARS).filter((f) => f.endsWith('.md'))) {
 	if (get('ownership') === '联动' && get('owner')) owners.set(get('name'), get('owner'));
 }
 
-/** 不在世界观里的企划角色，设主单独记（据作者说明） */
-const EXTRA_OWNERS = { 缪伊伊: '缪伊伊' };
+/**
+ * 不在世界观里的企划角色，设主单独记（据作者说明）。
+ * 除香菇外，其余几位的设主名与角色同名。
+ */
+const EXTRA_OWNERS = {
+	缪伊伊: '缪伊伊',
+	北音: '北音',
+	温雪: '温雪',
+	苯胺: '苯胺',
+	霜霖星: '霜霖星',
+	香菇: '白血尘',
+	鹤戾: '鹤戾',
+};
 
 const meta = JSON.parse(fs.readFileSync(META, 'utf8'));
 let filled = 0;
