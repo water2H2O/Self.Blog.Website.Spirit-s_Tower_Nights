@@ -71,6 +71,8 @@ const characters = defineCollection({
 			ownership: z.enum(['原创', '联动']).default('原创'),
 			/** 联动角色的设主 */
 			owner: z.string().optional(),
+			/** 设主的主页 / 社交账号（填了以后设主名可点击） */
+			ownerUrl: z.string().url().optional(),
 			aliases: z.array(z.string()).default([]),
 			/** 称号 / 他称 */
 			title: z.string().optional(),

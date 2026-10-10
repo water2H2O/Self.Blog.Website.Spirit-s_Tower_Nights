@@ -2,6 +2,8 @@
 name: Aurelith PrismWing
 race: 'dragon'
 ownership: 联动
+ownerUrl: 'https://profile.aurelith.top/'
+owner: 'Aurelith'
 aliases: ['奥瑞利斯']
 age: 不可考。自述“睡过几次大陆变样”，实际估计超过六至七千年
 height: 不足一米五（人形态）
@@ -9,6 +11,7 @@ summary: 最后一位未参与大灾变的棱镜龙纯血，隐居亚空间“�
 canon: open
 order: 70
 ---
+
 
 > “你们现在的龙族……把鳞片磨成镜子就以为自己是太阳了？”
 

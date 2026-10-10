@@ -21,6 +21,7 @@ const {
 	race,
 	ownership,
 	owner,
+	ownerUrl,
 	aliases,
 	title,
 	summary,
@@ -40,7 +41,10 @@ const raceEntry = race ? await getEntry(race) : undefined;
 
 const meta: { label: string; value: string }[] = [];
 if (raceEntry) meta.push({ label: '种族', value: raceEntry.data.name });
-if (ownership === '联动') meta.push({ label: '归属', value: `联动设定 · 设主 ${owner || '待补'}` });
+if (ownership === '联动') {
+	meta.push({ label: '归属', value: '联动设定（别人家的孩子）' });
+	meta.push({ label: '设主', value: owner || '待补', href: ownerUrl });
+}
 if (title) meta.push({ label: '称号', value: title });
 if (pronouns) meta.push({ label: '性别表现', value: pronouns });
 if (height) meta.push({ label: '身高', value: height });

@@ -1,4 +1,4 @@
-﻿---
+---
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
@@ -10,6 +10,8 @@ import TagList from '../components/TagList.astro';
 interface MetaItem {
 	label: string;
 	value: string;
+	/** 填了就渲染成外链（例如联动角色的设主主页） */
+	href?: string;
 }
 
 interface Props {
@@ -211,7 +213,15 @@ const CANON = {
 						{meta.map((item) => (
 							<>
 								<dt>{item.label}</dt>
-								<dd>{item.value}</dd>
+								<dd>
+									{item.href ? (
+										<a href={item.href} target="_blank" rel="noreferrer">
+											{item.value}
+										</a>
+									) : (
+										item.value
+									)}
+								</dd>
 							</>
 						))}
 					</dl>
