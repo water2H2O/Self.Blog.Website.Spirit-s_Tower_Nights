@@ -138,32 +138,7 @@ const stories = defineCollection({
 		}),
 });
 
-/** 画廊：一张图一条记录（批量导入由 tools/import-art.mjs 生成） */
-const gallery = defineCollection({
-	loader: glob({ base: './src/content/gallery', pattern: '**/*.{md,mdx}' }),
-	schema: ({ image }) =>
-		z.object({
-			title: z.string(),
-			image: image(),
-			kind: z
-				.enum(['立绘', '插画', '曲绘', '头像', '设计稿', '表情包', '周边'])
-				.default('插画'),
-			characters: z.array(reference('characters')).default([]),
-			/** 合作画师（非本人作品时必填） */
-			artist: z.string().optional(),
-			tags: z.array(z.string()).default([]),
-			note: z.string().optional(),
-			/** 周边类：下载地址（例如鼠标指针主题包） */
-			download: z.string().optional(),
-			themeColor: themeColor.default('#AFFFFF'),
-			spoiler: spoilerLevel,
-			draft: z.boolean().default(false),
-			order: z.number().default(100),
-			updatedDate: z.coerce.date().optional(),
-		}),
-});
-
-/** 音乐：与曲师合作的原创曲。音频待做成 ogg + m4a 双格式后再填 */
+/** 音乐：与曲师合作的原创曲。音频为 MP3（全平台通用），另有可选 audioAlt */
 const music = defineCollection({
 	loader: glob({ base: './src/content/music', pattern: '**/*.{md,mdx}' }),
 	schema: ({ image }) =>
@@ -198,4 +173,4 @@ const music = defineCollection({
 		}),
 });
 
-export const collections = { blog, races, characters, lore, stories, gallery, music };
+export const collections = { blog, races, characters, lore, stories, music };

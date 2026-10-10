@@ -1,56 +1,88 @@
 ---
-import { Image } from 'astro:assets';
-import { getCollection } from 'astro:content';
+import fs from 'node:fs';
+import path from 'node:path';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
+import { SITE_AUTHOR, SITE_TITLE } from '../../../consts';
+import meta from '../../../data/gallery-meta.json';
 
-const items = (await getCollection('gallery', ({ data }) => !data.draft)).sort(
-	(a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title, 'zh-Hans-CN'),
-);
-const characters = await getCollection('characters', ({ data }) => !data.draft);
+/** 每次访问从图池里抽多少张 */
+const SAMPLE_SIZE = 60;
 
-const kindOrder = ['立绘', '插画', '曲绘', '头像', '设计稿', '表情包', '周边'];
-const kinds = kindOrder.filter((kind) => items.some((item) => item.data.kind === kind));
+const POOL = path.join(process.cwd(), 'public', 'gallery');
+const stored = (meta as { items?: Record<string, Record<string, unknown>> }).items ?? {};
 
-/** 只列出真正有作品的角色 */
-const owners = characters
-	.filter((character) => items.some((item) => item.data.characters.some((ref) => ref.id === character.id)))
-	.sort((a, b) => a.data.order - b.data.order);
+const items = fs
+	.readdirSync(POOL)
+	.filter((file) => /\.webp$/i.test(file))
+	.sort()
+	.map((file) => {
+		const info = stored[file] ?? {};
+		const w = Number(info.w) || 0;
+		const h = Number(info.h) || 0;
+		return {
+			file,
+			url: `/gallery/${encodeURIComponent(file)}`,
+			ar: w > 0 && h > 0 ? Number((w / h).toFixed(3)) : 1,
+			ownership: String(info.ownership ?? '其他'),
+			owner: String(info.owner ?? ''),
+			kind: String(info.kind ?? '其他'),
+			character: String(info.character ?? ''),
+			title: String(info.title ?? ''),
+		};
+	});
 
-const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
+const count = (predicate: (item: (typeof items)[number]) => boolean) => items.filter(predicate).length;
+const filters = [
+	{ key: 'all', label: '全部', n: items.length },
+	{ key: '原创', label: '原创设定', n: count((i) => i.ownership === '原创') },
+	{ key: '联动', label: '联动设定', n: count((i) => i.ownership === '联动') },
+	{ key: '其他', label: '其他', n: count((i) => i.ownership === '其他') },
+];
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
-		<BaseHead title="画廊" description="水塔夜谈的画作：立绘、插画、曲绘与周边。" />
+		<BaseHead
+			title="画廊"
+			description={`${SITE_TITLE} 的图池：原创设定、联动设定与插画。`}
+		/>
 		<style>
 			main {
-				width: 1100px;
+				width: min(1280px, 94vw);
 			}
 			.lead {
 				color: rgb(var(--gray));
-				font-size: 0.9em;
+				font-size: 0.88em;
+			}
+			.notice {
+				margin: 1em 0 0;
+				padding: 0.85em 1.05em;
+				border-radius: 12px;
+				font-size: 0.8em;
+				line-height: 1.8;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 8%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+			}
+			.notice strong {
+				color: #ffe6ad;
+			}
+			.notice a {
+				color: #ffe6ad;
 			}
 			.filters {
 				display: flex;
 				flex-wrap: wrap;
 				gap: 0.5em;
-				align-items: center;
-				margin: 1.6em 0 0;
-			}
-			.filters .label {
-				font-size: 0.78em;
-				letter-spacing: 0.08em;
-				color: rgb(var(--gray));
-				margin-right: 0.3em;
+				margin: 1.6em 0 0.4em;
 			}
 			.filters button {
-				font: inherit;
-				font-size: 0.82em;
-				padding: 0.35em 0.85em;
+				padding: 0.4em 0.95em;
 				border-radius: 999px;
+				font-size: 0.82em;
 				cursor: pointer;
 				color: rgb(var(--gray-dark));
 				background: var(--surface);
@@ -58,106 +90,133 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 				transition: 0.15s ease;
 			}
 			.filters button:hover {
-				border-color: rgba(175, 255, 255, 45%);
+				border-color: rgba(175, 255, 255, 40%);
 				color: var(--glow);
 			}
 			.filters button[aria-pressed='true'] {
-				color: #08131d;
+				color: #06121a;
 				background: var(--glow);
 				border-color: var(--glow);
-				font-weight: 700;
 			}
-			.row {
-				margin-top: 0.7em;
+			.filters button span {
+				opacity: 0.65;
+				font-size: 0.9em;
 			}
-			.grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-				gap: 1.2rem;
-				margin-top: 2em;
+
+			/* 瀑布流：位置由脚本算，尺寸随机 */
+			.wall {
+				position: relative;
+				margin-top: 1.2em;
+				opacity: 0;
+				transition: opacity 0.35s ease;
 			}
-			figure {
-				margin: 0;
-				border-radius: 14px;
+			.wall.ready {
+				opacity: 1;
+			}
+			.tile {
+				position: absolute;
+				top: 0;
+				left: 0;
 				overflow: hidden;
+				border-radius: 12px;
 				background: var(--surface);
 				border: 1px solid rgb(var(--gray-light));
 				cursor: zoom-in;
-				transition: 0.2s ease;
+				transition:
+					box-shadow 0.18s ease,
+					border-color 0.18s ease;
 			}
-			figure:hover {
-				transform: translateY(-3px);
+			.tile:hover {
+				border-color: rgba(175, 255, 255, 45%);
 				box-shadow: var(--glow-shadow);
-				border-color: color-mix(in srgb, var(--card-color) 45%, transparent);
 			}
-			figure[hidden] {
-				display: none;
-			}
-			.frame {
-				aspect-ratio: 4 / 3;
-				display: grid;
-				place-items: center;
-				overflow: hidden;
-				background: color-mix(in srgb, var(--card-color) 8%, var(--surface));
-			}
-			.frame :global(img) {
+			.tile img {
+				display: block;
 				width: 100%;
 				height: 100%;
 				object-fit: cover;
-				border-radius: 0;
-				display: block;
 			}
-			figcaption {
-				padding: 0.7em 0.9em 0.85em;
-				font-size: 0.85em;
+			/* 页面水印：只在页面上叠加，另存的原图不带 */
+			.tile .wm {
+				position: absolute;
+				right: 6px;
+				bottom: 5px;
+				font-size: 10px;
+				line-height: 1;
+				padding: 3px 6px;
+				border-radius: 6px;
+				letter-spacing: 0.04em;
+				color: rgba(255, 255, 255, 82%);
+				background: rgba(4, 12, 20, 42%);
+				backdrop-filter: blur(2px);
+				pointer-events: none;
+				user-select: none;
 			}
-			figcaption .title {
-				color: rgb(var(--black));
+			.tile .tag {
+				position: absolute;
+				left: 6px;
+				top: 6px;
+				font-size: 10px;
+				line-height: 1;
+				padding: 3px 6px;
+				border-radius: 6px;
+				color: #06121a;
+				background: rgba(175, 255, 255, 85%);
+				pointer-events: none;
 			}
-			figcaption .sub {
-				display: block;
-				margin-top: 0.2em;
-				font-size: 0.82em;
-				color: rgb(var(--gray));
+			.tile .tag.collab {
+				color: #2a1a00;
+				background: rgba(255, 214, 138, 92%);
 			}
-			.empty {
-				color: rgb(var(--gray));
+			.hidden {
+				display: none !important;
 			}
+
 			/* 灯箱 */
-			#lightbox {
+			.lightbox {
 				position: fixed;
 				inset: 0;
-				z-index: 50;
+				z-index: 60;
 				display: none;
-				place-items: center;
-				padding: 2em;
-				background: rgba(4, 10, 16, 92%);
+				align-items: center;
+				justify-content: center;
+				flex-direction: column;
+				gap: 0.8em;
+				padding: 3vh 3vw;
+				background: rgba(3, 8, 14, 92%);
 				backdrop-filter: blur(6px);
-				cursor: zoom-out;
 			}
-			#lightbox.open {
-				display: grid;
+			.lightbox.open {
+				display: flex;
 			}
-			#lightbox img {
-				max-width: 100%;
-				max-height: 88vh;
-				width: auto;
+			.lightbox img {
+				max-width: 92vw;
+				max-height: 78vh;
 				border-radius: 12px;
-				box-shadow: 0 20px 60px rgba(0, 0, 0, 70%);
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 55%);
 			}
-			#lightbox .cap {
-				position: fixed;
-				bottom: 1.4em;
-				left: 0;
-				right: 0;
+			.lightbox .caption {
+				font-size: 0.86em;
+				color: rgb(var(--gray-dark));
 				text-align: center;
-				font-size: 0.85em;
-				color: var(--glow);
+				line-height: 1.7;
 			}
-			.count {
-				margin-top: 2.5em;
-				font-size: 0.8em;
-				color: rgb(var(--gray));
+			.lightbox .caption b {
+				color: var(--glow);
+				font-weight: 400;
+			}
+			.lightbox .close {
+				position: absolute;
+				top: 2vh;
+				right: 3vw;
+				width: 42px;
+				height: 42px;
+				border-radius: 50%;
+				font-size: 1.2em;
+				cursor: pointer;
+				color: var(--glow);
+				background: rgba(175, 255, 255, 10%);
+				border: 1px solid rgba(175, 255, 255, 35%);
 			}
 		</style>
 	</head>
@@ -166,115 +225,183 @@ const characterName = new Map(characters.map((c) => [c.id, c.data.name]));
 		<main>
 			<h1>画廊</h1>
 			<p class="lead">
-				{items.length} 张。所有图片都已压缩为 WebP（原图合计约 68 MB，站内约 1.7 MB），点开看大图。
+				图池共 {items.length} 张，每次打开随机抽 {SAMPLE_SIZE} 张铺成照片墙 —— 大小、横竖、顺序都随机，刷新即换。
 			</p>
-			<p class="lead">
-				其中部分作品为委托创作，版权归原画师所有，<strong>不适用 CC BY 4.0</strong> ——
-				使用前请先<a href="/license/">阅读授权说明</a>。
+			<p class="notice">
+				<strong>图片不适用 CC BY 4.0。</strong>
+				原创设定版权归我（{SITE_AUTHOR}）所有；<strong>联动设定版权归各设主所有</strong>
+				（已在图上标出）；委托插画版权归原画师。<a href="/license/">详见授权说明</a>。
 			</p>
 
-			<div class="filters row" data-group="kind">
-				<span class="label">类型</span>
-				<button type="button" data-filter="all" aria-pressed="true">全部</button>
-				{kinds.map((kind) => <button type="button" data-filter={kind} aria-pressed="false">{kind}</button>)}
+			<div class="filters" id="filters">
+				{
+					filters.map((filter, index) => (
+						<button type="button" data-filter={filter.key} aria-pressed={index === 0 ? 'true' : 'false'}>
+							{filter.label} <span>{filter.n}</span>
+						</button>
+					))
+				}
 			</div>
-			{
-				owners.length > 0 && (
-					<div class="filters row" data-group="owner">
-						<span class="label">角色</span>
-						<button type="button" data-filter="all" aria-pressed="true">全部</button>
-						{owners.map((owner) => (
-							<button type="button" data-filter={owner.id} aria-pressed="false">
-								{owner.data.name}
-							</button>
-						))}
-					</div>
-				)
-			}
 
-			<div class="grid" id="grid">
+			<div class="wall" id="wall">
 				{
 					items.map((item) => (
 						<figure
-							style={`--card-color:${item.data.themeColor}`}
-							data-kind={item.data.kind}
-							data-chars={item.data.characters.map((ref) => ref.id).join(' ')}
-							data-src={item.data.image.src}
-							data-title={`${item.data.title}${item.data.artist ? ` · ${item.data.artist}` : ''}`}
+							class="tile hidden"
+							data-ownership={item.ownership}
+							data-ar={item.ar}
+							data-url={item.url}
+							data-character={item.character}
+							data-owner={item.owner}
+							data-kind={item.kind}
+							data-title={item.title}
 						>
-							<div class="frame">
-								<Image src={item.data.image} alt={item.data.title} widths={[320, 480, 720]} sizes="(max-width: 720px) 90vw, 260px" />
-							</div>
-							<figcaption>
-								<span class="title">{item.data.title}</span>
-								<span class="sub">
-									{item.data.kind}
-									{item.data.characters.length > 0 &&
-										` · ${item.data.characters.map((ref) => characterName.get(ref.id) ?? ref.id).join('、')}`}
-								</span>
-							</figcaption>
+							<img src={item.url} alt={item.title || `${item.character}${item.kind}`} loading="lazy" decoding="async" />
+							<span class="wm">{SITE_TITLE} · @{SITE_AUTHOR}</span>
+							{item.ownership === '联动' && <span class="tag collab">联动</span>}
+							{item.ownership === '原创' && <span class="tag">原创</span>}
 						</figure>
 					))
 				}
 			</div>
-			<p class="count">点任意一张放大；按 Esc 或点击空白处关闭。</p>
+
+			<noscript>
+				<p class="lead">照片墙需要 JavaScript 排版；图池里的图都在 <code>public/gallery/</code>。</p>
+			</noscript>
 		</main>
 
-		<div id="lightbox" role="dialog" aria-modal="true" aria-label="图片放大">
-			<img src="" alt="" />
-			<p class="cap"></p>
+		<div class="lightbox" id="lightbox">
+			<button class="close" type="button" id="lbClose" aria-label="关闭">✕</button>
+			<img id="lbImg" src="" alt="" />
+			<p class="caption" id="lbCaption"></p>
 		</div>
 
+		<Footer />
+
 		<script>
-			// 双维度筛选：类型 与 角色 同时生效
-			const state: Record<string, string> = { kind: 'all', owner: 'all' };
-			const figures = Array.from(document.querySelectorAll<HTMLElement>('#grid figure'));
+			const SAMPLE_SIZE = 60;
+			const wall = document.getElementById('wall')!;
+			const tiles = Array.from(wall.querySelectorAll<HTMLElement>('.tile'));
+			const filters = document.getElementById('filters')!;
+			const lightbox = document.getElementById('lightbox')!;
+			const lbImg = document.getElementById('lbImg') as HTMLImageElement;
+			const lbCaption = document.getElementById('lbCaption')!;
+			const GAP = 12;
 
-			function apply() {
-				for (const figure of figures) {
-					const okKind = state.kind === 'all' || figure.dataset.kind === state.kind;
-					const chars = (figure.dataset.chars ?? '').split(' ').filter(Boolean);
-					const okOwner = state.owner === 'all' || chars.includes(state.owner);
-					figure.hidden = !(okKind && okOwner);
+			/** 每张图的宽度档位：1 = 一列，2 = 两列（大图） */
+			const sizeOf = (tile: HTMLElement) => {
+				const ar = Number(tile.dataset.ar) || 1;
+				// 竖图更容易占一列，横图更容易占两列，再掺一点随机
+				const wide = ar > 1.25 ? Math.random() < 0.55 : Math.random() < 0.15;
+				const big = Math.random() < 0.22;
+				return wide || big ? 2 : 1;
+			};
+
+			/** 从当前放行的图里随机抽 SAMPLE_SIZE 张 */
+			function sample(): HTMLElement[] {
+				const pool = tiles.filter((tile) => tile.dataset.enabled !== '0');
+				for (let i = pool.length - 1; i > 0; i -= 1) {
+					const j = Math.floor(Math.random() * (i + 1));
+					[pool[i], pool[j]] = [pool[j], pool[i]];
 				}
+				return pool.slice(0, Math.min(SAMPLE_SIZE, pool.length));
 			}
 
-			for (const group of document.querySelectorAll<HTMLElement>('.filters')) {
-				const name = group.dataset.group!;
-				group.addEventListener('click', (event) => {
-					const button = (event.target as HTMLElement).closest('button');
-					if (!button) return;
-					state[name] = button.dataset.filter ?? 'all';
-					for (const sibling of group.querySelectorAll('button')) {
-						sibling.setAttribute('aria-pressed', String(sibling === button));
+			/** 瀑布流排版：每张按随机宽度与自身比例算高，塞进当前最矮的位置 */
+			function layout(list: HTMLElement[]) {
+				const width = wall.clientWidth;
+				if (!width) return;
+				const cols = Math.max(2, Math.min(6, Math.round(width / 240)));
+				const colW = (width - GAP * (cols - 1)) / cols;
+				const heights = new Array(cols).fill(0);
+
+				for (const tile of list) {
+					const span = Math.min(sizeOf(tile), cols);
+					const tileW = colW * span + GAP * (span - 1);
+					const ar = Number(tile.dataset.ar) || 1;
+					// 高度由比例决定，限制在合理区间，避免极端长条
+					const tileH = Math.round(Math.min(Math.max(tileW / ar, tileW * 0.55), tileW * 1.9));
+
+					// 找出能放下这张图的、最矮的起始列
+					let best = 0;
+					let bestY = Infinity;
+					for (let c = 0; c + span <= cols; c += 1) {
+						let y = 0;
+						for (let k = 0; k < span; k += 1) y = Math.max(y, heights[c + k]);
+						if (y < bestY) {
+							bestY = y;
+							best = c;
+						}
 					}
-					apply();
-				});
+
+					tile.style.width = `${tileW}px`;
+					tile.style.height = `${tileH}px`;
+					tile.style.transform = `translate(${Math.round(best * (colW + GAP))}px, ${Math.round(bestY)}px)`;
+					for (let k = 0; k < span; k += 1) heights[best + k] = bestY + tileH + GAP;
+				}
+
+				wall.style.height = `${Math.max(...heights, 0)}px`;
+				wall.classList.add('ready');
 			}
+
+			let current: HTMLElement[] = [];
+
+			function render() {
+				for (const tile of tiles) tile.classList.add('hidden');
+				current = sample();
+				for (const tile of current) tile.classList.remove('hidden');
+				layout(current);
+			}
+
+			// 初始：全部放行
+			for (const tile of tiles) tile.dataset.enabled = '1';
+
+			// 筛选：改放行范围后重新抽样
+			filters.addEventListener('click', (event) => {
+				const button = (event.target as HTMLElement).closest('button');
+				if (!button) return;
+				const active = button.dataset.filter ?? 'all';
+				for (const other of filters.querySelectorAll('button')) {
+					other.setAttribute('aria-pressed', String(other === button));
+				}
+				for (const tile of tiles) {
+					tile.dataset.enabled = active === 'all' || tile.dataset.ownership === active ? '1' : '0';
+				}
+				render();
+			});
 
 			// 灯箱
-			const box = document.getElementById('lightbox')!;
-			const boxImg = box.querySelector('img')!;
-			const boxCap = box.querySelector('.cap')!;
-
-			for (const figure of figures) {
-				figure.addEventListener('click', () => {
-					boxImg.src = figure.dataset.src ?? '';
-					boxImg.alt = figure.dataset.title ?? '';
-					boxCap.textContent = figure.dataset.title ?? '';
-					box.classList.add('open');
-				});
-			}
-
-			const close = () => {
-				box.classList.remove('open');
-				boxImg.src = '';
-			};
-			box.addEventListener('click', close);
+			wall.addEventListener('click', (event) => {
+				const tile = (event.target as HTMLElement).closest<HTMLElement>('.tile');
+				if (!tile) return;
+				const parts: string[] = [];
+				if (tile.dataset.title) parts.push(`<b>${tile.dataset.title}</b>`);
+				if (tile.dataset.character) parts.push(tile.dataset.character);
+				if (tile.dataset.kind) parts.push(tile.dataset.kind);
+				if (tile.dataset.ownership === '联动') {
+					parts.push(`联动设定 · 设主：${tile.dataset.owner || '待补'}`);
+				} else if (tile.dataset.ownership === '原创') {
+					parts.push('原创设定');
+				}
+				lbImg.src = tile.dataset.url ?? '';
+				lbCaption.innerHTML = parts.join(' · ');
+				lightbox.classList.add('open');
+			});
+			const close = () => lightbox.classList.remove('open');
+			document.getElementById('lbClose')!.addEventListener('click', close);
+			lightbox.addEventListener('click', (event) => {
+				if (event.target === lightbox) close();
+			});
 			document.addEventListener('keydown', (event) => {
 				if (event.key === 'Escape') close();
 			});
+
+			render();
+			let timer = 0;
+			window.addEventListener('resize', () => {
+				window.clearTimeout(timer);
+				timer = window.setTimeout(() => layout(current), 150);
+			});
 		</script>
-		<Footer />
 	</body>
 </html>

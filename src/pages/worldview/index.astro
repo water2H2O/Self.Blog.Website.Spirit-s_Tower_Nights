@@ -1,4 +1,4 @@
-﻿---
+---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../../assets/oc/logo.webp';
@@ -6,13 +6,14 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import { PROJECT_SUBTITLE, PROJECT_TITLE } from '../../consts';
+import meta from '../../data/gallery-meta.json';
 
 const isPublic = (entry: { data: { draft?: boolean } }) => !entry.data.draft;
 
 const races = (await getCollection('races')).filter(isPublic);
 const characters = (await getCollection('characters')).filter(isPublic);
 const stories = (await getCollection('stories', ({ data }) => data.status === 'published'));
-const gallery = (await getCollection('gallery')).filter(isPublic);
+const gallery = (meta as { count?: number }).count ?? 0;
 const music = (await getCollection('music')).filter(isPublic);
 const lore = (await getCollection('lore')).filter(isPublic);
 
@@ -45,7 +46,7 @@ const rooms = [
 	{
 		href: '/worldview/gallery/',
 		title: '画廊',
-		count: `${gallery.length} 张`,
+		count: `${gallery} 张`,
 		desc: '立绘、插画、曲绘与周边，按角色归档。',
 	},
 	{

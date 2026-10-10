@@ -1,5 +1,8 @@
-﻿---
+---
+import fs from 'node:fs';
+import path from 'node:path';
 import { getCollection, getEntry, render } from 'astro:content';
+import gallery from '../../../data/gallery-meta.json';
 import DetailPage from '../../../layouts/DetailPage.astro';
 import { publishedEpisodes } from '../../../lib/stories';
 
@@ -51,13 +54,18 @@ const episodes = (await publishedEpisodes()).filter((episode) =>
 	episode.data.characters.some((ref) => ref.id === entry.id),
 );
 
-/** 画作 */
-const artworks = (
-	await getCollection(
-		'gallery',
-		({ data }) => !data.draft && data.characters.some((ref) => ref.id === entry.id),
-	)
-).sort((a, b) => a.data.order - b.data.order);
+/** 画作：从画廊图池里按角色抽（标注见 src/data/gallery-meta.json） */
+const POOL = path.join(process.cwd(), 'public', 'gallery');
+const galleryMeta =
+	(gallery as { items?: Record<string, { character?: string; kind?: string; title?: string }> }).items ?? {};
+const artworks = fs.existsSync(POOL)
+	? fs
+			.readdirSync(POOL)
+			.filter((file) => /\.webp$/i.test(file))
+			.sort()
+			.map((file) => ({ file, ...(galleryMeta[file] ?? {}) }))
+			.filter((item) => item.character === entry.data.name)
+	: [];
 
 /** 人际关系 */
 const relationList: { name: string; note: string; id?: string; color: string }[] = [];
@@ -114,12 +122,17 @@ if (relations.length > 0) {
 				{artworks.length > 0 && (
 					<>
 						<h2>画作（{artworks.length}）</h2>
-						<ul>
+						<ul class="artworks">
 							{artworks.map((art) => (
 								<li>
-									<a href="/worldview/gallery/">
-										{art.data.title}
-										<span class="kind">{art.data.kind}</span>
+									<a href="/worldview/gallery/" title={art.title || art.kind}>
+										<img
+											src={`/gallery/${encodeURIComponent(art.file)}`}
+											alt={art.title || `${entry.data.name} ${art.kind ?? ''}`}
+											loading="lazy"
+											decoding="async"
+										/>
+										<span class="kind">{art.kind}</span>
 									</a>
 								</li>
 							))}
@@ -201,6 +214,49 @@ if (relations.length > 0) {
 		margin-left: 0.5em;
 		font-size: 0.8em;
 		opacity: 0.65;
+	}
+	/* 画作缩略图墙 */
+	.related .artworks {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+		gap: 0.7em;
+	}
+	.related .artworks li {
+		margin: 0;
+	}
+	.related .artworks a {
+		position: relative;
+		display: block;
+		border-radius: 10px;
+		overflow: hidden;
+		border: 1px solid rgb(var(--gray-light));
+		transition: 0.18s ease;
+	}
+	.related .artworks a:hover {
+		border-color: rgba(175, 255, 255, 45%);
+		box-shadow: var(--glow-shadow);
+	}
+	.related .artworks img {
+		display: block;
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+	}
+	.related .artworks .kind {
+		position: absolute;
+		left: 6px;
+		bottom: 5px;
+		margin: 0;
+		padding: 2px 6px;
+		border-radius: 6px;
+		font-size: 10px;
+		opacity: 1;
+		color: rgba(255, 255, 255, 85%);
+		background: rgba(4, 12, 20, 45%);
+		backdrop-filter: blur(2px);
 	}
 	@media (max-width: 720px) {
 		.relations li {
