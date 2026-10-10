@@ -6,6 +6,7 @@ owner: '浅羽'
 title: 蔷薇帝国代理女皇、永夜蔷薇之主、冥血镰刀的女主人
 pronouns: 女
 summary: 蔷薇帝国的代理女皇，对外以慵懒无害的少女姿态示人，对内则是言语犀利、算无遗策的统治者。母亲失踪的阴影与冰冷的王座让她极度孤独，却绝不能示弱。
+portrait: '../../assets/oc/characters/liliana-salambo.webp'
 canon: open
 order: 80
 ---

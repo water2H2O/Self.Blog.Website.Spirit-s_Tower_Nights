@@ -5,6 +5,7 @@ ownership: 原创
 title: 星轨魔女
 aliases: ['醉酒的星辰']
 summary: 人类最顶尖的空间魔女，终日在醉与微醺之间游荡。她视旧元素与新生瘴素、晶体为世界不同的“语法”，把“有趣”当作唯一的行动准则。
+portrait: '../../assets/oc/characters/viola.webp'
 tags: ['魔女', '空间魔法', '观察者']
 canon: open
 order: 90

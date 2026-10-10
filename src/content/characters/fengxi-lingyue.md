@@ -5,6 +5,7 @@ race: 'elf'
 owner: '风汐铃月'
 aliases: ['澪沫']
 summary: “冷月”神器破碎后重生的狼灵族村长，以与体内共生的月之力碎片守护村子。她已失去全部记忆与过去，力量与战斗本能却仍刻着前任继承者澪沫的影子。
+portrait: '../../assets/oc/characters/fengxi-lingyue.webp'
 canon: open
 order: 50
 ---

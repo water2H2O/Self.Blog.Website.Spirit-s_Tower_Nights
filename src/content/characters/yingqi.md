@@ -5,6 +5,7 @@ race: 'human'
 aliases: ['祈']
 title: 那个“实验体”，18号
 summary: 圣盾秘密实验造出的第18号人造生命，力大无穷、再生极强，却几乎无法使用魔法，只能靠抑制剂压制失稳。出逃至铃月镇后，她以情报换取治疗与庇护。
+portrait: '../../assets/oc/characters/yingqi.webp'
 pronouns: 女
 age: '14'
 tags: ['奇美拉', '人造生命', '逃亡者']

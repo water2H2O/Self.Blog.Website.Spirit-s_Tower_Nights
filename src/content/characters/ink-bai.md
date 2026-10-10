@@ -7,6 +7,7 @@ race: 'divine-envoy'
 aliases: ['那只记笔记的猫']
 title: 时间长河的记录者、命途观测者、永恒的折耳猫
 summary: 时间长河的记录者，能穿梭重溯命途，却受“不可改变既定事实”的枷锁束缚，只能旁观与记录。她在无尽时间线中寻找改变“那一位”命运的奇迹。
+portrait: '../../assets/oc/characters/ink-bai.webp'
 pronouns: 女
 age: 外表20，本质未知/永恒（诞生于时间长河，无生老病死概念）
 tags: ['猫亚人', '观测者', '时间']

@@ -3,6 +3,7 @@ name: 飒岚
 race: 'winged'
 ownership: 原创
 summary: 风精灵出身的机械发明家，把风元素和齿轮、发条拼在一起造出各种“风动力机械”。大灾变留下的后遗症让她对“静止”生理性不适，只能不断移动与创造。
+portrait: '../../assets/oc/characters/salan.webp'
 tags: ['风精灵', '发明家', '旅行者']
 canon: open
 order: 10
