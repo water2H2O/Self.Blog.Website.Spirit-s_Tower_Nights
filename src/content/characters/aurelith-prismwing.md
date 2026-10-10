@@ -8,6 +8,7 @@ aliases: ['奥瑞利斯']
 age: 不可考。自述“睡过几次大陆变样”，实际估计超过六至七千年
 height: 不足一米五（人形态）
 summary: 最后一位未参与大灾变的棱镜龙纯血，隐居亚空间“万色回廊”。她傲娇、口是心非、极度害怕失望，却始终隐秘地等待着有人来接她。
+portrait: '../../assets/oc/characters/aurelith-prismwing.webp'
 canon: open
 order: 70
 ---

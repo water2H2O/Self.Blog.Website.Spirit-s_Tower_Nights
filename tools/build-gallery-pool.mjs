@@ -46,12 +46,33 @@ const CATEGORIES = {
 	'讯息（重要的和通信邮件记录）': { kind: '资料', ownership: '其他' },
 };
 
+/** 「水塔 OC 补完计划」的成品：文件名即角色名，整批打绿色「企划」标签 */
+const PROJECT_DIR = '【企划】水塔OC补完计划';
+const PROJECT_TAG = '企划';
+
+/** 明确不放进图池的文件（文件名片段） */
+const EXCLUDE = ['淼渺_女仆'];
+
 /** 从路径推断角色与分类 */
 function classify(relPath) {
 	const parts = relPath.split(path.sep);
 	const top = parts[0];
 
 	if (parts.length === 1) return { character: '', kind: '标志', ownership: '其他' };
+
+	if (top === PROJECT_DIR) {
+		// 文件名就是角色名，去掉「_汉服」「_带ui」这类后缀后去对照表里找
+		const base = path.basename(relPath, '.webp');
+		const name = base.split(/[_-]/)[0].trim();
+		const hit = Object.keys(CHARACTERS).find((key) => name.includes(key) || key.includes(name));
+		return {
+			character: hit ?? name,
+			kind: '设定',
+			ownership: hit ? CHARACTERS[hit].ownership : '原创',
+			owner: hit ? (CHARACTERS[hit].owner ?? '') : '',
+			tag: PROJECT_TAG,
+		};
+	}
 
 	if (top === '芸芸众生（人物档案）') {
 		const folder = parts[1] ?? '';
@@ -77,6 +98,10 @@ function classify(relPath) {
 function makeName(relPath, character) {
 	const parts = relPath.split(path.sep);
 	const base = path.basename(relPath, '.webp');
+	// 「企划」那批直接叫 企划-原名，一眼能认出来源
+	if (parts[0] === PROJECT_DIR) {
+		return `企划-${base.replace(/#/g, 'No.').replace(/[&,，、]+/g, '-').replace(/\s+/g, '-')}`;
+	}
 	const prefix = character || (parts.length > 1 ? parts[0].replace(/（.*?）$/, '') : '水塔夜谈');
 	// 纯数字或过短的文件名补上父目录，避免一堆 “1”“2”
 	const needContext = /^\d+$/.test(base) || base.length <= 4;
@@ -120,6 +145,10 @@ let skipped = 0;
 if (!dryRun) fs.mkdirSync(OUT, { recursive: true });
 
 for (const rel of files) {
+	if (EXCLUDE.some((needle) => rel.includes(needle))) {
+		console.log(`  （跳过，已在排除名单里）${rel}`);
+		continue;
+	}
 	const info = classify(rel);
 	let name = makeName(rel, info.character);
 	const seen = used.get(name) ?? 0;
@@ -140,6 +169,8 @@ for (const rel of files) {
 		ownership: info.ownership,
 		owner: info.owner ?? '',
 		kind: info.kind,
+		/** 额外的标签，例如「企划」（页面上显示为绿色小标） */
+		tag: info.tag ?? '',
 		title: '',
 		source: rel.split(path.sep).join('/'),
 	};
@@ -159,7 +190,7 @@ for (const [name, item] of Object.entries(items)) {
 	const old = previous.items?.[name];
 	if (!old) continue;
 	// 保留人工改过的分类字段；尺寸等生成字段稍后覆盖
-	for (const key of ['ownership', 'owner', 'kind', 'title', 'character']) {
+	for (const key of ['ownership', 'owner', 'kind', 'title', 'character', 'tag']) {
 		if (typeof old[key] === 'string') item[key] = old[key];
 	}
 }
@@ -185,9 +216,11 @@ for (const [name, item] of Object.entries(items)) {
 
 const byOwnership = {};
 const byKind = {};
+const byTag = {};
 for (const item of Object.values(withSize)) {
 	byOwnership[item.ownership] = (byOwnership[item.ownership] ?? 0) + 1;
 	byKind[item.kind] = (byKind[item.kind] ?? 0) + 1;
+	if (item.tag) byTag[item.tag] = (byTag[item.tag] ?? 0) + 1;
 }
 
 if (!dryRun) {
@@ -210,6 +243,9 @@ if (!dryRun) {
 
 console.log(`${dryRun ? '（dry-run）' : ''}图池：${Object.keys(withSize).length} 张`);console.log(`职责分配：${Object.entries(byOwnership).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
 console.log(`分类：${Object.entries(byKind).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
+if (Object.keys(byTag).length) {
+	console.log(`标签：${Object.entries(byTag).map(([k, v]) => `${k} ${v}`).join(' / ')}`);
+}
 if (removed.length) console.log(`清单中已不存在的图（${removed.length}）：${removed.slice(0, 5).join(', ')}${removed.length > 5 ? ' …' : ''}`);
 console.log(`\n输出目录：${path.relative(ROOT, OUT)}`);
 console.log(`标注清单：${path.relative(ROOT, META)}`);

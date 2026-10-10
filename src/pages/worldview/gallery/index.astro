@@ -32,6 +32,8 @@ const items = fs
 			kind: String(info.kind ?? '其他'),
 			character: String(info.character ?? ''),
 			title: String(info.title ?? ''),
+			/** 额外标签，例如「企划」（绿色小标） */
+			tag: String(info.tag ?? ''),
 		};
 	})
 	.filter((item) => !EXCLUDED_KINDS.includes(item.kind));
@@ -41,6 +43,7 @@ const filters = [
 	{ key: 'all', label: '全部', n: items.length },
 	{ key: '原创', label: '原创设定', n: count((i) => i.ownership === '原创') },
 	{ key: '联动', label: '联动设定', n: count((i) => i.ownership === '联动') },
+	{ key: '企划', label: '企划', n: count((i) => i.tag === '企划') },
 	{ key: '其他', label: '其他', n: count((i) => i.ownership === '其他') },
 ];
 ---
@@ -171,6 +174,13 @@ const filters = [
 				color: #2a1a00;
 				background: rgba(255, 214, 138, 92%);
 			}
+			/* 「企划」标签：绿色，固定在右上角，和归属标分开 */
+			.tile .tag.project {
+				left: auto;
+				right: 6px;
+				color: #05230f;
+				background: rgba(150, 255, 178, 92%);
+			}
 			.hidden {
 				display: none !important;
 			}
@@ -255,17 +265,20 @@ const filters = [
 						<figure
 							class="tile hidden"
 							data-ownership={item.ownership}
+							data-keys={`${item.ownership}${item.tag ? ` ${item.tag}` : ''}`}
 							data-ar={item.ar}
 							data-url={item.url}
 							data-character={item.character}
 							data-owner={item.owner}
 							data-kind={item.kind}
 							data-title={item.title}
+							data-tag={item.tag}
 						>
 							<img src={item.url} alt={item.title || `${item.character}${item.kind}`} loading="lazy" decoding="async" />
 							<span class="wm">{SITE_TITLE} · @{SITE_AUTHOR}</span>
 							{item.ownership === '联动' && <span class="tag collab">联动</span>}
 							{item.ownership === '原创' && <span class="tag">原创</span>}
+							{item.tag && <span class="tag project">{item.tag}</span>}
 						</figure>
 					))
 				}
@@ -381,7 +394,9 @@ const filters = [
 					other.setAttribute('aria-pressed', String(other === button));
 				}
 				for (const tile of tiles) {
-					tile.dataset.enabled = active === 'all' || tile.dataset.ownership === active ? '1' : '0';
+					// data-keys 里装着这张图的所有可筛键（归属 + 标签）
+					const keys = (tile.dataset.keys ?? '').split(' ');
+					tile.dataset.enabled = active === 'all' || keys.includes(active) ? '1' : '0';
 				}
 				render();
 			});
@@ -394,6 +409,7 @@ const filters = [
 				if (tile.dataset.title) parts.push(`<b>${tile.dataset.title}</b>`);
 				if (tile.dataset.character) parts.push(tile.dataset.character);
 				if (tile.dataset.kind) parts.push(tile.dataset.kind);
+				if (tile.dataset.tag) parts.push(tile.dataset.tag);
 				if (tile.dataset.ownership === '联动') {
 					parts.push(`联动设定 · 设主：${tile.dataset.owner || '待补'}`);
 				} else if (tile.dataset.ownership === '原创') {

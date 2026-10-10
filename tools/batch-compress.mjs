@@ -13,6 +13,7 @@
  *   node tools/batch-compress.mjs --dry-run       # 只扫描/试压统计，不写任何文件
  *   node tools/batch-compress.mjs --limit=20      # 只处理前 20 张（调试用）
  *   node tools/batch-compress.mjs --src=<目录> --out=<目录> --csv=<文件>
+ *   node tools/batch-compress.mjs --src=<目录> --out=<目录> --all   # 整棵子树全收（不套用下面的范围白名单）
  *
  * 输出：
  *   assets-staging/**.webp            镜像源结构的压缩结果
@@ -75,16 +76,22 @@ function parseArgs(argv) {
     src: DEFAULT_SRC,
     out: DEFAULT_OUT,
     csv: DEFAULT_CSV,
+    csvExplicit: false,
     report: DEFAULT_REPORT,
     dryRun: false,
     limit: 0,
+    all: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
     if (a === '--dry-run') opts.dryRun = true;
+    else if (a === '--all') opts.all = true;
     else if (a.startsWith('--src')) opts.src = a.split('=')[1] ?? argv[++i];
     else if (a.startsWith('--out')) opts.out = a.split('=')[1] ?? argv[++i];
-    else if (a.startsWith('--csv')) opts.csv = a.split('=')[1] ?? argv[++i];
+    else if (a.startsWith('--csv')) {
+      opts.csv = a.split('=')[1] ?? argv[++i];
+      opts.csvExplicit = true;
+    }
     else if (a.startsWith('--report')) opts.report = a.split('=')[1] ?? argv[++i];
     else if (a.startsWith('--limit')) opts.limit = Number(a.split('=')[1] ?? argv[++i]) || 0;
     else console.warn(`[警告] 未识别参数，已忽略：${a}`);
@@ -124,7 +131,7 @@ const totalDuration = (meta) => (Array.isArray(meta?.delay) ? meta.delay.reduce(
 // ---------------------------------------------------------------------------
 // 1. 扫描：递归遍历源目录（只读，绝不写入/移动/删除源文件）
 // ---------------------------------------------------------------------------
-async function collectFiles(srcRoot) {
+async function collectFiles(srcRoot, scanAll = false) {
   const found = [];
   const skippedDirs = [];
   const counters = { dirsEntered: 0, filesSeen: 0, filesByExt: {} };
@@ -162,8 +169,11 @@ async function collectFiles(srcRoot) {
     }
   }
 
-  for (const s of SCOPE) {
-    const absBase = s.dir ? path.join(srcRoot, s.dir) : srcRoot;
+  // 扫描范围：默认按 SCOPE 白名单；scanAll 则整棵子树全收（用于压缩别的素材目录）
+  const scopes = scanAll ? [{ dir: '.', recursive: true }] : SCOPE;
+
+  for (const s of scopes) {
+    const absBase = s.dir && s.dir !== '.' ? path.join(srcRoot, s.dir) : srcRoot;
     try {
       const st = await fsp.stat(absBase);
       if (!st.isDirectory()) throw new Error('不是目录');
@@ -182,7 +192,7 @@ async function collectFiles(srcRoot) {
         if (!IMAGE_EXT.has(ext)) continue;
         found.push({
           abs: path.join(absBase, entry.name),
-          rel: s.dir ? `${s.dir}/${entry.name}` : entry.name,
+          rel: s.dir && s.dir !== '.' ? `${s.dir}/${entry.name}` : entry.name,
           ext,
         });
       }
@@ -197,11 +207,11 @@ async function collectFiles(srcRoot) {
         console.warn(`[警告] 指定子目录不存在，已跳过：${absSub}`);
         continue;
       }
-      await walk(absSub, s.dir ? `${s.dir}/${sub}` : sub);
+      await walk(absSub, s.dir && s.dir !== '.' ? `${s.dir}/${sub}` : sub);
     }
 
     // (c) 整棵子树
-    if (s.recursive) await walk(absBase, s.dir);
+    if (s.recursive) await walk(absBase, s.dir === '.' ? '' : s.dir);
   }
 
   // 去重（防止范围重叠导致同一文件被收两次）
@@ -332,7 +342,7 @@ async function main() {
   console.log('===============================================================');
 
   // ---- 扫描 --------------------------------------------------------------
-  const { files, skippedDirs, counters } = await collectFiles(srcRoot);
+  const { files, skippedDirs, counters } = await collectFiles(srcRoot, opts.all);
   planOutputs(files, outRoot);
 
   const targets = opts.limit > 0 ? files.slice(0, opts.limit) : files;
@@ -461,7 +471,9 @@ async function main() {
         ].join(','),
       );
     }
-    const csvPath = path.resolve(opts.csv);
+    // --csv 没显式给过时，就写到本次的输出目录里，
+    // 避免压缩另一批素材时把上一批的对照表覆盖掉
+    const csvPath = path.resolve(opts.csvExplicit ? opts.csv : path.join(opts.out, '_index.csv'));
     await fsp.mkdir(path.dirname(csvPath), { recursive: true });
     // UTF-8 带 BOM（\ufeff），Excel 打开中文不乱码；CRLF 换行。
     await fsp.writeFile(csvPath, '\ufeff' + lines.join('\r\n') + '\r\n', 'utf8');
