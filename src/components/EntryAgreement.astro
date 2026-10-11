@@ -3,11 +3,20 @@
  * 入场协议：第一次进站要选一次。
  *
  * 「同意」是唯一的出口 —— 「拒绝」按钮会缩小、瞬移、和同意交换位置，
- * 想尽办法不让你点到它。同意之后记在 localStorage，下次不再出现。
+ * 想尽办法不让你点到它。
  *
- * 改协议内容时记得把 STORAGE_KEY 的版本号 +1，老访客会重新看到。
+ * 记录存在 sessionStorage（会话级，不是永久 cookie）：
+ *   · 站内点来点去、普通 F5 刷新 —— 不再打扰
+ *   · 关掉标签页重新打开 —— 会再问一次
+ *   · Ctrl+F5 强制刷新 —— 也会再问一次
+ *     原理：硬刷新会绕过 HTTP 缓存，于是 /agree-probe.txt 会被真正重新下载
+ *     （resource timing 里 transferSize 与 decodedBodySize 都大于 0）。
+ *     普通刷新只是 304 复用，decodedBodySize 为 0，不会误判。
+ *
+ * 页脚还有一条「水水使用协议」，随时可以点开重看。
  */
-const STORAGE_KEY = 'shuita-entry-agreement-v1';
+const STORAGE_KEY = 'shuita-entry-agreement-v2';
+const PROBE = '/agree-probe.txt';
 
 const ARTICLES = [
 	'淼渺是水水的自设。本人理解的自设是超——大杯的 OC，所以也会用 OC 称呼淼渺。除了淼渺、飒岚，还有某个白头发的屑魔女，也是水水的主要 OC。',
@@ -42,6 +51,9 @@ const ARTICLES = [
 			<button type="button" class="no" id="gate-no">拒绝</button>
 		</div>
 		<p class="hint" id="gate-hint"></p>
+		<p class="again">
+			已经同意过？页脚有「水水使用协议」，随时可以点开重看。
+		</p>
 	</div>
 </div>
 
@@ -146,101 +158,150 @@ const ARTICLES = [
 		font-size: 0.82em;
 		color: var(--accent);
 	}
+	.again {
+		margin: 0.4em 0 0;
+		font-size: 0.74em;
+		color: rgb(var(--gray));
+	}
 </style>
 
 <script>
-	const KEY = 'shuita-entry-agreement-v1';
+	const KEY = 'shuita-entry-agreement-v2';
+	const PROBE = '/agree-probe.txt';
 
 	const gate = document.getElementById('entry-gate');
 	const yes = document.getElementById('gate-yes');
 	const no = document.getElementById('gate-no');
 	const hint = document.getElementById('gate-hint');
 
-	if (gate && yes && no && hint) {
-		let accepted = false;
+	const readFlag = () => {
 		try {
-			accepted = localStorage.getItem(KEY) === 'ok';
+			return sessionStorage.getItem(KEY) === 'ok';
 		} catch {
-			// 隐私模式下 localStorage 可能不可用，那就每次都问
+			return false;
 		}
+	};
+	const writeFlag = (value: boolean) => {
+		try {
+			if (value) sessionStorage.setItem(KEY, 'ok');
+			else sessionStorage.removeItem(KEY);
+		} catch {
+			/* 存不了就每次都问 */
+		}
+	};
 
-		if (!accepted) {
+	if (gate && yes && no && hint) {
+		/** 打开协议面板 */
+		const open = () => {
 			gate.hidden = false;
 			document.body.style.overflow = 'hidden';
+		};
+		const close = () => {
+			gate.hidden = true;
+			document.body.style.overflow = '';
+		};
 
-			/** 拒绝按钮的花样，按顺序来 */
-			const HINTS = [
-				'诶，它好像小了？',
-				'别急，它还会跑。',
-				'看，它和「同意」换位置了。',
-				'……你怎么还在点。',
-				'这个按钮已经尽力了。',
-				'好吧，看来只剩一个选择了。',
-			];
+		/** 拒绝按钮的花样，按顺序来 */
+		const HINTS = [
+			'诶，它好像小了？',
+			'别急，它还会跑。',
+			'看，它和「同意」换位置了。',
+			'……你怎么还在点。',
+			'这个按钮已经尽力了。',
+			'好吧，看来只剩一个选择了。',
+		];
 
-			let stage = 0;
+		let stage = 0;
 
-			const flee = () => {
-				stage += 1;
-				hint.textContent = HINTS[Math.min(stage - 1, HINTS.length - 1)] ?? '';
+		const flee = () => {
+			stage += 1;
+			hint.textContent = HINTS[Math.min(stage - 1, HINTS.length - 1)] ?? '';
 
-				// 第 1 次：缩一点
-				if (stage === 1) {
-					no.style.transform = 'scale(0.7)';
-					return;
-				}
+			// 第 1 次：缩一点
+			if (stage === 1) {
+				no.style.transform = 'scale(0.7)';
+				return;
+			}
 
-				// 第 2 次：脱离文档流，随机瞬移
-				if (stage === 2) {
-					no.classList.add('fleeing');
-					no.style.transform = 'scale(0.7)';
-				}
-
-				// 第 3 次：和「同意」交换位置
-				if (stage === 3) {
-					const actions = no.parentElement;
-					if (actions) {
-						actions.style.flexDirection = 'row-reverse';
-						actions.style.justifyContent = 'flex-end';
-					}
-					return;
-				}
-
-				// 之后每次：继续缩小 + 换地方
-				const scale = Math.max(0.16, 0.7 - (stage - 2) * 0.16);
-				const pad = 60;
-				const maxX = Math.max(pad, window.innerWidth - no.offsetWidth - pad);
-				const maxY = Math.max(pad, window.innerHeight - no.offsetHeight - pad);
-				no.style.position = 'fixed';
+			// 第 2 次：脱离文档流，随机瞬移
+			if (stage === 2) {
 				no.classList.add('fleeing');
-				no.style.transform = `scale(${scale.toFixed(2)})`;
-				no.style.left = `${pad + Math.random() * (maxX - pad)}px`;
-				no.style.top = `${pad + Math.random() * (maxY - pad)}px`;
+				no.style.transform = 'scale(0.7)';
+			}
 
-				// 追到第 8 次就让它消失
-				if (stage >= 8) {
-					no.style.opacity = '0';
-					no.style.pointerEvents = 'none';
-					hint.textContent = '它走了。就剩同意了。';
+			// 第 3 次：和「同意」交换位置
+			if (stage === 3) {
+				const actions = no.parentElement;
+				if (actions) {
+					actions.style.flexDirection = 'row-reverse';
+					actions.style.justifyContent = 'flex-end';
 				}
-			};
+				return;
+			}
 
-			// 悬停就躲；触屏没有 hover，点下去也只会触发躲，不会真的拒绝
-			no.addEventListener('mouseenter', flee);
-			no.addEventListener('click', (event) => {
+			// 之后每次：继续缩小 + 换地方
+			const scale = Math.max(0.16, 0.7 - (stage - 2) * 0.16);
+			const pad = 60;
+			const maxX = Math.max(pad, window.innerWidth - no.offsetWidth - pad);
+			const maxY = Math.max(pad, window.innerHeight - no.offsetHeight - pad);
+			no.style.position = 'fixed';
+			no.classList.add('fleeing');
+			no.style.transform = `scale(${scale.toFixed(2)})`;
+			no.style.left = `${pad + Math.random() * (maxX - pad)}px`;
+			no.style.top = `${pad + Math.random() * (maxY - pad)}px`;
+
+			// 追到第 8 次就让它消失
+			if (stage >= 8) {
+				no.style.opacity = '0';
+				no.style.pointerEvents = 'none';
+				hint.textContent = '它走了。就剩同意了。';
+			}
+		};
+
+		// 悬停就躲；触屏没有 hover，点下去也只会触发躲，不会真的拒绝
+		no.addEventListener('mouseenter', flee);
+		no.addEventListener('click', (event) => {
+			event.preventDefault();
+			flee();
+		});
+
+		yes.addEventListener('click', () => {
+			writeFlag(true);
+			close();
+		});
+
+		// 页脚那条「水水使用协议」：随时点开重看
+		for (const link of document.querySelectorAll('[data-open-agreement]')) {
+			link.addEventListener('click', (event) => {
 				event.preventDefault();
-				flee();
-			});
-
-			yes.addEventListener('click', () => {
-				try {
-					localStorage.setItem(KEY, 'ok');
-				} catch {
-					// 存不了也没关系，本次照样放行
-				}
-				gate.hidden = true;
-				document.body.style.overflow = '';
+				open();
 			});
 		}
+
+		/**
+		 * 判断这次是不是硬刷新（Ctrl+F5）。
+		 * 硬刷新会绕过 HTTP 缓存，探针文件被真正重新下载：
+		 *   transferSize > 0（走了网络）且 decodedBodySize > 0（拿到了响应体）
+		 * 普通刷新多半是 304 复用，decodedBodySize 为 0，不会误判。
+		 */
+		const isHardReload = async () => {
+			try {
+				// 注意：这里**不能**加时间戳之类的防缓存参数，
+				// 否则每次都是新 URL、必然走网络，就永远判成硬刷新了。
+				await fetch(PROBE, { cache: 'default' });
+			} catch {
+				return false;
+			}
+			const entries = performance.getEntriesByType('resource');
+			const probe = entries.filter((entry) => entry.name.includes('agree-probe.txt')).pop();
+			if (!probe) return false;
+			return probe.transferSize > 0 && probe.decodedBodySize > 0;
+		};
+
+		(async () => {
+			const hard = await isHardReload();
+			if (hard) writeFlag(false); // 硬刷新：重新确认一次
+			if (!readFlag()) open();
+		})();
 	}
 </script>
