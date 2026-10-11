@@ -1,0 +1,21 @@
+{
+	// Cloudflare Workers + 静态资源（Pages 的替代流程）
+	// 这个项目只发布构建产物，不跑任何 Worker 脚本。
+	// 编辑器校验用；wrangler 本身不读这一行
+	"$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+
+	// 必须与 Cloudflare 控制台里创建的那个 Worker 同名，否则部署会跑到另一个 Worker 上
+	"name": "self-blog-website-spirit-s-tower-nights",
+	"compatibility_date": "2026-10-01",
+
+	"assets": {
+		// Astro 的构建输出目录
+		"directory": "./dist",
+		// 找不到的路径交给 dist/404.html（Astro 会生成）
+		"not_found_handling": "404-page"
+	},
+
+	"observability": {
+		"enabled": true
+	}
+}
