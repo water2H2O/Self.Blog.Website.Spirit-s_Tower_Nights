@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# 站点地图由 @astrojs/sitemap 生成
+Sitemap: https://water2h2o.com/sitemap-index.xml
