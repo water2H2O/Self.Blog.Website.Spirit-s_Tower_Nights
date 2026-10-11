@@ -61,7 +61,7 @@ const isActive = (href: string) => {
 	</nav>
 	{
 		inWorldview && (
-			<nav class="sub">
+			<nav class="sub" id="sub-nav">
 				<span class="tag">世界观</span>
 				{
 					worldviewLinks.map((link) => (
@@ -74,6 +74,16 @@ const isActive = (href: string) => {
 		)
 	}
 </header>
+
+<script>
+	/* 窄屏时二级导航要横向滑动：把当前栏目滚到可见处，别让「画廊」「回响之殿」被切在屏幕外 */
+	const sub = document.getElementById('sub-nav');
+	const active = sub?.querySelector('a.active');
+	if (sub && active && sub.scrollWidth > sub.clientWidth) {
+		const target = active.offsetLeft - sub.clientWidth / 2 + active.clientWidth / 2;
+		sub.scrollLeft = Math.max(0, Math.min(target, sub.scrollWidth - sub.clientWidth));
+	}
+</script>
 <style>
 	header {
 		margin: 0;

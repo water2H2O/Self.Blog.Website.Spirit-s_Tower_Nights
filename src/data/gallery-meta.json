@@ -1145,10 +1145,11 @@
       "ownership": "原创",
       "owner": "",
       "kind": "表情包",
-      "title": "",
+      "title": "啥子猫……啥子狐……",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/Image_1765358221838.webp",
       "w": 700,
-      "h": 514
+      "h": 514,
+      "always": true
     },
     "淼渺__设计稿-汉服.webp": {
       "character": "淼渺",
@@ -1419,16 +1420,6 @@
       "source": "芸芸众生（人物档案）/[神界使]白茶（光元素之神碎片）/1761003969616.webp",
       "w": 1500,
       "h": 1500
-    },
-    "Aurelith PrismWing__Aurelinth.webp": {
-      "character": "Aurelith PrismWing",
-      "ownership": "联动",
-      "owner": "",
-      "kind": "设定",
-      "title": "",
-      "source": "芸芸众生（人物档案）/[色彩和棱镜]Aurelith PrismWing/Aurelinth.webp",
-      "w": 1214,
-      "h": 1600
     },
     "莉莉安娜__Image_1760020152511.webp": {
       "character": "莉莉安娜·萨拉姆博",

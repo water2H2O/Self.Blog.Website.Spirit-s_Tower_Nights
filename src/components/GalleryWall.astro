@@ -19,6 +19,8 @@ export interface WallItem {
 	kind: string;
 	character: string;
 	title: string;
+	/** 标记为 true 的图每次抽样都会出现（彩蛋用） */
+	always?: boolean;
 }
 
 interface Props {
@@ -88,6 +90,7 @@ const filters = showFilters
 						data-owner={item.owner}
 						data-kind={item.kind}
 						data-title={item.title}
+						data-always={item.always ? '1' : undefined}
 					>
 						<img src={item.url} alt={item.title || `${item.character}${item.kind}`} loading="lazy" decoding="async" />
 						<span class="wm">{watermark}</span>
@@ -325,20 +328,35 @@ const filters = showFilters
 			return wide || big ? 2 : 1;
 		};
 
-		/** 每类图的尺寸区间（相对宽度）；不限制时就放开 */
+		/**
+		 * 每类图的尺寸区间（相对宽度）。
+		 * 手机上限放到 2.2、桌面放到 2.1 —— 竖构图立绘能完整显示，不再被裁掉半截。
+		 */
 		const ratioRange = (tile: HTMLElement): [number, number] => {
 			if (kindSizing && tile.dataset.kind === '表情包') return [0.85, 1];
-			return narrow() ? [0.72, 1.5] : [0.55, 1.9];
+			return narrow() ? [0.62, 2.2] : [0.55, 2.1];
 		};
 
-		/** 从当前放行的图里随机抽 sampleSize 张 */
+		/**
+		 * 抽样：标了 data-always 的（彩蛋图）必定入选，剩下的名额再随机抽。
+		 * 顺序也要打乱，否则彩蛋永远钉在最前面。
+		 */
 		function sample(): HTMLElement[] {
 			const pool = tiles.filter((tile) => tile.dataset.enabled !== '0');
-			for (let i = pool.length - 1; i > 0; i -= 1) {
+			const always = pool.filter((tile) => tile.dataset.always === '1');
+			const rest = pool.filter((tile) => tile.dataset.always !== '1');
+
+			for (let i = rest.length - 1; i > 0; i -= 1) {
 				const j = Math.floor(Math.random() * (i + 1));
-				[pool[i], pool[j]] = [pool[j], pool[i]];
+				[rest[i], rest[j]] = [rest[j], rest[i]];
 			}
-			return pool.slice(0, Math.min(sampleSize(), pool.length));
+
+			const picked = [...always, ...rest.slice(0, Math.max(0, sampleSize() - always.length))];
+			for (let i = picked.length - 1; i > 0; i -= 1) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[picked[i], picked[j]] = [picked[j], picked[i]];
+			}
+			return picked;
 		}
 
 		/** 瀑布流排版：每张按随机宽度与自身比例算高，塞进当前最矮的位置 */

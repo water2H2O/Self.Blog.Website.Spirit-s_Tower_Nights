@@ -95,6 +95,7 @@ const artworks = fs.existsSync(POOL)
 				kind: item.kind ?? '其他',
 				character: item.character ?? '',
 				title: item.title ?? '',
+				always: item.always === true,
 			}))
 	: [];
 

@@ -32,6 +32,7 @@ const items = fs
 			kind: String(info.kind ?? '其他'),
 			character: String(info.character ?? ''),
 			title: String(info.title ?? ''),
+			always: info.always === true,
 		};
 	})
 	.filter((item) => !EXCLUDED_KINDS.includes(item.kind));
