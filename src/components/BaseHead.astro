@@ -5,18 +5,24 @@ import '../styles/global.css';
 import type { ImageMetadata } from 'astro';
 import { SITE_TITLE } from '../consts';
 import { Font } from 'astro:assets';
+import faviconSet from '../data/favicon-set.json';
 
 interface Props {
 	title: string;
 	description: string;
 	/** 分享图：可以传 src/assets 里的图，也可以直接给 public 下的路径 */
 	image?: ImageMetadata | string;
+	/** 关掉「随机表情包图标」（默认开启） */
+	fixedIcon?: boolean;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = '/og-default.png' } = Astro.props;
+const { title, description, image = '/og-default.png', fixedIcon = false } = Astro.props;
 const ogImage = typeof image === 'string' ? image : image.src;
+
+/** 随机小图标池：由 tools/build-favicon-set.mjs 从表情包里生成 */
+const icons = fixedIcon ? [] : faviconSet.items.map((item) => item.src);
 ---
 
 <!-- Global Metadata -->
@@ -24,6 +30,26 @@ const ogImage = typeof image === 'string' ? image : image.src;
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" type="image/png" href="/favicon.png" sizes="128x128" />
+{
+	icons.length > 0 && (
+		<script is:inline define:vars={{ icons }}>
+			/* 每次打开随机换一个表情包当标签页图标；没脚本时用上面的默认图标 */
+			(() => {
+				try {
+					const pick = icons[Math.floor(Math.random() * icons.length)];
+					/* 改 PNG 那一条，.ico 留着当兜底 */
+					const link = document.querySelector('link[rel="icon"][type="image/png"]');
+					if (link && pick) {
+						link.setAttribute('sizes', '64x64');
+						link.setAttribute('href', pick);
+					}
+				} catch {
+					/* 换不了就用默认的 */
+				}
+			})();
+		</script>
+	)
+}
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link
