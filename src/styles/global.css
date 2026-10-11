@@ -1,4 +1,4 @@
-﻿/*
+/*
   水塔夜谈 —— 全局样式
   配色思路：水塔之夜的深色底 + #AFFFFF 辉光。
   #AFFFFF 在深色底上非常亮，但在白底上几乎不可读，所以整体走深色主题：
@@ -188,13 +188,22 @@ hr {
 		font-size: 17px;
 	}
 	main {
-		padding: 1.5em 1em;
+		padding: 1.2em 0.95em;
 	}
 	h1 {
 		font-size: 2em;
 	}
 	h2 {
 		font-size: 1.5em;
+	}
+	/* 图片一律不撑破屏幕 */
+	img {
+		max-width: 100%;
+		height: auto;
+	}
+	/* 长破折号连排、超长英文单词不撑破布局 */
+	body {
+		overflow-wrap: break-word;
 	}
 }
 

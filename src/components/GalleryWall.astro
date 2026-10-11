@@ -263,6 +263,37 @@ const filters = showFilters
 		background: rgba(175, 255, 255, 10%);
 		border: 1px solid rgba(175, 255, 255, 35%);
 	}
+
+	/* 手机：筛选标签加大到好点的尺寸，灯箱留出安全边距 */
+	@media (max-width: 720px) {
+		.filters {
+			gap: 0.45em;
+			margin: 1em 0 0.5em;
+		}
+		.filters button {
+			padding: 0.55em 1em;
+			font-size: 0.84em;
+		}
+		.tile {
+			cursor: default;
+		}
+		.lightbox {
+			padding: 4vh 3vw 6vh;
+		}
+		.lightbox img {
+			max-width: 100%;
+			max-height: 70vh;
+		}
+		.lightbox .close {
+			top: 1.4vh;
+			width: 46px;
+			height: 46px;
+		}
+		.tile .wm {
+			font-size: 9px;
+			padding: 2px 5px;
+		}
+	}
 </style>
 
 <script>
@@ -274,8 +305,16 @@ const filters = showFilters
 		if (!wall) return;
 		const tiles = Array.from(wall.querySelectorAll<HTMLElement>('.tile'));
 		const filters = wrap.querySelector<HTMLElement>('.filters');
-		const sampleSize = Number(wrap.dataset.sample) || tiles.length;
+		const requested = Number(wrap.dataset.sample) || tiles.length;
 		const kindSizing = wrap.dataset.kindSizing === '1';
+
+		/**
+		 * 窄屏（手机）优化：
+		 * - 抽样数量压到 30 张以内，不然一次要下几十上百张图，流量和等待都很痛
+		 * - 收窄高度区间，避免出现又细又长、一屏只看得见一张的格子
+		 */
+		const narrow = () => window.matchMedia('(max-width: 720px)').matches;
+		const sampleSize = () => (narrow() ? Math.min(requested, 30) : requested);
 
 		/** 每张图的宽度档位：1 = 一列，2 = 两列（大图） */
 		const sizeOf = (tile: HTMLElement) => {
@@ -289,7 +328,7 @@ const filters = showFilters
 		/** 每类图的尺寸区间（相对宽度）；不限制时就放开 */
 		const ratioRange = (tile: HTMLElement): [number, number] => {
 			if (kindSizing && tile.dataset.kind === '表情包') return [0.85, 1];
-			return [0.55, 1.9];
+			return narrow() ? [0.72, 1.5] : [0.55, 1.9];
 		};
 
 		/** 从当前放行的图里随机抽 sampleSize 张 */
@@ -299,7 +338,7 @@ const filters = showFilters
 				const j = Math.floor(Math.random() * (i + 1));
 				[pool[i], pool[j]] = [pool[j], pool[i]];
 			}
-			return pool.slice(0, Math.min(sampleSize, pool.length));
+			return pool.slice(0, Math.min(sampleSize(), pool.length));
 		}
 
 		/** 瀑布流排版：每张按随机宽度与自身比例算高，塞进当前最矮的位置 */

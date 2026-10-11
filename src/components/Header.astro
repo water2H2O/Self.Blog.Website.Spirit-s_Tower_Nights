@@ -167,7 +167,7 @@ const isActive = (href: string) => {
 			font-size: 0.9em;
 		}
 		nav.main a {
-			padding: 0.6em 0.45em;
+			padding: 0.7em 0.45em;
 			font-size: 0.88em;
 		}
 		nav.main {
@@ -176,9 +176,24 @@ const isActive = (href: string) => {
 		.social-links {
 			display: none;
 		}
+		/* 二级导航在窄屏改为横向滑动，保持一行不换行 */
 		nav.sub {
 			overflow-x: auto;
 			flex-wrap: nowrap;
+			-webkit-overflow-scrolling: touch;
+			scrollbar-width: none;
+			/* 右侧留一点空白，滑到底时最后一项不会贴着边 */
+			padding-right: 0.6em;
+		}
+		nav.sub::-webkit-scrollbar {
+			display: none;
+		}
+		nav.sub > *,
+		nav.sub :global(a) {
+			flex: none;
+		}
+		nav.sub :global(a) {
+			padding: 0.55em 0.5em;
 		}
 	}
 </style>

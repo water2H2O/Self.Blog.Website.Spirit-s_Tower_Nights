@@ -105,8 +105,28 @@ const links = [
 		text-decoration: none;
 		color: rgb(var(--gray));
 		display: flex;
+		/* 手指点的面积大一点 */
+		padding: 0.4em;
+		border-radius: 10px;
 	}
 	.social-links a:hover {
 		color: var(--glow);
+		background: rgba(175, 255, 255, 8%);
+	}
+	@media (max-width: 720px) {
+		footer {
+			padding: 1.6em 0.8em 3.5em;
+		}
+		.social-links {
+			gap: 1.1em;
+			margin-top: 1.5em;
+		}
+		.social-links a {
+			padding: 0.5em;
+		}
+		.social-links a :global(svg) {
+			width: 26px;
+			height: 26px;
+		}
 	}
 </style>

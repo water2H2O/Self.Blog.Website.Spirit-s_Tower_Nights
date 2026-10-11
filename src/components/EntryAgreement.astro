@@ -48,7 +48,7 @@ const ARTICLES = [
 		</ol>
 		<div class="actions">
 			<button type="button" class="yes" id="gate-yes">同意</button>
-			<button type="button" class="no" id="gate-no">拒绝</button>
+			<button type="button" class="no" id="gate-no">拒绝，喝一口！</button>
 		</div>
 		<p class="hint" id="gate-hint"></p>
 		<p class="again">
@@ -120,7 +120,9 @@ const ARTICLES = [
 		display: flex;
 		align-items: center;
 		gap: 1em;
-		min-height: 3.4em;
+		/* 高度留够：「同意」会被放大，别顶到上面的条款 */
+		min-height: 4.6em;
+		padding: 0.4em 0;
 	}
 	.actions button {
 		padding: 0.7em 2.2em;
@@ -201,13 +203,14 @@ const ARTICLES = [
 			document.body.style.overflow = '';
 		};
 
-		/** 拒绝按钮的花样，按顺序来 */
+		/** 拒绝按钮的花样：不把「拒绝」缩小到看不清，
+		 *  而是让「同意」一步步变大 —— 视觉上自然就把对方比下去了 */
 		const HINTS = [
-			'诶，它好像小了？',
-			'别急，它还会跑。',
-			'看，它和「同意」换位置了。',
+			'诶，「同意」好像变大了？',
+			'别急，它还会更大。',
+			'看，两个按钮换位置了。',
 			'……你怎么还在点。',
-			'这个按钮已经尽力了。',
+			'「同意」都长这么大了，真的不点吗？',
 			'好吧，看来只剩一个选择了。',
 		];
 
@@ -217,16 +220,13 @@ const ARTICLES = [
 			stage += 1;
 			hint.textContent = HINTS[Math.min(stage - 1, HINTS.length - 1)] ?? '';
 
-			// 第 1 次：缩一点
-			if (stage === 1) {
-				no.style.transform = 'scale(0.7)';
-				return;
-			}
+			// 同意按钮逐级变大，最多到 1.6 倍
+			const grow = Math.min(1.6, 1 + stage * 0.12);
+			yes.style.transform = `scale(${grow.toFixed(2)})`;
 
-			// 第 2 次：脱离文档流，随机瞬移
-			if (stage === 2) {
+			// 第 2 次起：拒绝按钮脱离文档流，随机瞬移（大小基本不变）
+			if (stage >= 2) {
 				no.classList.add('fleeing');
-				no.style.transform = 'scale(0.7)';
 			}
 
 			// 第 3 次：和「同意」交换位置
@@ -239,18 +239,17 @@ const ARTICLES = [
 				return;
 			}
 
-			// 之后每次：继续缩小 + 换地方
-			const scale = Math.max(0.16, 0.7 - (stage - 2) * 0.16);
-			const pad = 60;
-			const maxX = Math.max(pad, window.innerWidth - no.offsetWidth - pad);
-			const maxY = Math.max(pad, window.innerHeight - no.offsetHeight - pad);
-			no.style.position = 'fixed';
-			no.classList.add('fleeing');
-			no.style.transform = `scale(${scale.toFixed(2)})`;
-			no.style.left = `${pad + Math.random() * (maxX - pad)}px`;
-			no.style.top = `${pad + Math.random() * (maxY - pad)}px`;
+			// 瞬移：满屏乱跑，但不再越缩越小
+			if (stage >= 2) {
+				const pad = 60;
+				const maxX = Math.max(pad, window.innerWidth - no.offsetWidth - pad);
+				const maxY = Math.max(pad, window.innerHeight - no.offsetHeight - pad);
+				no.style.position = 'fixed';
+				no.style.left = `${pad + Math.random() * (maxX - pad)}px`;
+				no.style.top = `${pad + Math.random() * (maxY - pad)}px`;
+			}
 
-			// 追到第 8 次就让它消失
+			// 追到第 8 次就让它淡出
 			if (stage >= 8) {
 				no.style.opacity = '0';
 				no.style.pointerEvents = 'none';
