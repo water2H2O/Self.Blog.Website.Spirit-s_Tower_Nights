@@ -82,7 +82,22 @@ const ocCount = fs
 				font-size: 0.82em;
 				color: var(--accent);
 			}
-			/* 外链型卡片：整张不可点，入口是一排小链接 */
+			/* 整张可点的外链卡片：靠一层铺满卡片的透明链接实现
+			   （不能把卡片本身做成 <a>，否则里面的小链接会嵌套在链接里，是无效 HTML） */
+			.card--link {
+				position: relative;
+			}
+			.card-overlay {
+				position: absolute;
+				inset: 0;
+				z-index: 1;
+				border-radius: inherit;
+			}
+			/* 底部那排小链接浮在透明层之上，各自仍能单独点 */
+			.card--link .links {
+				position: relative;
+				z-index: 2;
+			}
 			.card .links {
 				display: flex;
 				flex-wrap: wrap;
@@ -125,7 +140,15 @@ const ocCount = fs
 				<a href="/worldview/">水塔夜谈</a>。
 			</p>
 
-			<div class="card">
+			{/* 外链型卡片：整张可点（走铺满卡片的透明链接触发），底部小链接各自独立可点 */}
+			<div class="card card--link">
+				<a
+					class="card-overlay"
+					href="https://blophy.cn/"
+					target="_blank"
+					rel="noreferrer"
+					aria-label="Blophy 方菱律动 官网"
+				></a>
 				<span class="kind">音游 · 非商业</span>
 				<h2>Blophy 方菱律动</h2>
 				<p>
