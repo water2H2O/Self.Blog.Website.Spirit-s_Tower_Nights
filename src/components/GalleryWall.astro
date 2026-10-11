@@ -153,6 +153,8 @@ const filters = showFilters
 		min-height: var(--wall-min);
 		opacity: 0;
 		transition: opacity 0.35s ease;
+		/* 兜底：格子是按 px 绝对定位的，万一有 1px 舍入误差也别撑出横向滚动条 */
+		overflow: hidden;
 	}
 	.wall.ready {
 		opacity: 1;
@@ -161,6 +163,9 @@ const filters = showFilters
 		position: absolute;
 		top: 0;
 		left: 0;
+		/* 关键：宽度是按列宽算出来的，边框必须算在宽度之内，
+		   否则 content-box 下每张多 2px，整行会溢出、页面能左右挪 */
+		box-sizing: border-box;
 		overflow: hidden;
 		border-radius: 12px;
 		background: var(--surface);
@@ -359,7 +364,13 @@ const filters = showFilters
 			return picked;
 		}
 
-		/** 瀑布流排版：每张按随机宽度与自身比例算高，塞进当前最矮的位置 */
+		/**
+		 * 瀑布流排版：按每张自己的比例算高，塞进当前最矮的位置。
+		 *
+		 * 注意：格子宽度档位（span）在 render 时就定好并缓存在 data-span 上，
+		 * 这里只读取、不再掷骰子 —— 否则手机上下滚动时地址栏伸缩会触发 resize，
+		 * 每次重排都重新随机，照片就会自己换位置。
+		 */
 		function layout(list: HTMLElement[]) {
 			const width = wall.clientWidth;
 			if (!width) return;
@@ -368,7 +379,7 @@ const filters = showFilters
 			const heights = new Array(cols).fill(0);
 
 			for (const tile of list) {
-				const span = Math.min(sizeOf(tile), cols);
+				const span = Math.min(Number(tile.dataset.span) || 1, cols);
 				const tileW = colW * span + GAP * (span - 1);
 				const ar = Number(tile.dataset.ar) || 1;
 				const [minRatio, maxRatio] = ratioRange(tile);
@@ -385,9 +396,13 @@ const filters = showFilters
 					}
 				}
 
+				// 最后一列右边缘压回容器内，避免 ±1px 的舍入误差把页面撑出横向滚动
+				const maxX = Math.max(0, width - tileW);
+				const x = Math.min(Math.round(best * (colW + GAP)), maxX);
+
 				tile.style.width = `${tileW}px`;
 				tile.style.height = `${tileH}px`;
-				tile.style.transform = `translate(${Math.round(best * (colW + GAP))}px, ${Math.round(bestY)}px)`;
+				tile.style.transform = `translate(${x}px, ${Math.round(bestY)}px)`;
 				for (let k = 0; k < span; k += 1) heights[best + k] = bestY + tileH + GAP;
 			}
 
@@ -398,7 +413,11 @@ const filters = showFilters
 		let current: HTMLElement[] = [];
 
 		function render() {
-			for (const tile of tiles) tile.classList.add('hidden');
+			for (const tile of tiles) {
+				tile.classList.add('hidden');
+				// 宽度档位只在这里摇一次，后面的重排沿用
+				tile.dataset.span = String(sizeOf(tile));
+			}
 			current = sample();
 			for (const tile of current) tile.classList.remove('hidden');
 			layout(current);
@@ -423,11 +442,32 @@ const filters = showFilters
 
 		render();
 
+		/**
+		 * 只在「容器宽度真的变了」时重排。
+		 *
+		 * 手机上滚动时地址栏伸缩会让视口高度变化，window 的 resize 会跟着狂发；
+		 * 高度变化跟排版无关，一律忽略，避免照片自己挪位置。
+		 * 用 ResizeObserver 盯容器本身，比监听 window 更准（字体加载完、侧边栏
+		 * 出现等导致宽度变化的情况也能覆盖到）。
+		 */
+		let lastWidth = wall.clientWidth;
 		let timer = 0;
-		window.addEventListener('resize', () => {
+		const relayoutIfWidthChanged = () => {
+			const width = wall.clientWidth;
+			if (Math.abs(width - lastWidth) < 8) return;
+			lastWidth = width;
 			window.clearTimeout(timer);
-			timer = window.setTimeout(() => layout(current), 150);
-		});
+			timer = window.setTimeout(() => layout(current), 120);
+		};
+
+		if ('ResizeObserver' in window) {
+			new ResizeObserver(relayoutIfWidthChanged).observe(wall);
+		} else {
+			window.addEventListener('resize', relayoutIfWidthChanged);
+		}
+
+		// 字体加载完可能让列宽变化一次，兜一下
+		document.fonts?.ready.then(relayoutIfWidthChanged).catch(() => {});
 	}
 
 	/** 灯箱：整页共用一个（多个墙实例共用同一个灯箱） */
