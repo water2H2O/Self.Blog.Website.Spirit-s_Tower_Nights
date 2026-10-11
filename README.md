@@ -1,4 +1,4 @@
-﻿# 水塔夜谈 · Spirit's Tower Nights
+# 水塔夜谈 · Spirit's Tower Nights
 
 一个原创 OC 世界观的网站：**世界观 · 种族 · 角色 · 故事 · 画廊 · 音乐**。基于 [Astro](https://astro.build/) 构建。
 
@@ -395,21 +395,32 @@ node tools/build-brand-assets.mjs [logo.png]
 站点图标用「水」字：实测缩到 32px 仍然清晰，猫脸会糊，整条字标完全不可读；
 iOS 图标与社交分享图用完整字标。
 
-## 部署到 GitHub Pages
+## 部署（Cloudflare Pages + 自定义域名）
 
+正式地址：**https://water2h2o.com**（域名在 Dynadot，DNS 托管在 Cloudflare）。
 仓库远端：`git@github.com:water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights.git`
-尚未配置自动部署；需要时在仓库 Settings → Pages 选 GitHub Actions 并添加官方 `withastro/action` 工作流。
 
-> ⚠️ **部署前必须先设 `base`**：`site` 现在带了子路径，但 `base` 没设，构建产物里的资源路径是
-> `/_astro/...`（从域名根算起）。直接发到子路径会**全部 404**。发之前先在 `astro.config.mjs` 里加：
->
-> ```js
-> base: '/Self.Blog.Website.Spirit-s_Tower_Nights',
-> ```
->
-> 加完之后本地地址会变成 `http://localhost:4321/Self.Blog.Website.Spirit-s_Tower_Nights/`，
-> 因此建议**等真要发布时再改**。
-使用自定义域名时记得同步改 `astro.config.mjs` 的 `site`。
+Cloudflare Pages 的项目设置：
+
+| 项 | 值 |
+| --- | --- |
+| 框架预设 | Astro |
+| 构建命令 | `pnpm run build`（识别不了 pnpm 时用 `npm run build`） |
+| 输出目录 | `dist` |
+| 环境变量 | `NODE_VERSION` = `22.12.0`（`package.json` 里 engines 要求 ≥22.12） |
+
+连上仓库后每次 push 到 `main` 会自动构建部署。自定义域在 Pages 项目的
+「自定义域」里加 `water2h2o.com` 与 `www.water2h2o.com` 即可，证书自动签发。
+
+要点：
+
+- 站点挂在**域名根目录**，所以 `astro.config.mjs` 里只需要 `site`、**不需要 `base`**
+- 主机在境外，**不需要备案**；代价是用不了大陆 CDN（详见闲聊里的方案对比）
+- GitHub Pages 的旧地址（`…github.io/…`）不再使用。若哪天要退回子路径部署，
+  必须同时补上 `base: '/Self.Blog.Website.Spirit-s_Tower_Nights'`，
+  否则构建产物里的 `/_astro/...` 会全部 404
+- Cloudflare Pages 单文件上限 25 MB：图片与 MP3 都没问题，**PV 视频别放进来**，
+  继续走 B 站外链
 
 ## 许可
 

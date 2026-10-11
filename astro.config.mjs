@@ -6,8 +6,13 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	// 部署到 GitHub Pages 后的地址；换自定义域名时改这里。
-	site: 'https://water2h2o.github.io/Self.Blog.Website.Spirit-s_Tower_Nights/',
+	/**
+	 * 站点正式地址。canonical、sitemap、RSS 都用它拼绝对链接，换域名只改这里。
+	 *
+	 * 现在挂在自定义域名的根目录下，所以**不需要** `base`；如果哪天退回
+	 * GitHub Pages 的子路径部署（…github.io/<仓库名>/），再补上 `base`。
+	 */
+	site: 'https://water2h2o.com',
 	integrations: [mdx(), sitemap()],
 	vite: {
 		resolve: {
