@@ -20,6 +20,20 @@ const OUT = path.join(ROOT, 'public/favicon-oc');
 const LIST = path.join(ROOT, 'src/data/favicon-set.json');
 
 const SIZE = 64;
+/**
+ * 手动排除的表情包（按原文件名片段匹配）。
+ * 这些是双人/互动构图 —— 缩到 16px 的标签页里分不清是谁，作者要求不要。
+ */
+const EXCLUDE = [
+	'贴贴_17', // 两个角色抱在一起
+	'咬_15',
+	'喂药_14',
+	'敲_09',
+	'狐萝卜_12',
+	'趴趴_16',
+	'rua_10', // 互动构图
+	'拎_8', // 互动构图
+];
 const meta = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/gallery-meta.json'), 'utf8')).items;
 
 /** 角上这一小块的平均透明度，用来判断是不是抠图 */
@@ -52,13 +66,20 @@ async function cornerAlpha(file) {
 fs.mkdirSync(OUT, { recursive: true });
 for (const old of fs.readdirSync(OUT)) fs.rmSync(path.join(OUT, old));
 
+const skippedEarly = [];
+
 const candidates = Object.entries(meta)
 	.filter(([, info]) => info.kind === '表情包')
 	.map(([file, info]) => ({ file, character: info.character, full: path.join(POOL, file) }))
-	.filter((item) => fs.existsSync(item.full));
+	.filter((item) => fs.existsSync(item.full))
+	.filter((item) => {
+		const hit = EXCLUDE.find((bad) => item.file.includes(bad));
+		if (hit) skippedEarly.push({ ...item, why: `手动排除（双人/互动：${hit}）` });
+		return !hit;
+	});
 
 const picked = [];
-const skipped = [];
+const skipped = [...skippedEarly];
 
 for (const item of candidates) {
 	const image = sharp(item.full);

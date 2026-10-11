@@ -28,21 +28,17 @@ const icons = fixedIcon ? [] : faviconSet.items.map((item) => item.src);
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" href="/favicon.ico" sizes="32x32" />
-<link rel="icon" type="image/png" href="/favicon.png" sizes="128x128" />
+<!-- 只声明一条 icon 链接：这样随机脚本必定改写它，浏览器不会被 .ico 那条抢走 -->
+<link rel="icon" type="image/png" href="/favicon.png" sizes="64x64" />
 {
 	icons.length > 0 && (
 		<script is:inline define:vars={{ icons }}>
-			/* 每次打开随机换一个表情包当标签页图标；没脚本时用上面的默认图标 */
+			/* 每次打开随机换一个表情包当标签页图标；没脚本时用 /favicon.png */
 			(() => {
 				try {
 					const pick = icons[Math.floor(Math.random() * icons.length)];
-					/* 改 PNG 那一条，.ico 留着当兜底 */
-					const link = document.querySelector('link[rel="icon"][type="image/png"]');
-					if (link && pick) {
-						link.setAttribute('sizes', '64x64');
-						link.setAttribute('href', pick);
-					}
+					const link = document.querySelector('link[rel="icon"]');
+					if (link && pick) link.setAttribute('href', pick);
 				} catch {
 					/* 换不了就用默认的 */
 				}
