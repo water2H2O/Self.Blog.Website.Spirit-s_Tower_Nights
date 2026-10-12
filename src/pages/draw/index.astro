@@ -556,7 +556,8 @@ const first = pool[0];
 								<div class="cap">
 									<h2 id="cap-name">
 										{first.name}
-										{first.limited && <span class="limit" id="cap-limit" hidden>限定</span>}
+										{/* 这个 span 必须始终存在：下面的脚本无条件抓它，少一个就整段抛错、摇不动 */}
+										<span class="limit" id="cap-limit" hidden={!first.limited}>限定</span>
 									</h2>
 									<p id="cap-meta">{[first.race || first.kind, first.title].filter(Boolean).join(' · ')}</p>
 								</div>
@@ -568,7 +569,8 @@ const first = pool[0];
 					<aside class="detail" id="detail">
 						<h2 class="d-name" id="d-name">
 							{first.name}
-							{first.limited && <span class="limit" id="d-limit" hidden>限定</span>}
+							{/* 同上：始终渲染，只切 hidden */}
+							<span class="limit" id="d-limit" hidden={!first.limited}>限定</span>
 						</h2>
 						<p class="d-meta" id="d-meta">{[first.race || first.kind, first.title].filter(Boolean).join(' · ')}</p>
 						<p class="d-summary" id="d-summary">{first.summary}</p>
@@ -619,10 +621,11 @@ const first = pool[0];
 			const reveal = document.getElementById('reveal')!;
 			const art = document.getElementById('art') as HTMLImageElement;
 			const capName = document.getElementById('cap-name')!;
-			const capLimit = document.getElementById('cap-limit') as HTMLElement;
+			// 这两个角标用可选链：万一标记里没渲染出来，也不该让整段脚本抛错
+			const capLimit = document.getElementById('cap-limit') as HTMLElement | null;
 			const capMeta = document.getElementById('cap-meta')!;
 			const dName = document.getElementById('d-name')!;
-			const dLimit = document.getElementById('d-limit') as HTMLElement;
+			const dLimit = document.getElementById('d-limit') as HTMLElement | null;
 			const dMeta = document.getElementById('d-meta')!;
 			const dSummary = document.getElementById('d-summary')!;
 			const dFields = document.getElementById('d-fields')!;
@@ -667,11 +670,11 @@ const first = pool[0];
 				if (art.getAttribute('src') !== item.art) art.src = item.art;
 
 				capName.textContent = item.name;
-				capLimit.hidden = !item.limited;
+				if (capLimit) capLimit.hidden = !item.limited;
 				capMeta.textContent = [item.race || item.kind, item.title].filter(Boolean).join(' · ');
 
 				dName.textContent = item.name;
-				dLimit.hidden = !item.limited;
+				if (dLimit) dLimit.hidden = !item.limited;
 				dMeta.textContent = [item.race || item.kind, item.title].filter(Boolean).join(' · ');
 				dSummary.textContent = item.summary;
 				dLink.href = item.href;
@@ -768,6 +771,12 @@ const first = pool[0];
 				slipText.textContent = '签在筒里转……';
 			};
 
+			/** 收尾：无论成功还是中途出错，都要把按钮解锁，别卡在「动不了」 */
+			const settle = () => {
+				rolling = false;
+				drawBtn.disabled = false;
+			};
+
 			const roll = () => {
 				if (rolling) return;
 				rolling = true;
@@ -781,31 +790,43 @@ const first = pool[0];
 
 				window.setTimeout(
 					() => {
-						card3d.classList.add('shaking');
+						try {
+							card3d.classList.add('shaking');
 
-						let next = current;
-						while (next === current && pool.length > 1) next = Math.floor(Math.random() * pool.length);
-						fillCharacter(next);
-						const fortune = pickFortune();
+							let next = current;
+							while (next === current && pool.length > 1) next = Math.floor(Math.random() * pool.length);
+							fillCharacter(next);
+							const fortune = pickFortune();
 
-						window.setTimeout(
-							() => {
-								card3d.classList.remove('shaking');
-								card3d.classList.add('open');
-								opened = true;
-								drawBtn.textContent = '再摇一支';
-								window.setTimeout(
-									() => {
-										showFortune(fortune);
-										remember(next);
-										rolling = false;
-										drawBtn.disabled = false;
-									},
-									460,
-								);
-							},
-							520,
-						);
+							window.setTimeout(
+								() => {
+									try {
+										card3d.classList.remove('shaking');
+										card3d.classList.add('open');
+										opened = true;
+										drawBtn.textContent = '再摇一支';
+										window.setTimeout(
+											() => {
+												try {
+													showFortune(fortune);
+													remember(next);
+												} finally {
+													settle();
+												}
+											},
+											460,
+										);
+									} catch (error) {
+										console.error('抽签：翻牌阶段出错', error);
+										settle();
+									}
+								},
+								520,
+							);
+						} catch (error) {
+							console.error('抽签：摇签阶段出错', error);
+							settle();
+						}
 					},
 					wasOpen ? 380 : 240,
 				);
