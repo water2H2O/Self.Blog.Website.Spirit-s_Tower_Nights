@@ -3,39 +3,34 @@ import { getCollection, getEntry } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
+import { SITE_AUTHOR } from '../../../consts';
 
 /**
- * 卡池一览：按设主 A-Z 排。
+ * 签筒：抽签用的全部角色，按设主 A-Z 排。
  *
- * 设主名用 localeCompare('zh') 排序 —— 拉丁字母按字母序排前面，
- * 中文名按拼音排后面（白茶 bái → 风汐铃月 fēng → 浅羽 qiǎn → 应祈 yìng）。
+ * 拉丁字母的名字在前（Aurelith、Ink_Bai），中文名按拼音跟在后面
+ * （白茶 bái → 风汐铃月 fēng → 淼渺 miǎo → 浅羽 qiǎn → 应祈 yìng）。
  */
 
-const linked = await getCollection('characters', ({ data }) => !data.draft && data.ownership === '联动');
+const drawn = await getCollection('characters', ({ data }) => !data.draft && data.drawable);
 
 const entries = await Promise.all(
-	linked.map(async (entry) => {
+	drawn.map(async (entry) => {
 		const race = entry.data.race ? await getEntry(entry.data.race) : null;
 		return {
 			id: entry.id,
 			name: entry.data.name,
 			title: entry.data.title ?? '',
 			race: race?.data.name ?? '',
-			owner: entry.data.owner ?? '待补',
+			owner: entry.data.owner || SITE_AUTHOR,
 			ownerUrl: entry.data.ownerUrl ?? '',
 			color: entry.data.themeColor,
 			href: `/worldview/characters/${entry.id}/`,
 			art: entry.data.portrait?.src ?? '',
-			summary: entry.data.summary,
 		};
 	}),
 );
 
-/**
- * 按设主归组，再按设主名 A-Z 排。
- * 拉丁字母的名字排在前面（Aurelith、Ink_Bai…），中文名按拼音跟在后面
- * （白茶 bái → 风汐铃月 fēng → 浅羽 qiǎn → 应祈 yìng）。
- */
 const owners = [...new Set(entries.map((item) => item.owner))]
 	.sort((a, b) => {
 		const aLatin = /^[A-Za-z]/.test(a);
@@ -54,8 +49,8 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 <html lang="zh-CN">
 	<head>
 		<BaseHead
-			title="卡池一览"
-			description={`卡池里全部 ${entries.length} 位 OC 与他们的 ${owners.length} 位设主，按设主名 A-Z 排列。`}
+			title="签筒"
+			description={`签筒里全部 ${entries.length} 位角色与他们的 ${owners.length} 位设主，按设主名 A-Z 排列。`}
 		/>
 		<style>
 			main {
@@ -157,10 +152,10 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 	<body>
 		<Header />
 		<main>
-			<h1>卡池一览</h1>
+			<h1>签筒</h1>
 			<p class="lead">
-				{entries.length} 位 OC，来自 {owners.length} 位设主，按设主名 A-Z 排列。想抽一张玩，回<a
-					href="/cards/">卡池</a
+				{entries.length} 位角色，来自 {owners.length} 位设主，按设主名 A-Z 排列。想摇一支玩，回<a
+					href="/draw/">抽签</a
 				>。
 			</p>
 
@@ -174,7 +169,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 									{group.url}
 								</a>
 							)}
-							<span class="count">{group.items.length} 位 OC</span>
+							<span class="count">{group.items.length} 位角色</span>
 						</div>
 						<div class="cards">
 							{group.items.map((item) => (
@@ -198,8 +193,9 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 			}
 
 			<p class="note">
-				这些都是朋友与伙伴们的角色，版权归各设主所有，本站只是收录。
-				多数设主还没有主页，拿到链接会补在这里。
+				多数是朋友与伙伴们的角色，版权归各设主所有，本站只是收录；
+				淼渺是本站作者 {SITE_AUTHOR} 自己的角色。
+				想往签筒里加人，在角色档案里写上 <code>drawable: true</code> 即可。
 			</p>
 		</main>
 		<Footer />

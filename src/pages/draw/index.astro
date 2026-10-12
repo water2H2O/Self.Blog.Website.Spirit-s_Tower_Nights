@@ -1,0 +1,456 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_AUTHOR } from '../../consts';
+
+/**
+ * 抽签：上面是抽到的 OC，下面是这一签的运势，两块分开摆。
+ *
+ * 概率表放在这里（前端按权重摇），坏签刻意压得很低：
+ * 大吉 8% / 吉 17% / 中吉 25% / 小吉 30% / 末吉 16% / 凶 4%。
+ * 「末吉」不算坏签，只是慢一点；真正的坏签只有「凶」这一档。
+ */
+
+const drawn = (await getCollection('characters', ({ data }) => !data.draft && data.drawable)).sort(
+	(a, b) => a.data.order - b.data.order,
+);
+
+const pool = await Promise.all(
+	drawn.map(async (entry) => {
+		const race = entry.data.race ? await getEntry(entry.data.race) : null;
+		return {
+			id: entry.id,
+			name: entry.data.name,
+			title: entry.data.title ?? '',
+			race: race?.data.name ?? '',
+			owner: entry.data.owner || SITE_AUTHOR,
+			ownerUrl: entry.data.ownerUrl ?? '',
+			summary: entry.data.summary,
+			color: entry.data.themeColor,
+			href: `/worldview/characters/${entry.id}/`,
+			art: entry.data.portrait?.src ?? '',
+		};
+	}),
+);
+
+/** 签的档位与权重 */
+const fortunes = [
+	{
+		key: 'great',
+		label: '大吉',
+		weight: 8,
+		text: '塔顶的灯亮了一整夜。今天做什么都顺，适合动手熬那锅一直不敢试的药剂。',
+	},
+	{
+		key: 'good',
+		label: '吉',
+		weight: 17,
+		text: '风向很好。出门会遇到想见的人，或者想见的人会来敲你的门。',
+	},
+	{
+		key: 'middle',
+		label: '中吉',
+		weight: 25,
+		text: '不好不坏 —— 但塔里的灯是亮的，炉子上的水也刚好开。',
+	},
+	{
+		key: 'small',
+		label: '小吉',
+		weight: 30,
+		text: '小事顺利，大事明天再说。今天适合整理药材柜。',
+	},
+	{
+		key: 'late',
+		label: '末吉',
+		weight: 16,
+		text: '慢一点也没关系，药剂本来就要熬三个小时。',
+	},
+	{
+		key: 'bad',
+		label: '凶',
+		weight: 4,
+		text: '药剂糊了。别灰心，明天再熬一锅就是。',
+	},
+];
+
+const first = pool[0];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="抽签"
+			description={`摇一支签，遇见一位角色，再看看今天的运势。签筒里现有 ${pool.length} 位。`}
+		/>
+		<style>
+			main {
+				width: 760px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+			}
+			.stage {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1.5em;
+				margin-top: 2.2em;
+			}
+			/* ---- 上半：抽到的角色 ---- */
+			.card {
+				width: 340px;
+				max-width: 100%;
+				border-radius: 18px;
+				overflow: hidden;
+				background: var(--surface);
+				border: 1px solid color-mix(in srgb, var(--card-color, var(--accent)) 40%, transparent);
+				box-shadow:
+					0 0 0 1px rgba(0, 0, 0, 25%),
+					0 18px 40px rgba(0, 0, 0, 45%);
+				transition: transform 0.25s ease;
+			}
+			.card.rolling {
+				transform: scale(0.97);
+			}
+			.card.hit {
+				animation: pop 0.45s ease;
+			}
+			@keyframes pop {
+				0% {
+					transform: scale(1.05);
+					box-shadow: 0 0 0 6px color-mix(in srgb, var(--card-color, var(--accent)) 35%, transparent);
+				}
+				100% {
+					transform: scale(1);
+				}
+			}
+			.art {
+				aspect-ratio: 4 / 5;
+				overflow: hidden;
+				background: color-mix(in srgb, var(--card-color, var(--accent)) 10%, var(--surface));
+			}
+			.art img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				object-position: center 18%;
+				display: block;
+			}
+			.info {
+				padding: 1em 1.2em 1.2em;
+			}
+			.info h2 {
+				margin: 0;
+				font-size: 1.35em;
+				color: var(--card-color, var(--glow));
+			}
+			.meta {
+				margin: 0.35em 0 0;
+				font-size: 0.8em;
+				letter-spacing: 0.04em;
+				color: rgb(var(--gray));
+			}
+			.summary {
+				margin: 0.7em 0 0;
+				font-size: 0.86em;
+				line-height: 1.8;
+				color: rgb(var(--gray-dark));
+			}
+			.owner {
+				margin: 0.9em 0 0;
+				padding-top: 0.8em;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-size: 0.84em;
+				color: #ffd68a;
+			}
+			.owner a {
+				color: #ffd68a;
+			}
+			.profile {
+				display: inline-block;
+				margin-top: 0.9em;
+				font-size: 0.86em;
+				color: var(--accent);
+			}
+			/* ---- 中间：按钮 ---- */
+			.actions {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				align-items: center;
+				gap: 0.9em;
+			}
+			button {
+				padding: 0.8em 2.4em;
+				border-radius: 999px;
+				font-family: inherit;
+				font-size: 1.05em;
+				cursor: pointer;
+				color: #06121a;
+				background: var(--glow);
+				border: 1px solid var(--glow);
+				transition: 0.18s ease;
+			}
+			button:hover {
+				box-shadow: var(--glow-shadow);
+				transform: translateY(-2px);
+			}
+			button:disabled {
+				opacity: 0.6;
+				cursor: default;
+				transform: none;
+			}
+			.pool-link {
+				font-size: 0.9em;
+				text-decoration: none;
+				color: var(--accent);
+			}
+			.pool-link:hover {
+				color: var(--glow);
+			}
+			/* ---- 下半：签的结果 ---- */
+			.slip {
+				width: 340px;
+				max-width: 100%;
+				padding: 1.1em 1.3em 1.3em;
+				border-radius: 18px;
+				text-align: center;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				transition:
+					border-color 0.3s ease,
+					box-shadow 0.3s ease;
+			}
+			.slip.pending {
+				opacity: 0.45;
+			}
+			.slip .label {
+				display: block;
+				font-size: 2em;
+				font-weight: 700;
+				letter-spacing: 0.2em;
+				text-indent: 0.2em;
+				color: var(--slip-color, rgb(var(--gray)));
+			}
+			.slip .text {
+				display: block;
+				margin-top: 0.6em;
+				font-size: 0.88em;
+				line-height: 1.9;
+				color: rgb(var(--gray-dark));
+			}
+			.slip .hint {
+				display: block;
+				margin-top: 0.6em;
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+			}
+			/* 档位配色：越好的签越亮 */
+			.slip[data-key='great'] {
+				--slip-color: #afffff;
+				border-color: rgba(175, 255, 255, 60%);
+			}
+			.slip[data-key='good'] {
+				--slip-color: #b6ffd8;
+				border-color: rgba(120, 255, 190, 45%);
+			}
+			.slip[data-key='middle'] {
+				--slip-color: #cfe8f0;
+			}
+			.slip[data-key='small'] {
+				--slip-color: #cfe8f0;
+			}
+			.slip[data-key='late'] {
+				--slip-color: #ffd68a;
+				border-color: rgba(255, 200, 90, 35%);
+			}
+			.slip[data-key='bad'] {
+				--slip-color: #ff9d9d;
+				border-color: rgba(255, 120, 120, 40%);
+			}
+			.note {
+				margin: 2.6em 0 0;
+				padding-top: 1.4em;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-size: 0.84em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+			}
+			.note a {
+				color: var(--accent);
+			}
+			@media (max-width: 720px) {
+				.card,
+				.slip {
+					width: 100%;
+				}
+				.actions {
+					flex-direction: column;
+					width: 100%;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>抽签</h1>
+			<p class="lead">
+				摇一支签，会遇见一位角色，签上还写着今天的运势。签筒里现有 {pool.length} 位。
+			</p>
+
+			<div class="stage">
+				{/* 上半：角色 */}
+				<article class="card" id="card" style={`--card-color:${first.color}`}>
+					<div class="art">
+						<img id="art" src={first.art} alt="" width="680" height="850" />
+					</div>
+					<div class="info">
+						<h2 id="name">{first.name}</h2>
+						<p class="meta" id="meta">{[first.race, first.title].filter(Boolean).join(' · ')}</p>
+						<p class="summary" id="summary">{first.summary}</p>
+						<p class="owner" id="owner">
+							设主：
+							{first.ownerUrl ? (
+								<a href={first.ownerUrl} target="_blank" rel="noreferrer">
+									{first.owner}
+								</a>
+							) : (
+								first.owner
+							)}
+						</p>
+						<a class="profile" id="profile" href={first.href}>看 TA 的档案 →</a>
+					</div>
+				</article>
+
+				{/* 中间：摇签 */}
+				<div class="actions">
+					<button type="button" id="draw">摇一支签</button>
+					<a class="pool-link" href="/draw/pool/">看签筒里都有谁 →</a>
+				</div>
+
+				{/* 下半：签的结果 */}
+				<div class="slip pending" id="slip" data-key="middle">
+					<span class="label" id="slip-label">？</span>
+					<span class="text" id="slip-text">摇一支，看看今天的运势。</span>
+					<span class="hint" id="slip-hint">摇出来的角色与运势是两件事</span>
+				</div>
+			</div>
+
+			<p class="note">
+				角色来自朋友与伙伴们的寄放，也包括本站作者自己的淼渺。
+				想看全部人与他们的设主，去<a href="/draw/pool/">签筒</a>。
+			</p>
+		</main>
+		<Footer />
+
+		<script
+			type="application/json"
+			id="draw-data"
+			set:html={JSON.stringify({ pool, fortunes })}
+		/>
+
+		<script>
+			const payload = JSON.parse(document.getElementById('draw-data')!.textContent!);
+			const pool = payload.pool;
+			const fortunes = payload.fortunes;
+
+			const card = document.getElementById('card')!;
+			const art = document.getElementById('art') as HTMLImageElement;
+			const name = document.getElementById('name')!;
+			const meta = document.getElementById('meta')!;
+			const summary = document.getElementById('summary')!;
+			const owner = document.getElementById('owner')!;
+			const profile = document.getElementById('profile') as HTMLAnchorElement;
+			const slip = document.getElementById('slip')!;
+			const slipLabel = document.getElementById('slip-label')!;
+			const slipText = document.getElementById('slip-text')!;
+			const slipHint = document.getElementById('slip-hint')!;
+			const draw = document.getElementById('draw') as HTMLButtonElement;
+
+			let rolling = false;
+
+			const showCharacter = (index: number) => {
+				const item = pool[index];
+				card.style.setProperty('--card-color', item.color);
+				if (art.getAttribute('src') !== item.art) art.src = item.art;
+				name.textContent = item.name;
+				meta.textContent = [item.race, item.title].filter(Boolean).join(' · ');
+				summary.textContent = item.summary;
+				owner.innerHTML = '';
+				owner.append('设主：');
+				if (item.ownerUrl) {
+					const link = document.createElement('a');
+					link.href = item.ownerUrl;
+					link.target = '_blank';
+					link.rel = 'noreferrer';
+					link.textContent = item.owner;
+					owner.append(link);
+				} else {
+					owner.append(item.owner);
+				}
+				profile.href = item.href;
+			};
+
+			/** 按权重摇一签 */
+			const pickFortune = () => {
+				const total = fortunes.reduce((sum: number, f: { weight: number }) => sum + f.weight, 0);
+				let roll = Math.random() * total;
+				for (const fortune of fortunes) {
+					roll -= fortune.weight;
+					if (roll <= 0) return fortune;
+				}
+				return fortunes[fortunes.length - 1];
+			};
+
+			const showFortune = (fortune: (typeof fortunes)[number]) => {
+				slip.dataset.key = fortune.key;
+				slipLabel.textContent = fortune.label;
+				slipText.textContent = fortune.text;
+				slipHint.textContent = '摇出来的角色与运势是两件事';
+				slip.classList.remove('pending');
+			};
+
+			const randomIndex = (avoid: number) => {
+				if (pool.length < 2) return 0;
+				let next = avoid;
+				while (next === avoid) next = Math.floor(Math.random() * pool.length);
+				return next;
+			};
+
+			let current = 0;
+
+			draw.addEventListener('click', () => {
+				if (rolling) return;
+				rolling = true;
+				draw.disabled = true;
+				card.classList.add('rolling');
+				slip.classList.add('pending');
+				slipLabel.textContent = '…';
+				slipText.textContent = '签在筒里转……';
+				slipHint.textContent = '';
+
+				const timer = window.setInterval(() => {
+					showCharacter(Math.floor(Math.random() * pool.length));
+				}, 70);
+
+				window.setTimeout(() => {
+					window.clearInterval(timer);
+					current = randomIndex(current);
+					showCharacter(current);
+					card.classList.remove('rolling');
+					card.classList.remove('hit');
+					void card.offsetWidth;
+					card.classList.add('hit');
+					showFortune(pickFortune());
+					rolling = false;
+					draw.disabled = false;
+				}, 700);
+			});
+		</script>
+	</body>
+</html>

@@ -5,6 +5,7 @@ ownership: 联动
 owner: '白茶'
 summary: 光暗元素之神中“光”的那一半，如今已遗忘一切，只有身为“暗”的哥哥仍守在她身边。她借自然之力医治与牵制敌人，却会因承受不住力量而昏迷、力竭。
 portrait: '../../assets/oc/characters/baicha.webp'
+drawable: true
 pronouns: 女
 tags: ['神界使', '治愈', '光元素']
 lore: ['fate-triad', 'celestial-infernal', 'cataclysm']

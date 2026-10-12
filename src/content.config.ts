@@ -117,6 +117,11 @@ const characters = defineCollection({
 			/** 代表色，默认就是淼渺的 #AFFFFF */
 			themeColor: themeColor.default('#AFFFFF'),
 			portrait: z.optional(image()),
+			/**
+			 * 是否进「抽签」的签筒。
+			 * 默认 false（自己的 OC 一般不放进去），朋友家的孩子与想放进去的角色手动标 true。
+			 */
+			drawable: z.boolean().default(false),
 			tags: z.array(z.string()).default([]),
 			/** 人际关系：指向其他角色 */
 			relations: z
