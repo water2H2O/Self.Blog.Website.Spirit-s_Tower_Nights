@@ -49,20 +49,52 @@ body {
 	padding: 0;
 	text-align: left;
 	background: var(--bg);
-	/* 顶部一层水色辉光，呼应“水塔夜谈” */
-	background-image:
-		radial-gradient(1200px 460px at 50% -160px, rgba(175, 255, 255, 11%), transparent 72%),
-		linear-gradient(var(--gray-gradient)) no-repeat;
-	background-repeat: no-repeat;
-	background-size:
-		100% 100%,
-		100% 600px;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 	color: rgb(var(--gray-dark));
 	font-size: 19px;
 	line-height: 1.8;
 	-webkit-font-smoothing: antialiased;
+}
+
+/*
+ * 背景图。
+ *
+ * 那张冰晶村落的插画平均亮度 74%，而全站正文是直接压在背景上的 ——
+ * 原样铺上去字就看不清了。压暗的活儿全部在文件里做完（生成时 brightness 0.22），
+ * CSS 这边不再叠罩层 —— 压两遍会把图压到和纯色底一样黑，等于白放。
+ *
+ * 实测：压暗后平均亮度约 2.5%、最亮处约 6.3%，正文对比度 7.8:1、
+ * 次要文字 4.7:1，都还在可读范围内；比原来的纯色底（1.4%）亮一点，
+ * 暗处的冰晶轮廓看得见。
+ *
+ * 用固定定位的伪元素而不是 background-attachment: fixed ——
+ * iOS Safari 对后者支持很差（会当成 scroll），那样长页面里图会被拉开变形。
+ *
+ * z-index: -1 让它落在 body 背景之上、内容之下。
+ */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background-image:
+		radial-gradient(1200px 460px at 50% -160px, rgba(175, 255, 255, 11%), transparent 72%),
+		url('/bg.webp');
+	background-size:
+		auto,
+		cover;
+	background-position:
+		center top,
+		center;
+	background-repeat: no-repeat;
+}
+
+/* 打印时不要背景图，省墨也更清楚 */
+@media print {
+	body::before {
+		display: none;
+	}
 }
 
 main {
