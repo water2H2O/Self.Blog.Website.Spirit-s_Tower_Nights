@@ -4,11 +4,14 @@ import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import { GITHUB_URL, SITE_TITLE, WORLDVIEW_BASE } from '../consts';
 
-/** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
+/**
+ * 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下。
+ * 「抽签」暂时不进导航（页面仍在 /draw/，也能从角色列表页与友情链接页进去），
+ * 想放回来就在下面加一行 { href: '/draw', label: '抽签' }。
+ */
 const mainLinks = [
 	{ href: '/', label: '首页' },
 	{ href: WORLDVIEW_BASE, label: '世界观' },
-	{ href: '/draw', label: '抽签' },
 	{ href: '/project', label: '企划' },
 	{ href: '/blog', label: '随笔' },
 	{ href: '/about', label: '关于' },
