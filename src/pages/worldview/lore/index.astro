@@ -37,7 +37,7 @@ const groups = CATEGORY_ORDER.map((category) => ({
 			}
 			section h2 {
 				font-size: 1.15em;
-				margin: 0 0 0.8em;
+				margin: 0 0 1em;
 				padding-left: 0.6em;
 				border-left: 4px solid var(--accent);
 			}
@@ -51,20 +51,20 @@ const groups = CATEGORY_ORDER.map((category) => ({
 			 * 短块下面照样留空；多列由浏览器按内容高度均衡分栏，空隙最少。
 			 */
 			.groups {
-				column-width: 310px;
-				column-gap: 1.6em;
-				margin-top: 2.5em;
+				column-width: 292px;
+				column-gap: 2.8em;
+				margin-top: 3em;
 			}
 			.groups section {
 				/* 一个类目不要被拆到两栏去 */
 				break-inside: avoid;
-				margin-bottom: 2em;
+				margin-bottom: 2.8em;
 			}
 			/* 类目内部竖排 */
 			.grid {
 				display: grid;
 				grid-template-columns: 1fr;
-				gap: 1rem;
+				gap: 1.35rem;
 			}
 			.empty {
 				color: rgb(var(--gray));

@@ -1,4 +1,4 @@
-﻿---
+---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import TagList from './TagList.astro';
@@ -60,7 +60,7 @@ const { title, summary, category, cover, themeColor, tags } = entry.data;
 		display: block;
 	}
 	.body {
-		padding: 0.9em 1.1em 1.1em;
+		padding: 1.1em 1.25em 1.3em;
 	}
 	.category {
 		font-size: 0.72em;
@@ -68,14 +68,14 @@ const { title, summary, category, cover, themeColor, tags } = entry.data;
 		color: var(--card-color);
 	}
 	.body h3 {
-		margin: 0.15em 0 0;
+		margin: 0.2em 0 0;
 		font-size: 1.1em;
 		color: rgb(var(--black));
 	}
 	.summary {
-		margin: 0.5em 0 0;
+		margin: 0.6em 0 0;
 		font-size: 0.85em;
-		line-height: 1.6;
+		line-height: 1.7;
 		color: rgb(var(--gray-dark));
 	}
 </style>
