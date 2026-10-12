@@ -10,6 +10,7 @@ import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import GalleryWall from '../../../components/GalleryWall.astro';
 import Header from '../../../components/Header.astro';
+import LicenseBadge from '../../../components/LicenseBadge.astro';
 import gallery from '../../../data/gallery-meta.json';
 
 const POOL = path.join(process.cwd(), 'public', 'gallery');
@@ -160,6 +161,11 @@ const withOwner = [
 			}
 
 			<GalleryWall items={items} minHeight={420} />
+
+			<LicenseBadge
+				kind="reserved"
+				note="这批立绘多为委托作品，版权归原画师与各设主，不适用 CC BY 4.0。"
+			/>
 		</main>
 		<Footer />
 	</body>

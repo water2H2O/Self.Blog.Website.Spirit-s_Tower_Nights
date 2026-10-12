@@ -5,6 +5,7 @@ import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import GalleryWall from '../../../components/GalleryWall.astro';
 import Header from '../../../components/Header.astro';
+import LicenseBadge from '../../../components/LicenseBadge.astro';
 import { SITE_AUTHOR, SITE_TITLE } from '../../../consts';
 import meta from '../../../data/gallery-meta.json';
 
@@ -88,6 +89,11 @@ const items = fs
 			</p>
 
 			<GalleryWall items={items} sampleSize={SAMPLE_SIZE} showFilters kindSizing minHeight={420} />
+
+			<LicenseBadge
+				kind="reserved"
+				note="图片是画作本身：委托插画归原画师，联动设定归各设主，企划成品归补完计划。"
+			/>
 		</main>
 		<Footer />
 	</body>

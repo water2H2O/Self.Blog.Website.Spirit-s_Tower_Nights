@@ -142,6 +142,10 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 	meta={meta}
 	canon={canon}
 	spoiler={spoiler}
+	license={ownership === '原创' ? 'cc-by' : 'reserved'}
+	licenseNote={ownership === '原创'
+		? undefined
+		: `本页角色「${name}」版权归设主${owner ? ` ${owner}` : ''}所有，本站只是收录。`}
 	backHref="/worldview/characters/"
 	backLabel="角色"
 >

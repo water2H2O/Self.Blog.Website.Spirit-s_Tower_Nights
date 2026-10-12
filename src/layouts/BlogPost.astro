@@ -5,6 +5,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import LicenseBadge from '../components/LicenseBadge.astro';
 
 interface Props {
 	title: string;
@@ -88,6 +89,11 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 						</div>
 					)}
 					<slot />
+					{/* 随笔都是我自己写的，按 CC BY 4.0 授权；文中的委托插图另有版权 */}
+					<LicenseBadge
+						kind="cc-by"
+						note="文中的委托插图版权归原画师所有，不适用 CC BY 4.0。"
+					/>
 				</div>
 			</article>
 		</main>

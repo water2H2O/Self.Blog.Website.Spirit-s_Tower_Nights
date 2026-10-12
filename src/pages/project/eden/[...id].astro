@@ -96,6 +96,10 @@ const dangerVars = (n: number | null) => {
 	summary={summary ?? `${title}（伊甸园 · ${category}）`}
 	themeColor="#AFFFFF"
 	meta={meta}
+	license="reserved"
+	licenseNote={isMine
+		? '本页是群创企划的稿件，版权与最终解释归该企划所有，作者只是参与者之一。'
+		: '本页是企划公开的基础设定，版权与最终解释归该企划所有。'}
 	backHref="/project/eden/"
 	backLabel="伊甸园"
 >

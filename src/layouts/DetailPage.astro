@@ -4,6 +4,7 @@ import type { ImageMetadata } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
+import LicenseBadge from '../components/LicenseBadge.astro';
 import SpoilerNote from '../components/SpoilerNote.astro';
 import TagList from '../components/TagList.astro';
 
@@ -26,6 +27,15 @@ interface Props {
 	spoiler?: 'none' | 'mild' | 'heavy';
 	/** 正典档位，locked 会在标题下显示“不可变更”徽章 */
 	canon?: 'locked' | 'open' | 'draft';
+	/**
+	 * 本页文字的授权标记：
+	 *   cc-by    我原创且有权授权 → 标 CC BY 4.0
+	 *   reserved 别人的作品（联动角色的档案、企划稿件）→ 保留所有权利
+	 *   none     不显示（默认）
+	 */
+	license?: 'cc-by' | 'reserved' | 'none';
+	/** 追加在标记后面的一句说明，例如「本页角色版权归设主所有」 */
+	licenseNote?: string;
 	backHref: string;
 	backLabel: string;
 }
@@ -40,6 +50,8 @@ const {
 	meta = [],
 	spoiler = 'none',
 	canon,
+	license = 'none',
+	licenseNote,
 	backHref,
 	backLabel,
 } = Astro.props;
@@ -224,6 +236,9 @@ const CANON = {
 			<div class="prose">
 				<slot />
 			</div>
+
+			{/* 本页文字的授权标记；调用方不传就不显示 */}
+			{license !== 'none' && <LicenseBadge kind={license} note={licenseNote} />}
 		</main>
 		<Footer />
 	</body>

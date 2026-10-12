@@ -1,4 +1,4 @@
-﻿---
+---
 import { getCollection, getEntry, render } from 'astro:content';
 import DetailPage from '../../../layouts/DetailPage.astro';
 
@@ -47,6 +47,7 @@ const relatedLore = (await Promise.all(related.map((ref) => getEntry(ref)))).fil
 	meta={meta}
 	canon={entry.data.canon}
 	spoiler={spoiler}
+	license="cc-by"
 	backHref="/worldview/lore/"
 	backLabel="世界观"
 >
