@@ -1,10 +1,9 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
-import { SITE_AUTHOR } from '../../consts';
-import galleryMeta from '../../data/gallery-meta.json';
+import { EMAIL } from '../../consts';
+import { drawPool } from '../../lib/draw';
 
 /**
  * 抽签：左边翻牌，右边显示这一位的详细档案，下面是签纸。
@@ -16,37 +15,7 @@ import galleryMeta from '../../data/gallery-meta.json';
  * 「末吉」不算坏签，只是慢一点；真正的坏签只有「凶」这一档。
  */
 
-const drawn = (await getCollection('characters', ({ data }) => !data.draft && data.drawable)).sort(
-	(a, b) => a.data.order - b.data.order,
-);
-
-const gallery = (galleryMeta as { items?: Record<string, { character?: string }> }).items ?? {};
-const artCount = (name: string) =>
-	Object.values(gallery).filter((item) => item.character === name).length;
-
-const pool = await Promise.all(
-	drawn.map(async (entry) => {
-		const race = entry.data.race ? await getEntry(entry.data.race) : null;
-		return {
-			id: entry.id,
-			name: entry.data.name,
-			title: entry.data.title ?? '',
-			race: race?.data.name ?? '',
-			owner: entry.data.owner || SITE_AUTHOR,
-			ownerUrl: entry.data.ownerUrl ?? '',
-			summary: entry.data.summary,
-			color: entry.data.themeColor,
-			href: `/worldview/characters/${entry.id}/`,
-			art: entry.data.portrait?.src ?? '',
-			aliases: entry.data.aliases ?? [],
-			height: entry.data.height ?? '',
-			age: entry.data.age ?? '',
-			pronouns: entry.data.pronouns ?? '',
-			tags: entry.data.tags ?? [],
-			arts: artCount(entry.data.name),
-		};
-	}),
-);
+const pool = await drawPool();
 
 const fortunes = [
 	{
@@ -115,6 +84,20 @@ const first = pool[0];
 			}
 			.lead a {
 				color: var(--accent);
+			}
+			/* 想加入的提示，放在最上面 */
+			.join {
+				margin: 0 0 1em;
+				padding: 0.85em 1.1em;
+				border-radius: 12px;
+				font-size: 0.86em;
+				line-height: 1.8;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 9%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+			}
+			.join a {
+				color: #ffd68a;
 			}
 			.stage {
 				--detail-w: 348px;
@@ -530,6 +513,11 @@ const first = pool[0];
 		<Header />
 		<main>
 			<h1>抽签</h1>
+			<p class="join">
+				想把自己家的 OC 也放进签筒？<strong>发邮件到
+					<a href={`mailto:${EMAIL}`}>{EMAIL}</a></strong
+				>，把<strong>立绘与设定文件一起带上</strong>就行。
+			</p>
 			<p class="lead">
 				摇一支签，会遇见一位角色，右边是 TA 的档案，下面还写着今天的运势。签筒里现有 <a
 					href="/draw/pool/">{pool.length} 位</a
@@ -552,7 +540,7 @@ const first = pool[0];
 								</div>
 								<div class="cap">
 									<h2 id="cap-name">{first.name}</h2>
-									<p id="cap-meta">{[first.race, first.title].filter(Boolean).join(' · ')}</p>
+									<p id="cap-meta">{[first.race || first.kind, first.title].filter(Boolean).join(' · ')}</p>
 								</div>
 							</div>
 						</div>
@@ -561,7 +549,7 @@ const first = pool[0];
 					{/* 右侧：这一位的详细档案 */}
 					<aside class="detail" id="detail">
 						<h2 class="d-name" id="d-name">{first.name}</h2>
-						<p class="d-meta" id="d-meta">{[first.race, first.title].filter(Boolean).join(' · ')}</p>
+						<p class="d-meta" id="d-meta">{[first.race || first.kind, first.title].filter(Boolean).join(' · ')}</p>
 						<p class="d-summary" id="d-summary">{first.summary}</p>
 						<dl id="d-fields"></dl>
 						<p class="d-fallback" id="d-fallback" hidden></p>
@@ -656,10 +644,10 @@ const first = pool[0];
 				if (art.getAttribute('src') !== item.art) art.src = item.art;
 
 				capName.textContent = item.name;
-				capMeta.textContent = [item.race, item.title].filter(Boolean).join(' · ');
+				capMeta.textContent = [item.race || item.kind, item.title].filter(Boolean).join(' · ');
 
 				dName.textContent = item.name;
-				dMeta.textContent = [item.race, item.title].filter(Boolean).join(' · ');
+				dMeta.textContent = [item.race || item.kind, item.title].filter(Boolean).join(' · ');
 				dSummary.textContent = item.summary;
 				dLink.href = item.href;
 

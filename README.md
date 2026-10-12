@@ -54,6 +54,11 @@ dev.cmd preview     # 预览构建结果
 | `src/content/characters/` | 角色档案 | `/worldview/characters/<文件名>/` |
 | `src/content/lore/` | 设定条目 | `/worldview/lore/<文件名>/` |
 | `src/content/stories/` | 故事正文 | `/worldview/stories/<文件名>/` |
+| `src/content/draw/` | 签筒专用条目（可选） | `/draw/entry/<文件名>/` |
+
+前三个会进世界观档案（角色列表、设定索引、故事目录都能看到）。
+**`src/content/draw/` 是例外**：放这里的条目只在抽签区域出现，档案页面也挂在 `/draw/` 下 ——
+适合客串、玩梗、或者还没想好归到哪一支种族的角色。写法见该目录里的 `README.txt`。
 
 **一个 `.md` 文件 = 一个条目**，文件名就是网址的最后一段（用英文或拼音小写 + 连字符，
 例如 `miaomiao`、`act1-birdcage-2-1`；**不要用中文文件名**）。
@@ -193,6 +198,12 @@ order: 21
 | `music` | `src/content/music/` | `/worldview/music/文件名/` | 与曲师合作的曲目 |
 | `blog` | `src/content/blog/` | `/blog/文件名/` | 随笔（个人区，不在 /worldview/ 下） |
 | `eden` | `src/content/eden/` | `/project/eden/文件名/` | 群创企划「伊甸园」的稿件 |
+| `draw` | `src/content/draw/` | `/draw/entry/文件名/` | **签筒专用**：只出现在抽签区域的条目 |
+
+> **签筒（`draw`）和角色档案是分开的。** 放这里的东西**不会**进角色列表、总览或侧栏，
+> 只在 `/draw/` 与 `/draw/pool/` 露面（签筒页上带「签筒」角标）。
+> 适合放客串、玩梗、还没想好归哪支种族的角色。目录里的写作说明见 `src/content/draw/README.txt`。
+> 抽签的池子 = 这个目录的全部条目 + 角色集合里标了 `drawable: true` 的角色。
 
 > **画廊不在这个表里。** 它不是 markdown 集合，而是一个**图池**：
 > 图片放在 `public/gallery/`，标注写在 `src/data/gallery-meta.json`，

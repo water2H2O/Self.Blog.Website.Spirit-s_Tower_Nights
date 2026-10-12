@@ -1,35 +1,22 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
-import { SITE_AUTHOR } from '../../../consts';
+import { EMAIL } from '../../../consts';
+import { drawPool } from '../../../lib/draw';
 
 /**
- * 签筒：抽签用的全部角色，按设主 A-Z 排。
+ * 签筒：抽签用的全部条目，按设主 A-Z 排。
+ *
+ * 来源有两处（见 src/lib/draw.ts）：
+ *   1. 正式入档、且标了 drawable 的角色 —— 点进去是 /worldview/characters/
+ *   2. src/content/draw/ 目录里的条目 —— 只在这个区域出现，点进去是 /draw/entry/
  *
  * 拉丁字母的名字在前（Aurelith、Ink_Bai），中文名按拼音跟在后面
  * （白茶 bái → 风汐铃月 fēng → 淼渺 miǎo → 浅羽 qiǎn → 应祈 yìng）。
  */
 
-const drawn = await getCollection('characters', ({ data }) => !data.draft && data.drawable);
-
-const entries = await Promise.all(
-	drawn.map(async (entry) => {
-		const race = entry.data.race ? await getEntry(entry.data.race) : null;
-		return {
-			id: entry.id,
-			name: entry.data.name,
-			title: entry.data.title ?? '',
-			race: race?.data.name ?? '',
-			owner: entry.data.owner || SITE_AUTHOR,
-			ownerUrl: entry.data.ownerUrl ?? '',
-			color: entry.data.themeColor,
-			href: `/worldview/characters/${entry.id}/`,
-			art: entry.data.portrait?.src ?? '',
-		};
-	}),
-);
+const entries = await drawPool();
 
 const owners = [...new Set(entries.map((item) => item.owner))]
 	.sort((a, b) => {
@@ -50,11 +37,25 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 	<head>
 		<BaseHead
 			title="签筒"
-			description={`签筒里全部 ${entries.length} 位角色与他们的 ${owners.length} 位设主，按设主名 A-Z 排列。`}
+			description={`签筒里全部 ${entries.length} 位与他们的 ${owners.length} 位设主，按设主名 A-Z 排列。`}
 		/>
 		<style>
 			main {
 				width: 1000px;
+			}
+			/* 想加入的提示，放在最上面 */
+			.join {
+				margin: 0 0 1em;
+				padding: 0.85em 1.1em;
+				border-radius: 12px;
+				font-size: 0.86em;
+				line-height: 1.8;
+				color: #ffd68a;
+				background: rgba(255, 200, 90, 9%);
+				border: 1px solid rgba(255, 200, 90, 28%);
+			}
+			.join a {
+				color: #ffd68a;
 			}
 			.lead {
 				color: rgb(var(--gray));
@@ -112,6 +113,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 				box-shadow: var(--glow-shadow);
 			}
 			.card .art {
+				position: relative;
 				aspect-ratio: 1;
 				overflow: hidden;
 				background: color-mix(in srgb, var(--card-color, var(--accent)) 10%, var(--surface));
@@ -122,6 +124,18 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 				object-fit: cover;
 				object-position: center 18%;
 				display: block;
+			}
+			/* 签筒目录里的条目：标一个角标，和正式入档的区分开 */
+			.card .flag {
+				position: absolute;
+				left: 8px;
+				top: 8px;
+				padding: 1px 7px;
+				border-radius: 999px;
+				font-size: 10px;
+				line-height: 1.6;
+				color: #06121a;
+				background: rgba(175, 255, 255, 88%);
 			}
 			.card .body {
 				padding: 0.8em 0.95em 1em;
@@ -153,8 +167,13 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 		<Header />
 		<main>
 			<h1>签筒</h1>
+			<p class="join">
+				想把自己的 OC 也放进签筒？<strong>发邮件到
+					<a href={`mailto:${EMAIL}`}>{EMAIL}</a></strong
+				>，把<strong>立绘与设定文件一起带上</strong>就行。
+			</p>
 			<p class="lead">
-				{entries.length} 位角色，来自 {owners.length} 位设主，按设主名 A-Z 排列。想摇一支玩，回<a
+				{entries.length} 位，来自 {owners.length} 位设主，按设主名 A-Z 排列。想摇一支玩，回<a
 					href="/draw/">抽签</a
 				>。
 			</p>
@@ -169,7 +188,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 									{group.url}
 								</a>
 							)}
-							<span class="count">{group.items.length} 位角色</span>
+							<span class="count">{group.items.length} 位</span>
 						</div>
 						<div class="cards">
 							{group.items.map((item) => (
@@ -180,10 +199,13 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 										) : (
 											<span />
 										)}
+										{item.href.startsWith('/draw/entry/') && <span class="flag">签筒</span>}
 									</div>
 									<div class="body">
 										<h3>{item.name}</h3>
-										<p class="meta">{[item.race, item.title].filter(Boolean).join(' · ')}</p>
+										<p class="meta">
+											{[item.race || item.kind, item.title].filter(Boolean).join(' · ')}
+										</p>
 									</div>
 								</a>
 							))}
@@ -194,8 +216,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 
 			<p class="note">
 				多数是朋友与伙伴们的角色，版权归各设主所有，本站只是收录；
-				淼渺是本站作者 {SITE_AUTHOR} 自己的角色。
-				想往签筒里加人，在角色档案里写上 <code>drawable: true</code> 即可。
+				淼渺是本站作者自己的角色。带「签筒」角标的条目只在这个区域出现，没有进入世界观正式档案。
 			</p>
 		</main>
 		<Footer />

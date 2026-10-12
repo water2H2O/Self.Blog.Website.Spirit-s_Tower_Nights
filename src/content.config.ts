@@ -268,4 +268,46 @@ const eden = defineCollection({
 		}),
 });
 
-export const collections = { blog, races, characters, lore, stories, music, eden };
+/**
+ * 签筒：只出现在「抽签」这一块的条目。
+ *
+ * 和 characters 分开存 —— 这里放的是**不进世界观档案**的角色与设定：
+ * 客串的、玩梗的、还没想好归到哪一支种族的，都可以先扔进来，
+ * 它们只会出现在 /draw/ 与签筒里，不会跑到角色列表和总览上。
+ *
+ * 字段刻意和 characters 对齐（name / summary / owner / portrait / tags…），
+ * 这样抽签页与签筒页能把两个来源揉成同一个列表处理。
+ */
+const draw = defineCollection({
+	// 目录里的写作说明用 .txt（见 src/content/draw/README.txt）：
+	// glob 会把任何 .md 当成内容条目，缺字段就会让构建失败，
+	// 而 pattern 只接受单个字符串（传数组会被拼成一个模式，结果什么都匹配不到）。
+	loader: glob({ base: './src/content/draw', pattern: '**/*.{md,mdx}' }),
+	schema: ({ image }) =>
+		z.object({
+			name: z.string(),
+			/** 卡片上的小标签：角色 / 设定 / 其他 */
+			kind: z.enum(['角色', '设定', '其他']).default('角色'),
+			summary: z.string(),
+			/** 称号 / 他称 */
+			title: z.string().optional(),
+			/** 原创（自己的）还是联动（朋友家的） */
+			ownership: z.enum(['原创', '联动']).default('原创'),
+			/** 联动条目的设主 */
+			owner: z.string().optional(),
+			ownerUrl: z.string().url().optional(),
+			themeColor: themeColor.default('#AFFFFF'),
+			portrait: z.optional(image()),
+			aliases: z.array(z.string()).default([]),
+			height: z.string().optional(),
+			age: z.string().optional(),
+			pronouns: z.string().optional(),
+			tags: z.array(z.string()).default([]),
+			canon: canonLevel,
+			spoiler: spoilerLevel,
+			draft: z.boolean().default(false),
+			order: z.number().default(100),
+		}),
+});
+
+export const collections = { blog, races, characters, lore, stories, music, eden, draw };

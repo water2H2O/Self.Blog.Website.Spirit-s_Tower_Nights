@@ -1,0 +1,68 @@
+---
+import { getCollection, render } from 'astro:content';
+import DetailPage from '../../../layouts/DetailPage.astro';
+
+/**
+ * 签筒目录里那些条目的详情页。
+ *
+ * 只有「抽签」这一块会用到 —— 它们不进世界观档案，所以路径放在 /draw/entry/ 下，
+ * 而不是 /worldview/characters/。
+ */
+
+export async function getStaticPaths() {
+	const entries = await getCollection('draw', ({ data }) => !data.draft);
+	return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const {
+	name,
+	kind,
+	title,
+	summary,
+	ownership,
+	owner,
+	ownerUrl,
+	themeColor,
+	portrait,
+	aliases,
+	height,
+	age,
+	pronouns,
+	tags,
+	canon,
+	spoiler,
+} = entry.data;
+
+const meta: { label: string; value: string; href?: string }[] = [{ label: '类型', value: kind }];
+if (title) meta.push({ label: '称号', value: title });
+if (aliases.length > 0) meta.push({ label: '别称', value: aliases.join(' / ') });
+if (height) meta.push({ label: '身高', value: height });
+if (age) meta.push({ label: '年龄', value: age });
+if (pronouns) meta.push({ label: '性别', value: pronouns });
+if (ownership === '联动') {
+	meta.push({ label: '归属', value: '联动设定' });
+	meta.push({ label: '设主', value: owner || '待补', href: ownerUrl });
+}
+---
+
+<DetailPage
+	title={name}
+	subtitle={`签筒 · ${kind}`}
+	summary={summary}
+	themeColor={themeColor}
+	cover={portrait}
+	tags={tags}
+	meta={meta}
+	canon={canon}
+	spoiler={spoiler}
+	license={ownership === '原创' ? 'cc-by' : 'reserved'}
+	licenseNote={ownership === '原创'
+		? '这一位只出现在签筒里，未进入世界观正式档案。'
+		: `本条目版权归设主${owner ? ` ${owner}` : ''}所有，本站只是收录。`}
+	backHref="/draw/pool/"
+	backLabel="签筒"
+>
+	<Content />
+</DetailPage>
