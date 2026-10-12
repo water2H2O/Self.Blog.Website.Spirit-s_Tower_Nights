@@ -33,6 +33,12 @@ interface Props {
 	minHeight?: number;
 	/** 是否按类型限制尺寸（画廊里表情包限成小方块；角色页不限制） */
 	kindSizing?: boolean;
+	/**
+	 * 排列方式：
+	 *   random —— 随机错落（画廊用，热闹）
+	 *   even   —— 等高整齐（角色页用，一屏看清 TA 的画）
+	 */
+	layout?: 'random' | 'even';
 	/** 空状态的提示文字 */
 	emptyText?: string;
 }
@@ -44,6 +50,7 @@ const {
 	watermark = `${SITE_TITLE} · @${SITE_AUTHOR}`,
 	minHeight = 200,
 	kindSizing = false,
+	layout = 'random',
 	emptyText = '还没有图片。',
 } = Astro.props;
 
@@ -67,6 +74,7 @@ const filters = showFilters
 			class="wall-wrap"
 			data-sample={sampleSize}
 			data-kind-sizing={kindSizing ? '1' : '0'}
+			data-layout={layout}
 			style={`--wall-min:${minHeight}px`}
 		>
 			{filters.length > 0 && (
@@ -315,6 +323,8 @@ const filters = showFilters
 		const filters = wrap.querySelector<HTMLElement>('.filters');
 		const requested = Number(wrap.dataset.sample) || tiles.length;
 		const kindSizing = wrap.dataset.kindSizing === '1';
+		/** 整齐模式：每张都占一列、高度统一，砌出来就是规规矩矩的网格 */
+		const even = wrap.dataset.layout === 'even';
 
 		/**
 		 * 窄屏（手机）优化：
@@ -324,8 +334,9 @@ const filters = showFilters
 		const narrow = () => window.matchMedia('(max-width: 720px)').matches;
 		const sampleSize = () => (narrow() ? Math.min(requested, 30) : requested);
 
-		/** 每张图的宽度档位：1 = 一列，2 = 两列（大图） */
+		/** 每张图的宽度档位：1 = 一列，2 = 两列（大图）。整齐模式下恒为 1 */
 		const sizeOf = (tile: HTMLElement) => {
+			if (even) return 1;
 			if (kindSizing && tile.dataset.kind === '表情包') return 1;
 			const ar = Number(tile.dataset.ar) || 1;
 			const wide = ar > 1.25 ? Math.random() < 0.55 : Math.random() < 0.15;
@@ -383,7 +394,10 @@ const filters = showFilters
 				const tileW = colW * span + GAP * (span - 1);
 				const ar = Number(tile.dataset.ar) || 1;
 				const [minRatio, maxRatio] = ratioRange(tile);
-				const tileH = Math.round(Math.min(Math.max(tileW / ar, tileW * minRatio), tileW * maxRatio));
+				// 整齐模式：所有格子一个高度（4:5），砌出来是规规矩矩的网格
+				const tileH = even
+					? Math.round(tileW * 1.25)
+					: Math.round(Math.min(Math.max(tileW / ar, tileW * minRatio), tileW * maxRatio));
 
 				let best = 0;
 				let bestY = Infinity;

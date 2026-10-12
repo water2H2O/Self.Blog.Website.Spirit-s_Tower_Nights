@@ -154,8 +154,8 @@ if (relations.length > 0) {
 				{artworks.length > 0 && (
 					<>
 						<h2>画作（{artworks.length}）</h2>
-						<p class="hint">和画廊同一套展示：每次打开随机铺墙，点开看大图。表情包与周边素材也一并放在这里。</p>
-						<GalleryWall items={artworks} minHeight={260} />
+						<p class="hint">点开看大图。表情包与周边素材也一并放在这里。</p>
+						<GalleryWall items={artworks} minHeight={260} layout="even" />
 					</>
 				)}
 				{episodes.length > 0 && (

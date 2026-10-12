@@ -113,13 +113,33 @@ const ungrouped = characters.filter((character) => !known.has(character.id));
 				letter-spacing: 0.06em;
 				color: rgb(var(--gray));
 			}
+			/*
+			 * 分组块本身排成多列：每个种族往往只有一两位，
+			 * 若一组独占一行，整页会拉得很长、每行只见到一两个人。
+			 */
+			.group-wrap {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+				gap: 1.6em 1.8em;
+				align-items: start;
+				margin-top: 1.6em;
+			}
+			.group-wrap section {
+				margin: 0;
+			}
+			/* 分组内部的卡片网格收紧一点，一列能放两三张 */
 			.grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-				gap: 1.5rem;
+				grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+				gap: 1rem;
 			}
 			.empty {
 				color: rgb(var(--gray));
+			}
+			@media (max-width: 1099px) {
+				.group-wrap {
+					grid-template-columns: 1fr;
+				}
 			}
 		</style>
 	</head>
@@ -131,45 +151,47 @@ const ungrouped = characters.filter((character) => !known.has(character.id));
 				{characters.length} 位角色，按种族分组。点开任意一位，可以看到 TA 的设定、出处、画作与出场故事。
 			</p>
 
-			{
-				groups.map((group) => (
-					<section style={`--race-color:${group.color}`}>
-						<div class="race-head">
-							<h2>
-								{group.links.map((link, index) => (
-									<>
-										{index > 0 && <span class="sep"> / </span>}
-										<a href={link.href}>{link.text}</a>
-									</>
+			<div class="group-wrap">
+				{
+					groups.map((group) => (
+						<section style={`--race-color:${group.color}`}>
+							<div class="race-head">
+								<h2>
+									{group.links.map((link, index) => (
+										<>
+											{index > 0 && <span class="sep"> / </span>}
+											<a href={link.href}>{link.text}</a>
+										</>
+									))}
+								</h2>
+								{group.epithets.length > 0 && (
+									<span class="epithet">{group.epithets.map((e) => `[${e}]`).join(' ')}</span>
+								)}
+							</div>
+							<div class="grid">
+								{group.members.map((character) => (
+									<CharacterCard entry={character} />
 								))}
-							</h2>
-							{group.epithets.length > 0 && (
-								<span class="epithet">{group.epithets.map((e) => `[${e}]`).join(' ')}</span>
-							)}
-						</div>
-						<div class="grid">
-							{group.members.map((character) => (
-								<CharacterCard entry={character} />
-							))}
-						</div>
-					</section>
-				))
-			}
+							</div>
+						</section>
+					))
+				}
 
-			{
-				ungrouped.length > 0 && (
-					<section>
-						<div class="race-head">
-							<h2>种族未定</h2>
-						</div>
-						<div class="grid">
-							{ungrouped.map((character) => (
-								<CharacterCard entry={character} />
-							))}
-						</div>
-					</section>
-				)
-			}
+				{
+					ungrouped.length > 0 && (
+						<section>
+							<div class="race-head">
+								<h2>种族未定</h2>
+							</div>
+							<div class="grid">
+								{ungrouped.map((character) => (
+									<CharacterCard entry={character} />
+								))}
+							</div>
+						</section>
+					)
+				}
+			</div>
 		</main>
 		<Footer />
 	</body>
