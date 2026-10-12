@@ -41,7 +41,24 @@ const creature = (() => {
 			? (blocks[levelIndex] as Extract<CreatureBlock, { type: 'level' }>).label
 			: null;
 	const rest = levelIndex >= 0 ? blocks.filter((_, index) => index !== levelIndex) : blocks;
-	return { level: danger ?? fromBody, blocks: rest };
+
+	/**
+	 * 连续的 field 块合并成一张表 —— 生物档案开头那一段「姓名／人种／归属势力…」
+	 * 本来就是表格内容，项目符号式地一行行排反而散。
+	 */
+	type Row = { label: string; value: string };
+	const laid: (CreatureBlock | { type: 'fields'; rows: Row[] })[] = [];
+	for (const block of rest) {
+		if (block.type === 'field') {
+			const last = laid[laid.length - 1];
+			if (last && last.type === 'fields') last.rows.push({ label: block.label, value: block.value });
+			else laid.push({ type: 'fields', rows: [{ label: block.label, value: block.value }] });
+		} else {
+			laid.push(block);
+		}
+	}
+
+	return { level: danger ?? fromBody, blocks: laid };
 })();
 const creatureDanger = creature?.level ? dangerNumber(creature.level) : null;
 
@@ -96,6 +113,19 @@ const dangerVars = (n: number | null) => {
 					if (block.type === 'epigraph') return <p class="epigraph">{block.text}</p>;
 					if (block.type === 'heading') return <h3 class="sec">{block.text}</h3>;
 					if (block.type === 'divider') return <hr class="rule" />;
+					if (block.type === 'fields')
+						return (
+							<table class="facts-table">
+								<tbody>
+									{block.rows.map((row) => (
+										<tr>
+											<th scope="row">{row.label}</th>
+											<td>{row.value}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						);
 					if (block.type === 'field')
 						return (
 							<div class="field">

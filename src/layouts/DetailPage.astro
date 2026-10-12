@@ -114,24 +114,20 @@ const CANON = {
 				border-radius: 14px;
 				box-shadow: var(--box-shadow);
 			}
+			/* 信息栏：表格样式来自 global.css 的 .facts-table，这里只补间距与描边色 */
 			.meta {
-				display: grid;
-				grid-template-columns: auto 1fr;
-				gap: 0.4em 1.2em;
 				margin: 0 0 2em;
-				padding: 1em 1.2em;
-				background: color-mix(in srgb, var(--entry-color) 8%, var(--surface));
-				border: 1px solid color-mix(in srgb, var(--entry-color) 25%, transparent);
-				border-radius: 12px;
 				font-size: 0.88em;
+				background: color-mix(in srgb, var(--entry-color) 8%, var(--surface));
+				border-color: color-mix(in srgb, var(--entry-color) 25%, transparent);
 			}
-			.meta dt {
+			.meta th,
+			.meta td {
+				border-color: color-mix(in srgb, var(--entry-color) 18%, transparent);
+			}
+			.meta th {
 				color: rgb(var(--gray));
-				white-space: nowrap;
-			}
-			.meta dd {
-				margin: 0;
-				color: rgb(var(--gray-dark));
+				background: color-mix(in srgb, var(--entry-color) 6%, transparent);
 			}
 			.prose {
 				color: rgb(var(--gray-dark));
@@ -186,11 +182,7 @@ const CANON = {
 			}
 			@media (max-width: 720px) {
 				.meta {
-					grid-template-columns: 1fr;
-					gap: 0.1em;
-				}
-				.meta dd {
-					margin-bottom: 0.6em;
+					font-size: 0.84em;
 				}
 			}
 		</style>
@@ -209,22 +201,24 @@ const CANON = {
 			</header>
 			{
 				meta.length > 0 && (
-					<dl class="meta">
-						{meta.map((item) => (
-							<>
-								<dt>{item.label}</dt>
-								<dd>
-									{item.href ? (
-										<a href={item.href} target="_blank" rel="noreferrer">
-											{item.value}
-										</a>
-									) : (
-										item.value
-									)}
-								</dd>
-							</>
-						))}
-					</dl>
+					<table class="facts-table meta">
+						<tbody>
+							{meta.map((item) => (
+								<tr>
+									<th scope="row">{item.label}</th>
+									<td>
+										{item.href ? (
+											<a href={item.href} target="_blank" rel="noreferrer">
+												{item.value}
+											</a>
+										) : (
+											item.value
+										)}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				)
 			}
 			<div class="prose">

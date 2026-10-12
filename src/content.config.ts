@@ -2,6 +2,13 @@ import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+/**
+ * 角色 / 种族 / 设定 / 伊甸园四个集合的正文里常有「姓名：…／种族：…」这种
+ * 连排字段，tools/apply-field-tables.mjs 会把它们写成 markdown 表格。
+ * 这里不做运行时改写：内容层的正文是延迟渲染的（渲染时直接读磁盘上的 md），
+ * 在 loader 里改 store 到不了渲染结果，改 digest 还会让整篇正文渲染成空白。
+ */
+
 /** 主题色统一校验成 #rrggbb */
 const themeColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, '需要 #rrggbb 形式的颜色，例如 #AFFFFF');
 
