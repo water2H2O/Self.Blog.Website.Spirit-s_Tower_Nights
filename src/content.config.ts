@@ -215,6 +215,13 @@ const music = defineCollection({
 			/** PV 外链（B 站等），视频本体不进仓库 */
 			pvUrl: z.string().url().optional(),
 			duration: z.string().optional(),
+			/**
+			 * 关联的故事篇（篇号前缀，例如 act1-birdcage-2）。
+			 * 「篇」不是独立条目，所以这里存话 id 去掉话号后的前缀 ——
+			 * 与故事目录页对应篇标题上的锚点同名，链接形如
+			 * /worldview/stories/#act1-birdcage-2。
+			 */
+			storyArcs: z.array(z.string()).default([]),
 			characters: z.array(reference('characters')).default([]),
 			races: z.array(reference('races')).default([]),
 			note: z.string().optional(),

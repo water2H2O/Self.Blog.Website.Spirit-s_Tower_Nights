@@ -7,6 +7,7 @@ illustrator: 胖藤蛇13
 cover: '../../assets/oc/music/06-ventus-murorum.webp'
 audio: '/audio/06-ventus-murorum.mp3'
 duration: '2:15'
+storyArcs: ['act1-healer-4', 'act1-eye-5']
 pvUrl: 'https://www.bilibili.com/video/BV1mKja6jEte'
 themeColor: '#AFFFFF'
 order: 60

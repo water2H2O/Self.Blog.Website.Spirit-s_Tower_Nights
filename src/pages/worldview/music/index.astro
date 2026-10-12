@@ -106,6 +106,10 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			.artist a:hover {
 				color: var(--glow);
 			}
+			.artist .sep {
+				margin: 0 0.5em;
+				color: rgb(var(--gray-light));
+			}
 			/* 试听：默认只有一个按钮，点开才出现播放器 —— 目录页一次只开一个 */
 			.preview {
 				margin-top: 0.7em;
@@ -201,6 +205,19 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 										</a>
 									) : (
 										track.data.artist
+									)}
+									{track.data.illustrator && (
+										<>
+											<span class="sep">·</span>
+											画师{' '}
+											{track.data.illustratorUrl ? (
+												<a href={track.data.illustratorUrl} target="_blank" rel="noreferrer">
+													{track.data.illustrator}
+												</a>
+											) : (
+												track.data.illustrator
+											)}
+										</>
 									)}
 								</p>
 								{track.data.audio && (

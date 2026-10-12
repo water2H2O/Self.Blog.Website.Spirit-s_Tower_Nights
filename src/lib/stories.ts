@@ -26,9 +26,18 @@ export function sortEpisodes(list: Episode[]): Episode[] {
 	});
 }
 
+/**
+ * 篇号前缀：话 id 去掉最后一段话号。
+ * act1-birdcage-2-1 → act1-birdcage-2，extra-silver-sp-1 → extra-silver-sp。
+ * 这个前缀同时用作故事目录页的锚点，音乐条目靠它指回自己关联的篇。
+ */
+export function arcIdOf(episode: Episode): string {
+	return episode.id.replace(/-(?:\d+|ep)$/, '');
+}
+
 /** 按 幕 → 篇 分组，保留传入的阅读顺序 */
 export function groupByArc(list: Episode[]) {
-	const acts: { act: string; arcs: { arc: string; episodes: Episode[] }[] }[] = [];
+	const acts: { act: string; arcs: { id: string; arc: string; episodes: Episode[] }[] }[] = [];
 	for (const episode of list) {
 		let act = acts.find((item) => item.act === episode.data.act);
 		if (!act) {
@@ -37,7 +46,7 @@ export function groupByArc(list: Episode[]) {
 		}
 		let arc = act.arcs.find((item) => item.arc === episode.data.arc);
 		if (!arc) {
-			arc = { arc: episode.data.arc, episodes: [] };
+			arc = { id: arcIdOf(episode), arc: episode.data.arc, episodes: [] };
 			act.arcs.push(arc);
 		}
 		arc.episodes.push(episode);

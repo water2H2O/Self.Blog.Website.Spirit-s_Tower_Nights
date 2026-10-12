@@ -5,6 +5,7 @@ import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LicenseBadge from '../../../components/LicenseBadge.astro';
+import { arcIdOf, publishedEpisodes } from '../../../lib/stories';
 
 export async function getStaticPaths() {
 	const tracks = await getCollection('music', ({ data }) => !data.draft);
@@ -26,6 +27,7 @@ const {
 	audioAltType,
 	duration,
 	characters,
+	storyArcs: storyArcIds,
 	pvUrl,
 	themeColor,
 } = entry.data;
@@ -34,6 +36,30 @@ const {
 const relatedCharacters = (
 	await Promise.all(characters.map((ref) => getEntry(ref)))
 ).filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+const episodesRef = await publishedEpisodes();
+
+/**
+ * 关联章节：档案里存的是篇号前缀（例如 act1-birdcage-2），
+ * 这里换成可点的链接，名字与话数都从故事那边取。
+ * 链接指向故事目录页对应篇标题上的锚点（见 lib/stories.ts 的 arcIdOf）。
+ */
+const storyArcs = storyArcIds.length
+	? (() => {
+			const episodes = episodesRef;
+			return storyArcIds.map((id) => {
+				const arcEpisodes = episodes.filter((episode) => arcIdOf(episode) === id);
+				const first = arcEpisodes[0];
+				return {
+					id,
+					href: `/worldview/stories/#${id}`,
+					label: first ? `${first.data.act} · ${first.data.arc}` : id,
+					count: arcEpisodes.length,
+					summary: first?.data.summary ?? '',
+				};
+			});
+		})()
+	: [];
 ---
 
 <!doctype html>
@@ -381,6 +407,26 @@ const relatedCharacters = (
 				Content && (
 					<section class="story">
 						<Content />
+					</section>
+				)
+			}
+
+			{
+				storyArcs.length > 0 && (
+					<section class="related">
+						<h2>关联章节</h2>
+						<ul>
+							{storyArcs.map((arc) => (
+								<li>
+									<p class="who">
+										<a href={arc.href}>{arc.label}</a>
+									</p>
+									<p class="desc">
+										本篇共 {arc.count} 话{arc.summary ? ` · ${arc.summary}` : ''}
+									</p>
+								</li>
+							))}
+						</ul>
 					</section>
 				)
 			}

@@ -7,6 +7,7 @@ illustrator: 飔暁あずみ
 cover: '../../assets/oc/music/04-snowflower.webp'
 audio: '/audio/04-snowflower.mp3'
 duration: '2:37'
+storyArcs: ['act1-birdcage-2']
 characters: ['miaomiao']
 pvUrl: 'https://www.bilibili.com/video/BV1KJRPBtE8w'
 themeColor: '#AFFFFF'

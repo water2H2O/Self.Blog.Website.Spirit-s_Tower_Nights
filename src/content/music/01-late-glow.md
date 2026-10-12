@@ -7,6 +7,7 @@ illustrator: 西禾酥酥
 cover: '../../assets/oc/music/01-late-glow.webp'
 audio: '/audio/01-late-glow.mp3'
 duration: '2:41'
+storyArcs: ['act1-elemental-1']
 pvUrl: 'https://www.bilibili.com/video/BV1m4BjBpEhC'
 themeColor: '#AFFFFF'
 order: 10

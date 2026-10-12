@@ -5,7 +5,8 @@ import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LicenseBadge from '../../../components/LicenseBadge.astro';
 import SpoilerNote from '../../../components/SpoilerNote.astro';
-import { publishedEpisodes } from '../../../lib/stories';
+import { getCollection } from 'astro:content';
+import { arcIdOf, publishedEpisodes } from '../../../lib/stories';
 
 export async function getStaticPaths() {
 	const episodes = await publishedEpisodes();
@@ -21,6 +22,15 @@ const prev = position > 0 ? episodes[position - 1] : null;
 const next = position < episodes.length - 1 ? episodes[position + 1] : null;
 
 const { title, act, arc, code, author, summary, spoiler, updatedDate, pubDate } = entry.data;
+
+/**
+ * 这一篇的主题曲：由音乐条目的 storyArcs 指回来。
+ * 同一个篇里的话都会显示同一首（或几首），点进去可以边听边看。
+ */
+const myArcId = arcIdOf(entry);
+const themeSongs = (await getCollection('music', ({ data }) => !data.draft))
+	.filter((track) => track.data.storyArcs.includes(myArcId))
+	.sort((a, b) => a.data.number - b.data.number);
 ---
 
 <!doctype html>
@@ -130,6 +140,42 @@ const { title, act, arc, code, author, summary, spoiler, updatedDate, pubDate } 
 				text-indent: 0;
 			}
 
+			/* 本篇的主题曲 */
+			.songs {
+				margin: 2.5em 0 0;
+				padding: 1em 1.2em 1.1em;
+				border-radius: 12px;
+				background: rgba(175, 255, 255, 5%);
+				border: 1px solid rgba(175, 255, 255, 18%);
+				border-left: 3px solid var(--accent);
+			}
+			.songs-title {
+				margin: 0 0 0.6em;
+				font-size: 0.78em;
+				letter-spacing: 0.16em;
+				color: var(--accent);
+			}
+			.songs ul {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5em;
+			}
+			.songs a {
+				color: var(--glow);
+				text-decoration: none;
+			}
+			.songs a:hover {
+				text-decoration: underline;
+			}
+			.songs .who {
+				margin-left: 0.6em;
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+			}
+
 			.pager {
 				display: flex;
 				justify-content: space-between;
@@ -197,6 +243,30 @@ const { title, act, arc, code, author, summary, spoiler, updatedDate, pubDate } 
 			<div class="prose">
 				<Content />
 			</div>
+
+			{/* 这一篇的主题曲（由音乐条目的 storyArcs 反向指过来） */}
+			{
+				themeSongs.length > 0 && (
+					<div class="songs">
+						<p class="songs-title">
+							<span aria-hidden="true">♪</span> 本篇的主题曲
+						</p>
+						<ul>
+							{themeSongs.map((track) => (
+								<li>
+									<a href={`/worldview/music/${track.id}/`}>
+										#{String(track.data.number).padStart(2, '0')} {track.data.title}
+									</a>
+									<span class="who">
+										曲师 {track.data.artist}
+										{track.data.illustrator && ` · 画师 ${track.data.illustrator}`}
+									</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
 
 			{/* 授权标记：只有全部由我写的话才适用 CC BY；合写与他人执笔的归作者 */}
 			<LicenseBadge

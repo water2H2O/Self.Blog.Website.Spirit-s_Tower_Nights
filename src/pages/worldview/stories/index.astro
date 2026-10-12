@@ -119,7 +119,7 @@ const acts = groupByArc(episodes);
 								{act.arcs.reduce((sum, arc) => sum + arc.episodes.length, 0)} 话
 							</p>
 							{act.arcs.map((arc) => (
-								<div class="arc">
+								<div class="arc" id={arc.id}>
 									<h3>{arc.arc}</h3>
 									<ul>
 										{arc.episodes.map((episode) => (
