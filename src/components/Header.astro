@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import logo from '../assets/oc/logo.webp';
 import { GITHUB_URL, SITE_TITLE, WORLDVIEW_BASE } from '../consts';
 
 /** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
@@ -113,9 +115,10 @@ if (inWorldview) {
 
 <header>
 	<nav class="main">
-		<h2>
-			<a href="/">{SITE_TITLE}</a>
-		</h2>
+		<a class="brand" href="/">
+			{/* 首屏内容，别 lazyload，否则进页面会闪一下。logo 是 3.56:1 的横版字标 */}
+			<Image src={logo} alt={SITE_TITLE} width={128} loading="eager" />
+		</a>
 		<div class="internal-links">
 			{
 				mainLinks.map((link) => (
@@ -193,17 +196,21 @@ if (inWorldview) {
 		top: 0;
 		z-index: 20;
 	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-		white-space: nowrap;
-	}
-	h2 a,
-	h2 a.active {
+	/* 左上角换成企划 logo（方形、带透明），alt 保留站名 */
+	.brand {
+		display: flex;
+		align-items: center;
+		flex: none;
 		text-decoration: none;
+		transition: filter 0.2s ease;
 	}
-	h2 a:hover {
-		color: var(--glow);
+	.brand:hover {
+		filter: drop-shadow(0 0 8px rgba(175, 255, 255, 55%));
+	}
+	.brand :global(img) {
+		display: block;
+		width: 128px;
+		height: auto;
 	}
 	nav.main {
 		display: flex;
@@ -219,6 +226,11 @@ if (inWorldview) {
 		border-bottom: 3px solid transparent;
 		text-decoration: none;
 		white-space: nowrap;
+	}
+	/* logo 那条链接不要吃导航项的 padding，否则页头会被撑高 */
+	nav.main a.brand {
+		padding: 0.4em 0.5em 0.4em 0;
+		border-bottom: none;
 	}
 	nav.main a:hover {
 		color: var(--glow);
@@ -316,8 +328,8 @@ if (inWorldview) {
 		font-weight: 700;
 	}
 	@media (max-width: 900px) {
-		h2 {
-			font-size: 0.9em;
+		.brand :global(img) {
+			width: 104px;
 		}
 		nav.main a {
 			padding: 0.7em 0.45em;
