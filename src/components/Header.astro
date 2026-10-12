@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import { GITHUB_URL, SITE_TITLE, WORLDVIEW_BASE } from '../consts';
 
 /** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
@@ -34,6 +35,79 @@ const isActive = (href: string) => {
 
 /** 当前所在栏目，窄屏那个目录按钮上显示 */
 const activeLabel = worldviewLinks.find((link) => isActive(link.href))?.label ?? '';
+
+/**
+ * 侧栏的二级目录。
+ *
+ * 学 wiki 的做法：**只展开当前所在的那一栏**，列出这一栏的条目。
+ * 六栏全展开会有上百条（56 话、13 个种族、13 条设定…），侧栏会变成一堵墙。
+ *
+ * 「故事」特殊一些：只列当前这一篇里的话（篇号从 id 前缀取，例如
+ * act1-birdcage-2-1 → act1-birdcage-2），这样在追一篇时能直接跳上下话。
+ */
+interface SubItem {
+	href: string;
+	label: string;
+	active: boolean;
+}
+
+let subItems: SubItem[] = [];
+
+if (inWorldview) {
+	const section = path === WORLDVIEW_BASE ? '' : path.slice(WORLDVIEW_BASE.length + 1).split('/')[0];
+
+	if (section === 'races') {
+		const all = (await getCollection('races', ({ data }) => !data.draft)).sort(
+			(a, b) => a.data.order - b.data.order,
+		);
+		subItems = all.map((entry) => ({
+			href: `${WORLDVIEW_BASE}/races/${entry.id}/`,
+			label: entry.data.name,
+			active: path === `${WORLDVIEW_BASE}/races/${entry.id}`,
+		}));
+	} else if (section === 'characters') {
+		const all = (await getCollection('characters', ({ data }) => !data.draft)).sort(
+			(a, b) => a.data.order - b.data.order,
+		);
+		subItems = all.map((entry) => ({
+			href: `${WORLDVIEW_BASE}/characters/${entry.id}/`,
+			label: entry.data.name,
+			active: path === `${WORLDVIEW_BASE}/characters/${entry.id}`,
+		}));
+	} else if (section === 'lore') {
+		const all = (await getCollection('lore', ({ data }) => !data.draft)).sort(
+			(a, b) => a.data.order - b.data.order,
+		);
+		subItems = all.map((entry) => ({
+			href: `${WORLDVIEW_BASE}/lore/${entry.id}/`,
+			label: entry.data.title,
+			active: path === `${WORLDVIEW_BASE}/lore/${entry.id}`,
+		}));
+	} else if (section === 'music') {
+		const all = (await getCollection('music', ({ data }) => !data.draft)).sort(
+			(a, b) => a.data.order - b.data.order,
+		);
+		subItems = all.map((entry) => ({
+			href: `${WORLDVIEW_BASE}/music/${entry.id}/`,
+			label: entry.data.title,
+			active: path === `${WORLDVIEW_BASE}/music/${entry.id}`,
+		}));
+	} else if (section === 'stories') {
+		// 只有具体到某一话时才展开，索引页不列（一列就是 56 条）
+		const currentId = path.slice(`${WORLDVIEW_BASE}/stories/`.length).replace(/\/+$/, '');
+		const arc = currentId.replace(/-(?:\d+|ep)$/, '');
+		if (arc && arc !== currentId) {
+			const siblings = (await getCollection('stories', ({ data }) => !data.draft))
+				.filter((entry) => entry.id.startsWith(`${arc}-`))
+				.sort((a, b) => a.data.code.localeCompare(b.data.code, 'en', { numeric: true }));
+			subItems = siblings.map((entry) => ({
+				href: `${WORLDVIEW_BASE}/stories/${entry.id}/`,
+				label: `${entry.data.code} ${entry.data.title}`,
+				active: entry.id === currentId,
+			}));
+		}
+	}
+}
 ---
 
 <header>
@@ -88,6 +162,18 @@ const activeLabel = worldviewLinks.find((link) => isActive(link.href))?.label ??
 							<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
 								{link.label}
 							</a>
+							{/* 二级目录：只在当前这一栏下展开 */}
+							{subItems.length > 0 && isActive(link.href) && (
+								<ul class="sub-list">
+									{subItems.map((item) => (
+										<li>
+											<a href={item.href} class:list={[{ active: item.active }]}>
+												{item.label}
+											</a>
+										</li>
+									))}
+								</ul>
+							)}
 						</li>
 					))}
 				</ul>
@@ -205,6 +291,28 @@ const activeLabel = worldviewLinks.find((link) => isActive(link.href))?.label ??
 		color: var(--glow);
 		background: rgba(175, 255, 255, 12%);
 		border-left-color: var(--glow);
+	}
+	/* 二级目录：往里缩一级，用一条细线连回栏目 */
+	.wv-toc .sub-list {
+		margin: 0.2em 0 0.5em 0.85em;
+		padding-left: 0.65em;
+		gap: 0;
+		border-left: 1px solid rgba(175, 255, 255, 16%);
+	}
+	.wv-toc .sub-list :global(a) {
+		padding: 0.32em 0.6em;
+		font-size: 0.84em;
+		color: rgb(var(--gray));
+	}
+	.wv-toc .sub-list :global(a:hover) {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 7%);
+	}
+	.wv-toc .sub-list :global(a.active) {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 10%);
+		border-left-color: transparent;
+		font-weight: 700;
 	}
 	@media (max-width: 900px) {
 		h2 {
