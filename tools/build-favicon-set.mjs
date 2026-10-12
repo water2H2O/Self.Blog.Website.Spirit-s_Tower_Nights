@@ -20,20 +20,28 @@ const OUT = path.join(ROOT, 'public/favicon-oc');
 const LIST = path.join(ROOT, 'src/data/favicon-set.json');
 
 const SIZE = 64;
+
 /**
- * 手动排除的表情包（按原文件名片段匹配）。
- * 这些是双人/互动构图 —— 缩到 16px 的标签页里分不清是谁，作者要求不要。
+ * 轮换池的归属规则：只放本站作者自己的角色（淼渺）。
+ * 别人家的角色不进标签页图标 —— 作者要求，墨白（黑猫）那批表情包不要出现。
+ * 按角色名匹配，不按构图，所以双人贴贴只要属于淼渺就照收。
  */
-const EXCLUDE = [
-	'贴贴_17', // 两个角色抱在一起
-	'咬_15',
-	'喂药_14',
-	'敲_09',
-	'狐萝卜_12',
-	'趴趴_16',
-	'rua_10', // 互动构图
-	'拎_8', // 互动构图
+const EXCLUDE_CHARACTERS = ['墨白'];
+
+/**
+ * 不走透明抠图流程、直接方形裁切的素材。
+ * 这张是带背景的联合贴贴（和 11 合作的双人构图），四角本来就不透明，
+ * 走常规筛选会被挡掉，所以单独指定裁切区域 —— 取下半部中间那块，
+ * 正好框住两个人的脸。
+ */
+const DIRECT = [
+	{
+		file: '淼渺__表情包-和11的联合贴贴.webp',
+		// 1600x1067 → 取 1000x1000，横向居中、贴着下边缘
+		extract: { left: 300, top: 67, width: 1000, height: 1000 },
+	},
 ];
+
 const meta = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/gallery-meta.json'), 'utf8')).items;
 
 /** 角上这一小块的平均透明度，用来判断是不是抠图 */
@@ -73,8 +81,8 @@ const candidates = Object.entries(meta)
 	.map(([file, info]) => ({ file, character: info.character, full: path.join(POOL, file) }))
 	.filter((item) => fs.existsSync(item.full))
 	.filter((item) => {
-		const hit = EXCLUDE.find((bad) => item.file.includes(bad));
-		if (hit) skippedEarly.push({ ...item, why: `手动排除（双人/互动：${hit}）` });
+		const hit = EXCLUDE_CHARACTERS.find((name) => (item.character ?? '') === name);
+		if (hit) skippedEarly.push({ ...item, why: `按角色排除（${hit}）` });
 		return !hit;
 	});
 
@@ -82,6 +90,9 @@ const picked = [];
 const skipped = [...skippedEarly];
 
 for (const item of candidates) {
+	// 直接裁切的素材不走透明抠图那一套
+	if (DIRECT.some((direct) => direct.file === item.file)) continue;
+
 	const image = sharp(item.full);
 	const info = await image.metadata();
 	if (!info.hasAlpha) {
@@ -98,7 +109,9 @@ for (const item of candidates) {
 	picked.push({ ...item, corner });
 }
 
-console.log(`表情包 ${candidates.length} 张 → 透明抠图 ${picked.length} 张，跳过 ${skipped.length} 张\n`);
+console.log(
+	`表情包 ${candidates.length} 张 → 透明抠图 ${picked.length} 张 + 指定裁切 ${DIRECT.length} 张，跳过 ${skipped.length} 张\n`,
+);
 
 const list = [];
 let index = 0;
@@ -121,6 +134,32 @@ for (const item of picked) {
 		h: trimmed.height,
 	});
 	console.log(`  ✓ ${name.padEnd(34)} ${String(trimmed.width)}×${trimmed.height}  ${Math.round(trimmed.size / 1024)} KB`);
+}
+
+// 指定裁切的：直接方切，不需要透明
+for (const direct of DIRECT) {
+	const full = path.join(POOL, direct.file);
+	if (!fs.existsSync(full)) {
+		console.log(`  ✗ 指定裁切的素材不存在：${direct.file}`);
+		continue;
+	}
+	index += 1;
+	const name = `${String(index).padStart(2, '0')}-${path.basename(direct.file, '.webp').replace(/^[^_]+__/, '')}.png`;
+	const dest = path.join(OUT, name);
+	const out = await sharp(full)
+		.extract(direct.extract)
+		.resize(SIZE, SIZE, { fit: 'cover' })
+		.png({ compressionLevel: 9 })
+		.toFile(dest);
+
+	list.push({
+		src: `/favicon-oc/${name}`,
+		character: meta[direct.file]?.character ?? '',
+		from: direct.file,
+		w: out.width,
+		h: out.height,
+	});
+	console.log(`  ✓ ${name.padEnd(34)} ${out.width}×${out.height}  ${Math.round(out.size / 1024)} KB（指定裁切）`);
 }
 
 fs.writeFileSync(LIST, `${JSON.stringify({ size: SIZE, items: list }, null, 2)}\n`, 'utf8');
