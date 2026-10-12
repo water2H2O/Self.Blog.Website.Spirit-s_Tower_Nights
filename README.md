@@ -43,6 +43,143 @@ dev.cmd preview     # 预览构建结果
 
 ---
 
+## 给写作者：怎么上传文字内容
+
+这一节写给负责世界观文字的人。**只涉及三类文字**；图片、音乐与页面代码由站长处理。
+
+### 你负责这三个目录
+
+| 目录 | 内容 | 上线后的地址 |
+| --- | --- | --- |
+| `src/content/characters/` | 角色档案 | `/worldview/characters/<文件名>/` |
+| `src/content/lore/` | 设定条目 | `/worldview/lore/<文件名>/` |
+| `src/content/stories/` | 故事正文 | `/worldview/stories/<文件名>/` |
+
+**一个 `.md` 文件 = 一个条目**，文件名就是网址的最后一段（用英文或拼音小写 + 连字符，
+例如 `miaomiao`、`act1-birdcage-2-1`；**不要用中文文件名**）。
+
+其余目录请别动 —— `src/pages/`、`src/components/`、`src/styles/`、`public/`、`tools/`
+都是站点本身，改错会让全站出问题。
+
+### 两种上传方式
+
+**① 网页版：什么都不用装（推荐）**
+
+1. 在 GitHub 上打开对应目录，例如 `src/content/stories/`
+2. 改已有的话：点开那个 `.md` → 点右上角铅笔图标 → 直接编辑
+   新建的话：`Add file` → `Create new file` → 文件名写成 `<英文名>.md`
+3. 拉到页面底部点 **Commit changes**（提交信息随便写，例如「新增 3-8」）
+4. 等 1~2 分钟，站点自动重新构建上线
+
+**② 本地版：想先在浏览器里看效果再用**
+
+```sh
+pnpm install
+pnpm dev        # → http://localhost:4321
+```
+
+改完 `git add . && git commit -m "…" && git push`。
+
+> 每次提交都会触发一次构建。写完一批提交一次就好，不必改一个字提交一次。
+
+### 新建一个条目
+
+**角色** → `src/content/characters/miaomiao.md`
+
+```md
+---
+name: 淼渺                    # 必填
+summary: 一句话简介            # 必填
+race: 'elemental-spirit'      # 指向 src/content/races/ 里的文件名
+ownership: 原创               # 原创 / 联动（联动时再填 owner 与 ownerUrl）
+title: 莉莉安娜的“小药剂师”
+aliases: ['水水']
+height: 145cm
+age: 不详
+themeColor: '#AFFFFF'
+tags: ['主角', '药剂师']
+relations:                    # 人际关系，to 指向别的角色文件名
+  - to: 'liliana-salambo'
+    note: 庇护者与“绑架犯”
+lore: ['miasma']              # 关联设定
+canon: locked                 # locked / open / draft，见下方“吃书防线”
+order: 10                     # 越小越靠前
+---
+
+## 1. 种族与身份
+
+姓名：淼渺
+
+种族：元素精灵
+
+身份：……
+```
+
+**设定** → `src/content/lore/miasma.md`
+
+```md
+---
+title: 瘴素                   # 必填
+summary: 一句话说明            # 必填
+category: 瘴素                # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 地理 / 历史 / 概念
+characters: ['miaomiao']      # 关联角色
+races: ['elemental-spirit']   # 关联种族
+related: ['cataclysm']        # 关联别的设定条目
+canon: locked
+order: 10
+---
+
+正文……
+```
+
+**故事** → `src/content/stories/act1-birdcage-2-1.md`
+
+```md
+---
+title: 笼与蔷薇               # 必填
+act: 第一幕：囚笼与飞翔        # 必填，幕
+arc: 囚鸟篇                   # 必填，篇
+code: '2-1'                   # 必填，话号（决定篇内顺序）
+author: 水水                  # 不填默认水水；别人写的要写名字
+summary: 一句话摘要            # 可选
+characters: ['miaomiao']
+status: published             # 改成 draft 就不上目录、不生成页面
+order: 21
+---
+
+正文……
+```
+
+**故事文件名有格式**：`<幕>-<篇>-<话>`，例如 `act1-birdcage-2-1` = 第一幕 · 囚鸟篇 · 第 2 篇第 1 话。
+上下话翻页、侧栏里「本篇的话」都靠它，新开一篇时照这个格式取名。
+
+### 正文怎么写
+
+- **段落之间空一行**，就是独立段落
+- **对话**：每行末尾加一个反斜杠 `\`，会严格按行渲染（间距紧凑）
+  ```
+  飒岚：水水快看！穿过这片云——\
+  淼渺：（小声）我、我还是怕高……\
+  ```
+- **引号用 `“”` 和 `‘’`**，不要用 `「」` —— 全站统一，导入时不做字符替换
+- **不要手写 HTML**：正文里的 `<div>` 这类标签会被直接丢掉（**连里面的文字一起**），
+  要排版就用 markdown 语法；实在需要 HTML 的场合找站长
+- **「标签：值」连排会自动变成表格**：连续两行以上、每行都是 `xxx：yyy` 的形式，
+  渲染时会合并成一张两列表格（角色卡那种）。想立刻在源文件里定下来，跑
+  `node tools/apply-field-tables.mjs` —— 它改之前会**逐字校验**，对不上就跳过并报错
+
+### 提交前自查
+
+- frontmatter 的**必填字段**都填了。缺字段会让**整个站点**构建失败，
+  错误信息里会写是哪个文件哪一行
+- 引用别人的条目（`race:` / `lore:` / `characters:` / `related:` / `relations.to`）
+  文件名拼写正确。**删条目时先把引用它的地方清掉**，否则构建会直接报错（这是故意的，免得留死链）
+- 还没写完不想上线：加 `draft: true`（故事用 `status: draft`），条目会隐藏且不生成页面
+- 提交后刷新 **https://water2h2o.com** 看一眼。构建失败会在 Cloudflare 项目页留日志，
+  也可以直接把报错丢给站长
+
+---
+
 ## 内容怎么写
 
 站内有 **七个集合**，各管一类内容：
@@ -53,9 +190,13 @@ dev.cmd preview     # 预览构建结果
 | `characters` | `src/content/characters/` | `/worldview/characters/文件名/` | 角色档案 |
 | `lore` | `src/content/lore/` | `/worldview/lore/文件名/` | 设定条目：世界规则、瘴素、神器、魔法体系…… |
 | `stories` | `src/content/stories/` | `/worldview/stories/文件名/` | 故事正文，按“幕 → 篇 → 话” |
-| `gallery` | `src/content/gallery/` | `/worldview/gallery/` | 一张图一条记录 |
-| `music` | `src/content/music/` | `/worldview/music/` | 与曲师合作的曲目 |
+| `music` | `src/content/music/` | `/worldview/music/文件名/` | 与曲师合作的曲目 |
 | `blog` | `src/content/blog/` | `/blog/文件名/` | 随笔（个人区，不在 /worldview/ 下） |
+| `eden` | `src/content/eden/` | `/project/eden/文件名/` | 群创企划「伊甸园」的稿件 |
+
+> **画廊不在这个表里。** 它不是 markdown 集合，而是一个**图池**：
+> 图片放在 `public/gallery/`，标注写在 `src/data/gallery-meta.json`，
+> 由 `tools/build-gallery-pool.mjs` 生成。详见后面「画廊图池」。
 
 新增内容 = 在对应目录下新建 `.md`，**文件名就是网址的最后一段**。
 
@@ -140,20 +281,9 @@ order: 10
 
 ### 画廊
 
-```md
----
-title: 全身插画
-image: '../../assets/oc/gallery/miaomiao-fullbody.webp'
-kind: 插画                   # 立绘 / 插画 / 曲绘 / 头像 / 设计稿 / 表情包 / 周边
-characters: ['miaomiao']
-artist: 画师名                # 非本人作品时填
-tags: ['全身']
-download: 'https://…'        # 周边类（如鼠标指针主题）的下载地址
-order: 10
----
-```
-
-画廊页支持**类型 + 角色双维度筛选**和点击放大（灯箱）。
+图池里的图不在 markdown 里逐张登记，标注（归属、设主、分类、尺寸）统一放在
+`src/data/gallery-meta.json`，由 `tools/build-gallery-pool.mjs` 生成与维护 —— 详见后面「画廊图池」一节。
+角色页的画作、企划页的立绘墙都是从同一个图池里按标注取图。
 
 ### 音乐
 
@@ -346,15 +476,14 @@ node tools/verify-verbatim.mjs --map=<映射.json>
 - **不要把中间产物写进 `src/content/` 目录**：glob loader 会把任何 `.md` 都当成内容条目，
   缺字段就直接让构建失败。临时文件放到 `src/` 之外
 
-## 设定区目前是「隐藏」状态
+## 设定区（已恢复显示）
 
-`/worldview/lore/` 的内容还在长，所以暂时从**导航和总览**里收了起来 —— **不是删除**：
+`/worldview/lore/` 曾经从导航里收起来过一段时间，现在**已经放回导航与总览**：
 
-- 页面照常构建，直接访问 `/worldview/lore/` 能看，索引也列出全部条目
-- 条目之间的 `related` 链接、以及角色页的「关联设定」链接都正常
-- 想放回导航：在 `src/components/Header.astro` 的 `worldviewLinks` 里加回一行
-  `{ href: `${WORLDVIEW_BASE}/lore`, label: '设定' }`，
-  并在 `src/pages/worldview/index.astro` 的 `rooms` 里加回对应的房间卡片
+- 侧栏「设定」一栏会展开全部条目（当前条目高亮）
+- 总览页也有对应的房间卡片
+- 想再次隐藏：把 `src/components/Header.astro` 的 `worldviewLinks` 里那一行注释掉，
+  并去掉 `src/pages/worldview/index.astro` 的 `rooms` 里对应卡片即可（页面本身不受影响）
 
 ## 画廊图池与品牌资源
 
@@ -386,41 +515,49 @@ node tools/build-gallery-pool.mjs --dry-run  # 只看会做什么
 ### 站点图标与分享图
 
 ```sh
-node tools/build-brand-assets.mjs [logo.png]
+node tools/build-brand-assets.mjs [logo.png]   # favicon.ico / favicon.png / apple-touch-icon.png / og-default.png
+node tools/build-favicon-set.mjs               # 「网站小图标」轮换池
+node tools/favicon-contact-sheet.mjs 150       # 把轮换池拼成一张联系表，方便肉眼挑
 ```
 
-从原始 logo（默认读桌面那份 3072×3072 的 PNG）生成 `public/favicon.ico`、`favicon.png`、
-`apple-touch-icon.png`、`og-default.png`。
+站内 32px 的图标（`favicon.png`）用「水」字：实测缩到 32px 仍然清晰，猫脸会糊，
+整条字标完全不可读。iOS 图标与社交分享图用完整字标。
 
-站点图标用「水」字：实测缩到 32px 仍然清晰，猫脸会糊，整条字标完全不可读；
-iOS 图标与社交分享图用完整字标。
+**标签页图标是一组会轮换的表情包**：`src/data/favicon-set.json` 里登记一批 64×64 的
+透明抠图，页面加载时随机挑一张（`src/components/BaseHead.astro`）。
 
-## 部署（Cloudflare Pages + 自定义域名）
+轮换池的取材规则（在 `tools/build-favicon-set.mjs` 顶部）：
+
+- 只取 `kind` 为 `表情包`、**带透明通道且四角透明**的图 —— 也就是抠图，带背景的整图不要
+- **按角色排除**：`EXCLUDE_CHARACTERS` 里的角色整体不进池子（目前是墨白，作者要求）
+- `DIRECT` 列表里的素材不走透明筛选，而是按指定区域方形裁切
+  （例如带背景的双人贴贴，就取中间那块框住两张脸）
+
+## 部署（Cloudflare Workers + 自定义域名）
 
 正式地址：**https://water2h2o.com**（域名在 Dynadot，DNS 托管在 Cloudflare）。
 仓库远端：`git@github.com:water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights.git`
 
-Cloudflare Pages 的项目设置：
+控制台里的「创建应用」现在走的是 **Workers** 流程（Pages 正在并入 Workers），
+所以仓库里有 `wrangler.jsonc`，部署命令是 `npx wrangler deploy`：
 
 | 项 | 值 |
 | --- | --- |
-| 框架预设 | Astro |
-| 构建命令 | `pnpm run build`（识别不了 pnpm 时用 `npm run build`） |
-| 输出目录 | `dist` |
-| 环境变量 | `NODE_VERSION` = `22.12.0`（`package.json` 里 engines 要求 ≥22.12） |
+| 构建命令 | `pnpm run build` |
+| 部署命令 | `npx wrangler deploy` |
+| 输出目录 | `dist`（写在 `wrangler.jsonc` 的 `assets.directory`） |
+| Node 版本 | 仓库根的 `.node-version`（22.12.0），构建镜像会读它，不用在控制台设环境变量 |
 
-连上仓库后每次 push 到 `main` 会自动构建部署。自定义域在 Pages 项目的
-「自定义域」里加 `water2h2o.com` 与 `www.water2h2o.com` 即可，证书自动签发。
+`wrangler.jsonc` 的 `name` 必须和控制台里的项目名一致，否则会部署到另一个 Worker 上。
+连上仓库后每次 push 到 `main` 会自动构建部署。
 
 要点：
 
 - 站点挂在**域名根目录**，所以 `astro.config.mjs` 里只需要 `site`、**不需要 `base`**
-- 主机在境外，**不需要备案**；代价是用不了大陆 CDN（详见闲聊里的方案对比）
-- GitHub Pages 的旧地址（`…github.io/…`）不再使用。若哪天要退回子路径部署，
-  必须同时补上 `base: '/Self.Blog.Website.Spirit-s_Tower_Nights'`，
-  否则构建产物里的 `/_astro/...` 会全部 404
-- Cloudflare Pages 单文件上限 25 MB：图片与 MP3 都没问题，**PV 视频别放进来**，
-  继续走 B 站外链
+- 每次 push 后 1~2 分钟上线；构建失败在 Cloudflare 项目页有日志
+- 截图分享（og:image）与 sitemap 都用 `site` 拼绝对地址，换域名只改那一处
+- 主机在境外，**不需要备案**；代价是用不了大陆 CDN
+- 单文件上限 25 MB：图片与 MP3 都没问题，**PV 视频别放进来**，继续走 B 站外链
 
 ## 许可
 
