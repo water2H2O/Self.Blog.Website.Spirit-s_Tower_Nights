@@ -14,27 +14,31 @@
 	/* 品牌辉光（淼渺代表色，用户指定） */
 	--glow: #afffff;
 	/* 可读的青色强调，用于链接与交互态 */
-	--accent: #6fe3ec;
-	--accent-dark: #3fa9b8;
+	--accent: #7fe9f0;
+	--accent-dark: #4fbccb;
 
-	/* 层次：夜 → 面板 → 浮起 */
-	--bg: #0a1520;
-	--surface: #101f2e;
-	--surface-2: #16293b;
-	--border: 30, 54, 74;
+	/*
+	 * 层次：夜 → 面板 → 浮起。
+	 * 比最初那版抬亮了一档，并往淼渺的淡青偏一点：
+	 * 原来 #0a1520 是接近黑的藏青，压在整站上显得闷。
+	 */
+	--bg: #12222e;
+	--surface: #1a2f3e;
+	--surface-2: #22404f;
+	--border: 44, 74, 96;
 
 	/* 文字（沿用模板变量名，值为深色主题重设） */
-	--black: 230, 244, 248;
-	--gray: 143, 169, 184;
-	--gray-light: 30, 54, 74;
-	--gray-dark: 214, 232, 240;
+	--black: 235, 248, 252;
+	--gray: 162, 188, 202;
+	--gray-light: 44, 74, 96;
+	--gray-dark: 222, 240, 247;
 
-	--gray-gradient: rgba(16, 31, 46, 60%), var(--bg);
+	--gray-gradient: rgba(26, 47, 62, 60%), var(--bg);
 	--box-shadow:
-		0 2px 6px rgba(0, 0, 0, 40%), 0 8px 24px rgba(0, 0, 0, 45%),
-		0 16px 32px rgba(0, 0, 0, 40%);
+		0 2px 6px rgba(0, 0, 0, 34%), 0 8px 24px rgba(0, 0, 0, 38%),
+		0 16px 32px rgba(0, 0, 0, 32%);
 	/* 辉光阴影，用于 hover / 高亮元素 */
-	--glow-shadow: 0 0 0 1px rgba(175, 255, 255, 20%), 0 6px 24px rgba(175, 255, 255, 12%);
+	--glow-shadow: 0 0 0 1px rgba(175, 255, 255, 22%), 0 6px 24px rgba(175, 255, 255, 14%);
 }
 
 body {
@@ -47,7 +51,7 @@ body {
 	background: var(--bg);
 	/* 顶部一层水色辉光，呼应“水塔夜谈” */
 	background-image:
-		radial-gradient(1200px 420px at 50% -160px, rgba(175, 255, 255, 8%), transparent 70%),
+		radial-gradient(1200px 460px at 50% -160px, rgba(175, 255, 255, 11%), transparent 72%),
 		linear-gradient(var(--gray-gradient)) no-repeat;
 	background-repeat: no-repeat;
 	background-size:
@@ -104,7 +108,8 @@ b {
 
 a {
 	color: var(--accent);
-	text-decoration-color: rgba(111, 227, 236, 35%);
+	/* 跟着 --accent 走：#7fe9f0 的 35% */
+	text-decoration-color: rgba(127, 233, 240, 35%);
 	text-underline-offset: 3px;
 }
 a:hover {

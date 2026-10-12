@@ -108,7 +108,8 @@ const lore = defineCollection({
 				.enum(['世界规则', '瘴素', '神器', '魔法体系', '势力', '地理', '历史', '概念'])
 				.default('概念'),
 			cover: z.optional(image()),
-			themeColor: themeColor.default('#6FE3EC'),
+			/* 与 global.css 的 --accent 保持一致 */
+			themeColor: themeColor.default('#7FE9F0'),
 			tags: z.array(z.string()).default([]),
 			characters: z.array(reference('characters')).default([]),
 			races: z.array(reference('races')).default([]),
