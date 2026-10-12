@@ -5,6 +5,10 @@ summary: 晶体网络名义上最高权限的持有者，六棱瞳孔丈量生�
 source: 晶体生物：“蔚蓝”.docx
 display: creature
 danger: '8'
+crossLinks:
+  - label: '水塔夜谈 · 蔚蓝'
+    href: '/worldview/characters/weilan/'
+    note: '本站作者把这一位移植进了自己的世界观《水塔夜谈》，角色页是照这份稿件写的 —— 这里是原型。'
 order: 70
 ---
 

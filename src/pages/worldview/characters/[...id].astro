@@ -4,6 +4,7 @@ import path from 'node:path';
 import { getCollection, getEntry, render } from 'astro:content';
 import gallery from '../../../data/gallery-meta.json';
 import GalleryWall from '../../../components/GalleryWall.astro';
+import CrossLinkBox from '../../../components/CrossLinkBox.astro';
 import DetailPage from '../../../layouts/DetailPage.astro';
 import { publishedEpisodes } from '../../../lib/stories';
 
@@ -139,6 +140,9 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 	backLabel="角色"
 >
 	<Content />
+
+	{/* 跨企划指路：同一角色在别的企划里也有档案时（例如蔚蓝） */}
+	<CrossLinkBox links={entry.data.crossLinks ?? []} heading="这个角色另有出处" />
 
 	{
 		relationList.length > 0 && (

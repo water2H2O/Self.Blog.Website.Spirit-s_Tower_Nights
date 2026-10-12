@@ -45,6 +45,19 @@ const characterResource = z.object({
 	preview: z.string().default(''),
 });
 
+/**
+ * 跨企划指路：同一个角色在别的企划里也有一份档案时，两边互相指一下。
+ * 例：《水塔夜谈》的蔚蓝移植自「伊甸园」的同名条目。
+ */
+const crossLink = z.object({
+	/** 对方的标题，例如「伊甸园 · 晶体生物：“蔚蓝”」 */
+	label: z.string(),
+	/** 站内路径 */
+	href: z.string(),
+	/** 说明这层关系与以哪份为准 */
+	note: z.string().default(''),
+});
+
 /** 种族：创作流程的第一步，也是世界观冲突的源头 */
 const races = defineCollection({
 	loader: glob({ base: './src/content/races', pattern: '**/*.{md,mdx}' }),
@@ -105,6 +118,8 @@ const characters = defineCollection({
 			lore: z.array(reference('lore')).default([]),
 			/** 可下载的数字资源（鼠标指针包之类），会显示在角色页画作上方 */
 			resources: z.array(characterResource).default([]),
+			/** 跨企划指路：同一角色在别的企划里的档案 */
+			crossLinks: z.array(crossLink).default([]),
 			canon: canonLevel,
 			spoiler: spoilerLevel,
 			draft: z.boolean().default(false),
@@ -227,6 +242,8 @@ const eden = defineCollection({
 			display: z.enum(['prose', 'levels', 'creature']).default('prose'),
 			/** 危险等级，原文写法照录（7级 / III级 / 0）；页面按它配色 */
 			danger: z.string().optional(),
+			/** 跨企划指路：这个条目在别处也有对应的角色档案 */
+			crossLinks: z.array(crossLink).default([]),
 			draft: z.boolean().default(false),
 			order: z.number().default(100),
 		}),

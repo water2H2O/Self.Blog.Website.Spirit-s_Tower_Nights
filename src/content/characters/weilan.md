@@ -6,6 +6,10 @@ summary: 晶脉群系“调谐主脑”的人形化身，握有最高四级共�
 height: 约1.67米（人类少女拟态）
 tags: ['晶裔', '网络节点', '指挥核心']
 lore: ['entropy-decay', 'miasma', 'holy-shield']
+crossLinks:
+  - label: '伊甸园 · 晶体生物：“蔚蓝”'
+    href: '/project/eden/being-weilan/'
+    note: '最早的原型在群创企划「伊甸园」里，这个角色是照那份稿件移植进《水塔夜谈》的 —— 基础设定以那边为准。'
 canon: open
 order: 40
 ---

@@ -1,0 +1,112 @@
+---
+/**
+ * 跨企划指路牌。
+ *
+ * 有些角色是从别的企划移植过来的（例如《水塔夜谈》的蔚蓝，原型在「伊甸园」），
+ * 两边页面互相指一下，读者才知道该以哪份为准。
+ * 数据来自各自档案的 crossLinks 字段，样式自带，不依赖调用方的 scoped 样式。
+ */
+export interface CrossLink {
+	label: string;
+	href: string;
+	note?: string;
+}
+
+interface Props {
+	links: CrossLink[];
+	/** 小标题，默认「跨企划」 */
+	heading?: string;
+}
+
+const { links, heading = '跨企划' } = Astro.props;
+---
+
+{
+	links.length > 0 && (
+		<section class="cross">
+			<p class="heading">
+				<span class="ico" aria-hidden="true">
+					⇄
+				</span>
+				{heading}
+			</p>
+			<ul>
+				{links.map((link) => (
+					<li>
+						<a href={link.href}>
+							<span class="top">
+								<span class="label">{link.label}</span>
+								<span class="go" aria-hidden="true">
+									→
+								</span>
+							</span>
+							{link.note && <span class="note">{link.note}</span>}
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	)
+}
+
+<style>
+	.cross {
+		margin: 2em 0 0;
+		padding: 1.1em 1.3em 1.2em;
+		border-radius: 14px;
+		background: linear-gradient(135deg, rgba(175, 255, 255, 7%), rgba(175, 255, 255, 2%));
+		border: 1px solid rgba(175, 255, 255, 20%);
+		border-left: 3px solid var(--accent);
+	}
+	.heading {
+		display: flex;
+		align-items: center;
+		gap: 0.45em;
+		margin: 0 0 0.7em;
+		font-size: 0.76em;
+		letter-spacing: 0.18em;
+		color: var(--accent);
+	}
+	.ico {
+		font-size: 1.15em;
+	}
+	ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	li + li {
+		margin-top: 0.6em;
+	}
+	a {
+		display: block;
+		text-decoration: none;
+		color: inherit;
+		padding: 0.2em 0;
+	}
+	.top {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5em;
+	}
+	.label {
+		font-weight: 700;
+		color: var(--glow);
+		border-bottom: 1px solid rgba(175, 255, 255, 35%);
+	}
+	.go {
+		font-size: 0.85em;
+		color: var(--accent);
+		transition: transform 0.18s ease;
+	}
+	a:hover .go {
+		transform: translateX(3px);
+	}
+	.note {
+		display: block;
+		margin-top: 0.3em;
+		font-size: 0.85em;
+		line-height: 1.8;
+		color: rgb(var(--gray));
+	}
+</style>
