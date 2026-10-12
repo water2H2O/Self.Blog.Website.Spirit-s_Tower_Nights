@@ -31,6 +31,20 @@ const blog = defineCollection({
 		}),
 });
 
+/** 可下载的数字资源（例如角色专属的鼠标指针包） */
+const characterResource = z.object({
+	/** 资源名，例如「鼠标指针套装」 */
+	label: z.string(),
+	/** 下载链接（放在 public/downloads 下的文件，或以 / 开头的站内路径） */
+	href: z.string(),
+	/** 一句话说明 */
+	note: z.string().default(''),
+	/** 文件体积，例如「353 KB」 */
+	size: z.string().default(''),
+	/** 预览图（放在 public 下的路径） */
+	preview: z.string().default(''),
+});
+
 /** 种族：创作流程的第一步，也是世界观冲突的源头 */
 const races = defineCollection({
 	loader: glob({ base: './src/content/races', pattern: '**/*.{md,mdx}' }),
@@ -89,6 +103,8 @@ const characters = defineCollection({
 				.array(z.object({ to: reference('characters'), note: z.string() }))
 				.default([]),
 			lore: z.array(reference('lore')).default([]),
+			/** 可下载的数字资源（鼠标指针包之类），会显示在角色页画作上方 */
+			resources: z.array(characterResource).default([]),
 			canon: canonLevel,
 			spoiler: spoilerLevel,
 			draft: z.boolean().default(false),

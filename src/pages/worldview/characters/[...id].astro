@@ -64,8 +64,10 @@ const episodes = (await publishedEpisodes()).filter((episode) =>
 
 /**
  * 画作：从画廊图池里按角色取（标注见 src/data/gallery-meta.json）。
- * 和画廊同一套展示模式，且**不排除任何分类** —— 表情包、鼠标指针这些也一起铺，
- * 角色页讲究的是「这个人的东西都在这儿」。
+ * 和画廊同一套展示模式；表情包这类也一起铺，角色页讲究的是「这个人的东西都在这儿」。
+ *
+ * 例外：鼠标指针（kind === '指针'）不进画作墙 —— 它是可下载的数字资源，
+ * 单独放在上面的「数字资源」框里，见 entry.data.resources。
  */
 const POOL = path.join(process.cwd(), 'public', 'gallery');
 const galleryMeta =
@@ -76,7 +78,7 @@ const galleryMeta =
 		>;
 	}).items ?? {};
 const myName = entry.data.name;
-const artworks = fs.existsSync(POOL)
+const myItems = fs.existsSync(POOL)
 	? fs
 			.readdirSync(POOL)
 			.filter((file) => /\.webp$/i.test(file))
@@ -87,21 +89,29 @@ const artworks = fs.existsSync(POOL)
 				const name = item.character ?? '';
 				return name !== '' && (name === myName || name.includes(myName) || myName.includes(name));
 			})
-			.map((item) => ({
-				url: `/gallery/${encodeURIComponent(item.file)}`,
-				ar: item.w && item.h ? Number((item.w / item.h).toFixed(3)) : 1,
-				ownership: item.ownership ?? '其他',
-				owner: item.owner ?? '',
-				kind: item.kind ?? '其他',
-				character: item.character ?? '',
-				title: item.title ?? '',
-				always: item.always === true,
-			}))
 	: [];
 
+/** 指针类素材单独统计，供「数字资源」框显示预览数量 */
+const cursorItems = myItems.filter((item) => item.kind === '指针');
+
+const artworks = myItems
+	.filter((item) => item.kind !== '指针')
+	.map((item) => ({
+		url: `/gallery/${encodeURIComponent(item.file)}`,
+		ar: item.w && item.h ? Number((item.w / item.h).toFixed(3)) : 1,
+		ownership: item.ownership ?? '其他',
+		owner: item.owner ?? '',
+		kind: item.kind ?? '其他',
+		character: item.character ?? '',
+		title: item.title ?? '',
+		always: item.always === true,
+	}));
+
+/** 可下载的数字资源（指针包之类），显示在画作之上 */
+const resources = entry.data.resources ?? [];
+
 /** 人际关系 */
-const relationList: { name: string; note: string; id?: string; color: string }[] = [];
-if (relations.length > 0) {
+const relationList: { name: string; note: string; id?: string; color: string }[] = [];if (relations.length > 0) {
 	const resolved = await Promise.all(relations.map((relation) => getEntry(relation.to)));
 	resolved.forEach((target, index) => {
 		if (!target) return;
@@ -149,8 +159,45 @@ if (relations.length > 0) {
 	}
 
 	{
-		(artworks.length > 0 || episodes.length > 0 || relatedLore.length > 0) && (
+		(artworks.length > 0 || episodes.length > 0 || relatedLore.length > 0 || resources.length > 0) && (
 			<div class="related">
+				{resources.length > 0 && (
+					<div class="res-block">
+						<h2>数字资源</h2>
+						<div class="res-list">
+							{resources.map((res) => (
+								<a class="res-card" href={encodeURI(res.href)} download>
+									{res.preview && <img src={res.preview} alt="" loading="lazy" decoding="async" />}
+									<span class="res-body">
+										<span class="res-label">
+											{res.label}
+											<span class="res-dl" aria-hidden="true">
+												↓
+											</span>
+										</span>
+										{res.note && <span class="res-note">{res.note}</span>}
+										<span class="res-meta">
+											{res.size && `${res.size} · `}点击下载
+										</span>
+									</span>
+								</a>
+							))}
+						</div>
+						{cursorItems.length > 0 && (
+							<>
+								<div class="res-preview">
+									{cursorItems.slice(0, 9).map((item) => (
+										<img src={`/gallery/${encodeURIComponent(item.file)}`} alt="" loading="lazy" decoding="async" />
+									))}
+									{cursorItems.length > 9 && <span class="res-more">等 {cursorItems.length} 个</span>}
+								</div>
+								<p class="hint">
+									指针属于可下载的数字资源，预览图不放进下面的画作。上面是其中几个的样子，压缩包里还有每个指针的动图预览。
+								</p>
+							</>
+						)}
+					</div>
+				)}
 				{artworks.length > 0 && (
 					<>
 						<h2>画作（{artworks.length}）</h2>
@@ -240,9 +287,100 @@ if (relations.length > 0) {
 		line-height: 1.7;
 		color: rgb(var(--gray));
 	}
+
+	/* 数字资源：可下载的指针包之类，排在画作之上 */
+	.res-block {
+		margin-bottom: 2.4em;
+	}
+	.res-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 1em;
+		margin-top: 0.8em;
+	}
+	.res-card {
+		display: flex;
+		align-items: center;
+		gap: 1em;
+		padding: 0.9em 1.1em;
+		border-radius: 14px;
+		text-decoration: none;
+		color: inherit;
+		background: linear-gradient(135deg, rgba(175, 255, 255, 10%), rgba(175, 255, 255, 3%));
+		border: 1px solid rgba(175, 255, 255, 26%);
+		transition: 0.18s ease;
+	}
+	.res-card:hover {
+		border-color: rgba(175, 255, 255, 55%);
+		box-shadow: var(--glow-shadow);
+		transform: translateY(-2px);
+	}
+	.res-card :global(img) {
+		flex: none;
+		width: 92px;
+		height: 92px;
+		object-fit: contain;
+		border-radius: 8px;
+		background: rgba(6, 20, 28, 40%);
+	}
+	.res-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25em;
+		min-width: 0;
+	}
+	.res-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		font-size: 1.02em;
+		font-weight: 700;
+		color: var(--glow);
+	}
+	.res-dl {
+		font-size: 0.9em;
+		opacity: 0.8;
+	}
+	.res-note {
+		font-size: 0.84em;
+		line-height: 1.7;
+		color: rgb(var(--gray-dark));
+	}
+	.res-meta {
+		font-size: 0.78em;
+		letter-spacing: 0.04em;
+		color: var(--accent);
+	}
+	/* 指针样式预览：只在资源框里露几个，不混进画作墙 */
+	.res-preview {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6em;
+		margin-top: 1em;
+	}
+	.res-preview :global(img) {
+		width: 54px;
+		height: 54px;
+		object-fit: contain;
+		border-radius: 10px;
+		background: rgba(6, 20, 28, 45%);
+		border: 1px solid rgb(var(--gray-light));
+	}
+	.res-more {
+		font-size: 0.8em;
+		color: rgb(var(--gray));
+	}
 	@media (max-width: 720px) {
 		.relations li {
 			grid-template-columns: 1fr;
+		}
+		.res-list {
+			grid-template-columns: 1fr;
+		}
+		.res-card :global(img) {
+			width: 74px;
+			height: 74px;
 		}
 	}
 </style>

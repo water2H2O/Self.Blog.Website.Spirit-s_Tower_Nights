@@ -25,6 +25,12 @@ relations:
     note: '同行的伙伴；她用掺了水元素的药剂替祈压过失稳的剧痛，祈总攥着她的衣角才睡得着'
   - to: 'fengxi-lingyue'
     note: '铃月镇的守护者，她恭敬地称她“铃月大人”；在交界地她曾用水之力替她稳住躁动的月之力碎片'
+resources:
+  - label: '鼠标指针套装'
+    href: '/downloads/指针_药剂师淼渺.zip'
+    note: '17 个动态指针（.ani）+ 安装说明，Windows 直接可用。'
+    size: '353 KB'
+    preview: '/gallery/淼渺__指针展示图.webp'
 canon: locked
 order: 10
 ---
