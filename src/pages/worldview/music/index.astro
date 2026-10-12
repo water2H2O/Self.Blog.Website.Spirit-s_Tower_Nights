@@ -106,6 +106,44 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			.artist a:hover {
 				color: var(--glow);
 			}
+			/* 试听：默认只有一个按钮，点开才出现播放器 —— 目录页一次只开一个 */
+			.preview {
+				margin-top: 0.7em;
+			}
+			.preview-btn {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.4em;
+				padding: 0.35em 1em;
+				border-radius: 999px;
+				font-size: 0.82em;
+				font-family: inherit;
+				cursor: pointer;
+				color: var(--accent);
+				background: rgba(175, 255, 255, 6%);
+				border: 1px solid rgba(175, 255, 255, 22%);
+				transition: 0.15s ease;
+			}
+			.preview-btn:hover {
+				color: #06121a;
+				background: var(--glow);
+				border-color: var(--glow);
+			}
+			.preview .ico {
+				font-size: 0.9em;
+			}
+			.preview audio {
+				display: none;
+				margin-top: 0.6em;
+			}
+			.preview.open .preview-btn {
+				color: rgb(var(--gray-dark));
+				background: transparent;
+				border-color: rgb(var(--gray-light));
+			}
+			.preview.open audio {
+				display: block;
+			}
 			audio {
 				width: 100%;
 				height: 34px;
@@ -166,13 +204,18 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 									)}
 								</p>
 								{track.data.audio && (
-									<audio controls preload="none">
-										<source src={track.data.audio} type="audio/mpeg" />
-										{track.data.audioAlt && (
-											<source src={track.data.audioAlt} type={track.data.audioAltType ?? 'audio/ogg'} />
-										)}
-										你的浏览器不支持音频播放。
-									</audio>
+									<div class="preview">
+										<button class="preview-btn" type="button">
+											<span class="ico">▶</span> 试听
+										</button>
+										<audio controls preload="none">
+											<source src={track.data.audio} type="audio/mpeg" />
+											{track.data.audioAlt && (
+												<source src={track.data.audioAlt} type={track.data.audioAltType ?? 'audio/ogg'} />
+											)}
+											你的浏览器不支持音频播放。
+										</audio>
+									</div>
 								)}
 							</div>
 						</li>
@@ -181,6 +224,59 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			</ul>
 		</main>
 		<Footer />
+
+		<script>
+			/**
+			 * 目录页的试听：同一时刻只开一个。
+			 * 点另一首时，先把所有播放器收起并暂停，再展开当前这首；
+			 * 再点一次同一首则收起。
+			 *
+			 * 另外还挂了一层保险：任何一路开始播放，就暂停其余的 ——
+			 * 覆盖用键盘空格、拖进度条这些不经过按钮的路径。
+			 */
+			const previews = Array.from(document.querySelectorAll<HTMLElement>('.preview'));
+
+			const closeAll = (except?: HTMLElement) => {
+				for (const box of previews) {
+					const audio = box.querySelector('audio');
+					if (!audio) continue;
+					audio.pause();
+					if (box !== except) {
+						box.classList.remove('open');
+						box.querySelector('.preview-btn')!.textContent = '▶ 试听';
+					}
+				}
+			};
+
+			for (const box of previews) {
+				const button = box.querySelector<HTMLButtonElement>('.preview-btn');
+				const audio = box.querySelector('audio');
+				if (!button || !audio) continue;
+
+				button.addEventListener('click', () => {
+					const wasOpen = box.classList.contains('open');
+					closeAll();
+					if (wasOpen) return;
+
+					box.classList.add('open');
+					button.textContent = '❚❚ 收起';
+					audio.play().catch(() => {});
+				});
+
+				// 保险：这一路开始播放时，把别的都停掉
+				audio.addEventListener('play', () => {
+					for (const other of previews) {
+						if (other === box) continue;
+						const otherAudio = other.querySelector('audio');
+						if (otherAudio && !otherAudio.paused) {
+							otherAudio.pause();
+							other.classList.remove('open');
+							other.querySelector('.preview-btn')!.textContent = '▶ 试听';
+						}
+					}
+				});
+			}
+		</script>
 	</body>
 </html>
 

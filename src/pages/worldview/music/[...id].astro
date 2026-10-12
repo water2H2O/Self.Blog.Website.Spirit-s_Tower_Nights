@@ -429,7 +429,9 @@ const relatedCharacters = (
 			{pvUrl && (
 				<a class="pv" href={pvUrl} target="_blank" rel="noreferrer">观看 PV</a>
 			)}
-			<audio id="audio" src={audio} autoplay preload="auto"></audio>
+			{/* 不自动播放：进页面只是把播放器准备好，点了才响。
+			    preload 用 metadata 只取文件头（足够显示总时长），不预先下载整首。 */}
+			<audio id="audio" src={audio} preload="metadata"></audio>
 		</div>
 
 		<script>
