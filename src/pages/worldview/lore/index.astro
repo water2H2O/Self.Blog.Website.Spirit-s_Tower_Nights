@@ -4,15 +4,30 @@ import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LoreCard from '../../../components/LoreCard.astro';
-import { FACTION_CATEGORY, LORE_CATEGORIES } from '../../../lib/lore';
+import { LORE_CATEGORIES, LORE_CATEGORY_NOTES, loreCategoryHref } from '../../../lib/lore';
 
-const lore = await getCollection('lore', ({ data }) => !data.draft);
+/**
+ * 设定索引。
+ *
+ * 类目多了以后「每类目占一栏、卡片刻意做窄」的排法不够用了：
+ * 窄卡一行只放得下一个标题，正文摘要被压成一根柱子。
+ * 现在改成左边一条类目跳转栏、右边宽卡大片铺开，
+ * 条目再多也只是往下长，不会越排越挤。
+ */
+
+type Entry = Awaited<ReturnType<typeof getCollection<'lore'>>>[number];
+
+const all = await getCollection('lore', ({ data }) => !data.draft);
 
 const groups = LORE_CATEGORIES.map((category) => ({
 	category,
-	items: lore
+	note: LORE_CATEGORY_NOTES[category],
+	items: all
 		.filter((entry) => entry.data.category === category)
-		.sort((a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title, 'zh-Hans-CN')),
+		.sort(
+			(a: Entry, b: Entry) =>
+				a.data.order - b.data.order || a.data.title.localeCompare(b.data.title, 'zh-Hans-CN'),
+		),
 })).filter((group) => group.items.length > 0);
 ---
 
@@ -20,70 +35,210 @@ const groups = LORE_CATEGORIES.map((category) => ({
 <html lang="zh-CN">
 	<head>
 		<BaseHead
-			title="世界观"
-			description="Spirit's Tower Nights 的设定集：种族、体系、势力、组织与历史。"
+			title="世界观 · 设定"
+			description="Spirit's Tower Nights 的设定集：世界规则、势力、地域、历史、神器与魔法体系。"
 		/>
 		<style>
+			/*
+			 * 这一页比别的页宽一些：左边要留出一条类目栏。
+			 *
+			 * 宽度一律走 `min(1180px, …)` + 让出左右 padding，且**不用固定 px 加 margin** ——
+			 * 全局的 main 是 `720px`，而 html 在窄一点时会调 font-size（0.9em），
+			 * 固定 px 会跟着一起缩水；而直接用 `100%` 又因为 content-box 不含 padding 会溢出。
+			 * 两边都让一份，就不会有横向滚动条了。
+			 */
 			main {
-				width: 1000px;
+				width: min(1180px, calc(100% - 2em));
+				max-width: none;
+			}
+			/* 视口 ≥1150px 时目录侧栏（fixed，269px）是展开的，把主线右移让开它 */
+			@media (min-width: 1150px) {
+				main {
+					width: auto;
+					max-width: calc(100% - 293px - 2em);
+					margin-left: 293px; /* 269px 侧栏 + 一点呼吸 */
+					margin-right: 2em;
+				}
+			}
+			/* 宽屏把主线放到舒服的 1180px，卡片才铺得开两列 */
+			@media (min-width: 1520px) {
+				main {
+					width: 1180px;
+					max-width: calc(100% - 2em);
+					margin-left: auto;
+					margin-right: auto;
+				}
 			}
 			.lead {
 				color: rgb(var(--gray));
 				font-size: 0.9em;
+				line-height: 1.9;
+				margin-bottom: 2.2em;
 			}
-			section {
+
+			/* ---------- 左：类目跳转栏 ---------- */
+			.layout {
+				display: grid;
+				grid-template-columns: 196px minmax(0, 1fr);
+				gap: 3em;
+				align-items: start;
+			}
+			.cats {
+				position: sticky;
+				top: 7.5em; /* 让过吸顶页头 */
+				font-size: 0.86em;
+			}
+			.cats-title {
+				margin: 0 0 0.9em;
+				padding-left: 0.75em;
+				font-size: 0.82em;
+				letter-spacing: 0.18em;
+				color: rgb(var(--gray));
+			}
+			.cats ul {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.cats li {
+				margin-bottom: 0.15em;
+			}
+			.cats a {
+				display: grid;
+				grid-template-columns: 1fr auto;
+				align-items: baseline;
+				gap: 0.5em;
+				padding: 0.5em 0.75em;
+				border-radius: 9px;
+				border-left: 2px solid transparent;
+				text-decoration: none;
+				color: rgb(var(--gray-dark));
+				transition: 0.15s ease;
+			}
+			.cats a:hover {
+				color: var(--glow);
+				background: rgba(175, 255, 255, 8%);
+				border-left-color: rgba(175, 255, 255, 30%);
+			}
+			.cats a.active {
+				color: var(--glow);
+				background: rgba(175, 255, 255, 12%);
+				border-left-color: var(--glow);
+				font-weight: 700;
+			}
+			.cats .n {
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+			}
+			.cats-foot {
+				margin: 1.4em 0 0;
+				padding: 0.9em 0.75em 0 0.75em;
+				border-top: 1px solid rgba(175, 255, 255, 10%);
+				font-size: 0.82em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			.cats-foot a {
+				color: var(--accent);
+			}
+
+			/* ---------- 右：分节 + 宽卡 ---------- */
+			.content section {
 				margin-top: 0;
 			}
-			section h2 {
-				font-size: 1.15em;
-				margin: 0 0 1em;
+			/* 锚点跳过来时别把标题顶到页头底下 */
+			.content section[id] {
+				scroll-margin-top: 7em;
+			}
+			.content section + section {
+				margin-top: 3.4em;
+				padding-top: 3.4em;
+				border-top: 1px solid rgba(175, 255, 255, 8%);
+			}
+			.head {
+				margin-bottom: 1.5em;
+			}
+			.head h2 {
+				margin: 0;
 				padding-left: 0.6em;
+				font-size: 1.15em;
 				border-left: 4px solid var(--accent);
 			}
-			/* 「势力」这一类另有子页，标题右边挂个入口 */
-			section h2 .more {
-				margin-left: 0.5em;
-				font-size: 0.72em;
+			.head h2 .n {
+				margin-left: 0.45em;
+				font-size: 0.78em;
 				font-weight: 400;
-				letter-spacing: 0.04em;
-				text-decoration: none;
-				color: var(--accent);
-				white-space: nowrap;
+				color: rgb(var(--gray));
 			}
-			section h2 .more:hover {
-				color: var(--glow);
+			.head .note {
+				margin: 0.55em 0 0;
+				padding-left: calc(0.6em + 4px);
+				font-size: 0.82em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
 			}
 			/*
-			 * 类目块并排排布。
-			 *
-			 * 13 条设定分在 7 个类目里，其中 4 个只有 1 条 —— 每个类目独占一行时，
-			 * 会出现「一行只有一个格子、右边全空」的情况。
-			 *
-			 * 这里用 CSS 多列而不是 grid：grid 里同一行的块会被最高的那个撑高，
-			 * 短块下面照样留空；多列由浏览器按内容高度均衡分栏，空隙最少。
+			 * 卡片列数按视口分档写死，而不是靠 auto-fill 的像素下限去猜 ——
+			 * 本站 html 的 font-size 会随宽度变，像素下限的判定跟着漂，列数时多时少。
+			 * 分档的依据是「卡片别低于 300px」：中文摘要一行十七八个字才读得顺，
+			 * 主线的可用宽度见上面的 main 规则。窄的时候宁可一列铺满，也别两列挤成条。
 			 */
-			.groups {
-				column-width: 292px;
-				column-gap: 2.8em;
-				margin-top: 3em;
-			}
-			.groups section {
-				/* 一个类目不要被拆到两栏去 */
-				break-inside: avoid;
-				margin-bottom: 2.8em;
-			}
-			/* 类目内部竖排 */
 			.grid {
 				display: grid;
-				grid-template-columns: 1fr;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
 				gap: 1.35rem;
+			}
+			/* 目录侧栏还立着、主线被挤到 590~900px 的一档 */
+			@media (max-width: 1449px) and (min-width: 1151px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
+			}
+			/* 侧栏收成按钮、主线回到 700~1000px 的一档，以及手机：一列铺满 */
+			@media (max-width: 1150px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
 			}
 			.empty {
 				color: rgb(var(--gray));
 			}
-			@media (max-width: 720px) {
-				.groups {
-					column-width: auto;
+
+			@media (max-width: 960px) {
+				/* 窄屏：类目栏收成顶部横向一条，横向滑动，不用 JS */
+				.layout {
+					grid-template-columns: 1fr;
+					gap: 1.6em;
+				}
+				.cats {
+					position: static;
+					overflow-x: auto;
+					padding-bottom: 0.3em;
+				}
+				.cats-title {
+					display: none;
+				}
+				.cats ul {
+					display: flex;
+					gap: 0.4em;
+				}
+				.cats li {
+					margin: 0;
+				}
+				.cats a {
+					display: flex;
+					gap: 0.4em;
+					white-space: nowrap;
+					border-left: none;
+					border: 1px solid rgba(175, 255, 255, 14%);
+					border-radius: 999px;
+				}
+				.cats a.active,
+				.cats a:hover {
+					border-color: rgba(175, 255, 255, 40%);
+				}
+				.cats-foot {
+					display: none;
 				}
 			}
 		</style>
@@ -91,38 +246,115 @@ const groups = LORE_CATEGORIES.map((category) => ({
 	<body>
 		<Header />
 		<main>
-			<h1>世界观</h1>
+			<h1>设定</h1>
 			<p class="lead">
-				{lore.length} 条设定。按类别分组；每条设定都可以关联角色，角色页也会反向指回来。
+				{all.length} 条设定，分 {groups.length} 类。先读「世界规则」那一类，这个世界的底层就通了；
+				每一条都可以关联角色、种族与其它条目，几边互相指路。左边是类目，点一下跳过去。
 			</p>
-			<div class="groups">
+
+			<div class="layout">
 				{
-					groups.length > 0 ? (
-						groups.map((group) => (
-							<section id={group.category === FACTION_CATEGORY ? 'lore-faction' : undefined}>
-								<h2>
-									{group.category}（{group.items.length}）
-									{group.category === FACTION_CATEGORY && (
-										<a class="more" href="/worldview/lore/factions/">
-											单独一页 →
+					groups.length > 0 && (
+						<nav class="cats" id="lore-cats" aria-label="设定类目">
+							<p class="cats-title">类目</p>
+							<ul>
+								{groups.map((group) => (
+									<li>
+										<a
+											href={loreCategoryHref(group.category)}
+											data-cat={group.category}
+											title={group.note}
+										>
+											<span>{group.category}</span>
+											<span class="n">{group.items.length}</span>
 										</a>
-									)}
-								</h2>
-								<div class="grid">
-									{group.items.map((entry) => (
-										<LoreCard entry={entry} />
-									))}
-								</div>
-							</section>
-						))
-					) : (
-						<p class="empty">
-							还没有设定条目。在 <code>src/content/lore/</code> 下新建一个 markdown 文件即可。
-						</p>
+									</li>
+								))}
+							</ul>
+							<p class="cats-foot">
+								条目按类目排；点类目跳到那一段，滚动时会自动标出当前在哪一类。
+							</p>
+						</nav>
 					)
 				}
+
+				<div class="content">
+					{
+						groups.length > 0 ? (
+							groups.map((group) => (
+								<section id={`lore-${group.category}`}>
+									<div class="head">
+										<h2>
+											{group.category}
+											<span class="n">{group.items.length} 条</span>
+										</h2>
+										<p class="note">{group.note}</p>
+									</div>
+									<div class="grid">
+										{group.items.map((entry) => (
+											<LoreCard entry={entry} />
+										))}
+									</div>
+								</section>
+							))
+						) : (
+							<p class="empty">
+								还没有设定条目。在 <code>src/content/lore/</code> 下新建一个 markdown 文件即可。
+							</p>
+						)
+					}
+				</div>
 			</div>
 		</main>
 		<Footer />
+
+		<script>
+			/*
+			 * 滚动时标出当前类目。
+			 *
+			 * 用 IntersectionObserver 而不是 scroll 事件：不占主线程，
+			 * 也不必每帧算一遍每个分节的位置。
+			 * 整段套了兜底 —— 目录高亮挂了也不能影响看内容。
+			 */
+			try {
+				const nav = document.getElementById('lore-cats');
+				const links = nav ? [...nav.querySelectorAll<HTMLAnchorElement>('a[data-cat]')] : [];
+				const sections = links
+					.map((link) => document.getElementById(link.dataset.cat ? `lore-${link.dataset.cat}` : ''))
+					.filter((el): el is HTMLElement => el !== null);
+
+				if (nav && links.length > 0 && sections.length > 0) {
+					const mark = (category: string | undefined) => {
+						for (const link of links) link.classList.toggle('active', link.dataset.cat === category);
+					};
+					/** 记录每个分节当前是否在视口里，取最靠上的那个当「当前」 */
+					const visible = new Set<string>();
+					const observer = new IntersectionObserver(
+						(records) => {
+							for (const record of records) {
+								const id = record.target.id;
+								if (record.isIntersecting) visible.add(id);
+								else visible.delete(id);
+							}
+							const first = sections.find((section) => visible.has(section.id));
+							if (first) mark(first.id.replace(/^lore-/, ''));
+						},
+						// 上下各切掉一截：标题刚滚出顶部、或还没滚进下半屏的，都不算「当前」
+						{ rootMargin: '-18% 0px -70% 0px', threshold: 0 },
+					);
+					for (const section of sections) observer.observe(section);
+
+					// 点类目时立刻高亮，不等滚动结束
+					for (const link of links) {
+						link.addEventListener('click', () => mark(link.dataset.cat));
+					}
+
+					// 首屏若没有分节落进判定区，至少把第一类点亮
+					mark(sections[0].id.replace(/^lore-/, ''));
+				}
+			} catch (error) {
+				console.warn('设定类目栏高亮未启用：', error);
+			}
+		</script>
 	</body>
 </html>

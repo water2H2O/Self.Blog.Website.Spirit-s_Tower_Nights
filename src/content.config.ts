@@ -152,9 +152,7 @@ const lore = defineCollection({
 		z.object({
 			title: z.string(),
 			summary: z.string(),
-			category: z
-				.enum(['世界规则', '势力', '地域', '历史', '神器', '魔法体系'])
-				.default('概念'),
+			category: z.enum(['世界规则', '势力', '地域', '历史', '神器', '魔法体系']),
 			cover: z.optional(image()),
 			/* 与 global.css 的 --accent 保持一致 */
 			themeColor: themeColor.default('#7FE9F0'),

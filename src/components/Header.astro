@@ -3,7 +3,12 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import { GITHUB_URL, SITE_TITLE, WORLDVIEW_BASE } from '../consts';
-import { FACTION_CATEGORY, FACTION_BASE } from '../lib/lore';
+import {
+	LORE_CATEGORIES,
+	LORE_CATEGORY_NOTES,
+	type LoreCategory,
+	loreCategoryHref,
+} from '../lib/lore';
 
 /** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
 const mainLinks = [
@@ -44,7 +49,10 @@ const activeLabel = worldviewLinks.find((link) => isActive(link.href))?.label ??
  * 侧栏的二级目录。
  *
  * 学 wiki 的做法：**只展开当前所在的那一栏**，列出这一栏的条目。
- * 六栏全展开会有上百条（56 话、13 个种族、13 条设定…），侧栏会变成一堵墙。
+ * 六栏全展开会有上百条（56 话、13 个种族、15 条设定…），侧栏会变成一堵墙。
+ *
+ * 「设定」那一栏再分一层：先按类目分组，组内才是条目 ——
+ * 条目多了以后平铺着找不动，而类目名本身就是最好的目录。
  *
  * 「故事」特殊一些：只列当前这一篇里的话（篇号从 id 前缀取，例如
  * act1-birdcage-2-1 → act1-birdcage-2），这样在追一篇时能直接跳上下话。
@@ -55,9 +63,18 @@ interface SubItem {
 	active: boolean;
 }
 
+/** 设定目录里的一个类目组 */
+interface SubGroup {
+	label: string;
+	href: string;
+	active: boolean;
+	note: string;
+	items: SubItem[];
+}
+
 let subItems: SubItem[] = [];
-/** 「势力」那一支单独成组列在侧栏里（见 lore.ts） */
-let factionSub: SubItem[] = [];
+/** 设定那一条专用的分组目录：一个类目一组，见上面的注释 */
+let loreGroups: SubGroup[] = [];
 
 if (inWorldview) {
 	const section = path === WORLDVIEW_BASE ? '' : path.slice(WORLDVIEW_BASE.length + 1).split('/')[0];
@@ -84,14 +101,22 @@ if (inWorldview) {
 		const all = (await getCollection('lore', ({ data }) => !data.draft)).sort(
 			(a, b) => a.data.order - b.data.order,
 		);
-		// 势力那一支抽出来单独成组，剩下的平铺
-		const toItem = (entry: (typeof all)[number]) => ({
-			href: `${WORLDVIEW_BASE}/lore/${entry.id}/`,
-			label: entry.data.title,
-			active: path === `${WORLDVIEW_BASE}/lore/${entry.id}`,
-		});
-		factionSub = all.filter((entry) => entry.data.category === FACTION_CATEGORY).map(toItem);
-		subItems = all.filter((entry) => entry.data.category !== FACTION_CATEGORY).map(toItem);
+		// 设定按类目分组展开：组头是类目（指向索引页里那一段），组内是条目
+		const byCategory = (category: LoreCategory) =>
+			all
+				.filter((entry) => entry.data.category === category)
+				.map((entry) => ({
+					href: `${WORLDVIEW_BASE}/lore/${entry.id}/`,
+					label: entry.data.title,
+					active: path === `${WORLDVIEW_BASE}/lore/${entry.id}`,
+				}));
+		loreGroups = LORE_CATEGORIES.map((category) => ({
+			label: category,
+			href: loreCategoryHref(category),
+			active: false,
+			note: LORE_CATEGORY_NOTES[category],
+			items: byCategory(category),
+		})).filter((group) => group.items.length > 0);
 	} else if (section === 'music') {
 		const all = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			(a, b) => a.data.order - b.data.order,
@@ -173,20 +198,18 @@ if (inWorldview) {
 								{link.label}
 							</a>
 							{/* 二级目录：只在当前这一栏下展开 */}
-							{(subItems.length > 0 || factionSub.length > 0) && isActive(link.href) && (
+							{(subItems.length > 0 || loreGroups.length > 0) && isActive(link.href) && (
 								<ul class="sub-list">
-									{/* 「势力」自成一组：一个分组入口 + 组内条目 */}
-									{factionSub.length > 0 && (
+									{/* 设定：一个类目一组 —— 组头指向索引页里那一段，组内是条目 */}
+									{loreGroups.map((group) => (
 										<>
 											<li class="group">
-												<a
-													href={`${WORLDVIEW_BASE}/lore/factions/`}
-													class:list={[{ active: path === FACTION_BASE }]}
-												>
-													势力<span class="count">{factionSub.length}</span>
+												<a href={group.href} title={group.note}>
+													{group.label}
+													<span class="count">{group.items.length}</span>
 												</a>
 											</li>
-											{factionSub.map((item) => (
+											{group.items.map((item) => (
 												<li class="nested">
 													<a href={item.href} class:list={[{ active: item.active }]}>
 														{item.label}
@@ -194,7 +217,7 @@ if (inWorldview) {
 												</li>
 											))}
 										</>
-									)}
+									))}
 									{subItems.map((item) => (
 										<li>
 											<a href={item.href} class:list={[{ active: item.active }]}>
@@ -353,22 +376,32 @@ if (inWorldview) {
 		border-left-color: transparent;
 		font-weight: 700;
 	}
-	/* 「势力」分组：一小段自己的目录，跟外面平铺的条目隔开 */
+	/* 分组目录：「设定」那一栏里一个类目一组 —— 组头一行，条目缩在下面 */
 	.wv-toc .sub-list .group {
-		margin: 0.3em 0 0.15em;
+		margin: 0.5em 0 0.15em;
 	}
 	.wv-toc .sub-list .group :global(a) {
-		font-size: 0.86em;
+		font-size: 0.85em;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		color: var(--accent);
+	}
+	.wv-toc .sub-list .group :global(a:hover) {
 		color: var(--glow);
 	}
 	.wv-toc .sub-list .group .count {
 		margin-left: 0.5em;
 		font-size: 0.82em;
+		font-weight: 400;
 		color: rgb(var(--gray));
 	}
 	.wv-toc .sub-list .nested :global(a) {
 		padding-left: 1.1em;
 		font-size: 0.8em;
+	}
+	/* 每一组之间来一条细线，六组条目才分得开 —— 组头本身当分隔线用 */
+	.wv-toc .sub-list .group {
+		border-top: 1px solid rgba(175, 255, 255, 8%);
 	}
 	.wv-toc .sub-list .nested + li:not(.nested) {
 		margin-top: 0.4em;
