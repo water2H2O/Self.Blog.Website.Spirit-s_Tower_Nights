@@ -6,7 +6,10 @@ import Header from '../../components/Header.astro';
 import { SITE_AUTHOR } from '../../consts';
 
 /**
- * 抽签：上面是抽到的 OC，下面是这一签的运势，两块分开摆。
+ * 抽签：上面是抽到的 OC，下面是签纸。
+ *
+ * 流程刻意做成一次小仪式：合上（翻回卡背）→ 卡背摇晃 → 翻开 → 签纸落下，
+ * 约 1.5 秒。比直接换一张图更像「摇签」，也给了点期待。
  *
  * 概率表放在这里（前端按权重摇），坏签刻意压得很低：
  * 大吉 8% / 吉 17% / 中吉 25% / 小吉 30% / 末吉 16% / 凶 4%。
@@ -35,7 +38,6 @@ const pool = await Promise.all(
 	}),
 );
 
-/** 签的档位与权重 */
 const fortunes = [
 	{
 		key: 'great',
@@ -93,6 +95,9 @@ const first = pool[0];
 				color: rgb(var(--gray));
 				font-size: 0.9em;
 			}
+			.lead a {
+				color: var(--accent);
+			}
 			.stage {
 				display: flex;
 				flex-direction: column;
@@ -100,83 +105,143 @@ const first = pool[0];
 				gap: 1.5em;
 				margin-top: 2.2em;
 			}
-			/* ---- 上半：抽到的角色 ---- */
-			.card {
+
+			/* ---------- 卡牌：正面是卡背，反面是抽到的角色 ---------- */
+			.card3d {
 				width: 340px;
 				max-width: 100%;
+				perspective: 1400px;
+			}
+			.card-inner {
+				position: relative;
+				transform-style: preserve-3d;
+				transition: transform 0.62s cubic-bezier(0.32, 0.72, 0.28, 1);
+			}
+			.card3d.open .card-inner {
+				transform: rotateY(180deg);
+			}
+			.card3d.shaking .card-inner {
+				animation: shake 0.5s ease-in-out;
+			}
+			@keyframes shake {
+				0%,
+				100% {
+					transform: rotate(0);
+				}
+				15% {
+					transform: rotate(-2.5deg) translateY(-3px);
+				}
+				35% {
+					transform: rotate(2deg) translateY(2px);
+				}
+				55% {
+					transform: rotate(-1.6deg) translateY(-2px);
+				}
+				78% {
+					transform: rotate(1.2deg);
+				}
+			}
+			.face {
+				backface-visibility: hidden;
+				-webkit-backface-visibility: hidden;
 				border-radius: 18px;
 				overflow: hidden;
-				background: var(--surface);
-				border: 1px solid color-mix(in srgb, var(--card-color, var(--accent)) 40%, transparent);
 				box-shadow:
 					0 0 0 1px rgba(0, 0, 0, 25%),
 					0 18px 40px rgba(0, 0, 0, 45%);
-				transition: transform 0.25s ease;
 			}
-			.card.rolling {
-				transform: scale(0.97);
+			/* 卡背 */
+			.cover {
+				position: relative;
+				aspect-ratio: 4 / 5;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.9em;
+				background:
+					radial-gradient(120% 80% at 50% 12%, rgba(175, 255, 255, 13%), transparent 62%),
+					linear-gradient(160deg, #16283a, #0d1a26);
+				border: 1px solid rgba(175, 255, 255, 26%);
 			}
-			.card.hit {
-				animation: pop 0.45s ease;
+			.cover-mark {
+				font-size: 5.2em;
+				font-weight: 700;
+				line-height: 1;
+				color: var(--glow);
+				text-shadow: 0 0 26px rgba(175, 255, 255, 45%);
 			}
-			@keyframes pop {
-				0% {
-					transform: scale(1.05);
-					box-shadow: 0 0 0 6px color-mix(in srgb, var(--card-color, var(--accent)) 35%, transparent);
-				}
-				100% {
-					transform: scale(1);
-				}
+			.cover-hint {
+				margin: 0;
+				font-size: 0.82em;
+				letter-spacing: 0.14em;
+				color: rgb(var(--gray));
 			}
-			.art {
+			.cover-ring {
+				position: absolute;
+				inset: 12px;
+				border-radius: 12px;
+				border: 1px solid rgba(175, 255, 255, 14%);
+				pointer-events: none;
+			}
+			/* 抽到的角色 */
+			.reveal {
+				position: absolute;
+				inset: 0;
+				transform: rotateY(180deg);
+				background: var(--surface);
+				border: 1px solid color-mix(in srgb, var(--card-color, var(--accent)) 45%, transparent);
+			}
+			.reveal .art {
 				aspect-ratio: 4 / 5;
 				overflow: hidden;
 				background: color-mix(in srgb, var(--card-color, var(--accent)) 10%, var(--surface));
 			}
-			.art img {
+			.reveal .art img {
 				width: 100%;
 				height: 100%;
 				object-fit: cover;
 				object-position: center 18%;
 				display: block;
 			}
-			.info {
+			.reveal .info {
 				padding: 1em 1.2em 1.2em;
 			}
-			.info h2 {
+			.reveal h2 {
 				margin: 0;
 				font-size: 1.35em;
 				color: var(--card-color, var(--glow));
 			}
-			.meta {
+			.reveal .meta {
 				margin: 0.35em 0 0;
 				font-size: 0.8em;
 				letter-spacing: 0.04em;
 				color: rgb(var(--gray));
 			}
-			.summary {
+			.reveal .summary {
 				margin: 0.7em 0 0;
 				font-size: 0.86em;
 				line-height: 1.8;
 				color: rgb(var(--gray-dark));
 			}
-			.owner {
+			.reveal .owner {
 				margin: 0.9em 0 0;
 				padding-top: 0.8em;
 				border-top: 1px solid rgb(var(--gray-light));
 				font-size: 0.84em;
 				color: #ffd68a;
 			}
-			.owner a {
+			.reveal .owner a {
 				color: #ffd68a;
 			}
-			.profile {
+			.reveal .profile {
 				display: inline-block;
 				margin-top: 0.9em;
 				font-size: 0.86em;
 				color: var(--accent);
 			}
-			/* ---- 中间：按钮 ---- */
+
+			/* ---------- 按钮 ---------- */
 			.actions {
 				display: flex;
 				flex-wrap: wrap;
@@ -200,9 +265,24 @@ const first = pool[0];
 				transform: translateY(-2px);
 			}
 			button:disabled {
-				opacity: 0.6;
+				opacity: 0.55;
 				cursor: default;
 				transform: none;
+				box-shadow: none;
+			}
+			.key-hint {
+				margin: -0.6em 0 0;
+				font-size: 0.78em;
+				color: rgb(var(--gray));
+			}
+			.key-hint kbd {
+				padding: 0.1em 0.45em;
+				border-radius: 5px;
+				font-family: inherit;
+				font-size: 0.95em;
+				color: rgb(var(--gray-dark));
+				background: rgba(255, 255, 255, 6%);
+				border: 1px solid rgb(var(--gray-light));
 			}
 			.pool-link {
 				font-size: 0.9em;
@@ -212,66 +292,124 @@ const first = pool[0];
 			.pool-link:hover {
 				color: var(--glow);
 			}
-			/* ---- 下半：签的结果 ---- */
+
+			/* ---------- 签纸 ---------- */
 			.slip {
+				position: relative;
 				width: 340px;
 				max-width: 100%;
-				padding: 1.1em 1.3em 1.3em;
-				border-radius: 18px;
+				padding: 1.3em 1.4em 1.4em;
+				border-radius: 14px;
 				text-align: center;
-				background: var(--surface);
-				border: 1px solid rgb(var(--gray-light));
+				/* 签纸用纸色：它是结果，也是最该被一眼看到的一块 */
+				background: linear-gradient(#f7f2e8, #ece3d2);
+				color: #2b2b33;
+				border: 1px solid rgba(120, 100, 70, 22%);
+				box-shadow: 0 12px 30px rgba(0, 0, 0, 42%);
+				opacity: 0;
+				transform: translateY(-8px);
 				transition:
-					border-color 0.3s ease,
-					box-shadow 0.3s ease;
+					opacity 0.45s ease,
+					transform 0.45s ease;
+			}
+			.slip.show {
+				opacity: 1;
+				transform: none;
 			}
 			.slip.pending {
-				opacity: 0.45;
+				opacity: 0.5;
+				transform: none;
 			}
-			.slip .label {
+			.slip-tier {
 				display: block;
-				font-size: 2em;
+				font-size: 2.5em;
 				font-weight: 700;
-				letter-spacing: 0.2em;
-				text-indent: 0.2em;
-				color: var(--slip-color, rgb(var(--gray)));
+				line-height: 1.1;
+				letter-spacing: 0.18em;
+				text-indent: 0.18em;
+				color: var(--tier, #3d4a52);
 			}
-			.slip .text {
-				display: block;
-				margin-top: 0.6em;
-				font-size: 0.88em;
+			.slip-text {
+				margin: 0.7em 0 0;
+				font-size: 0.9em;
 				line-height: 1.9;
-				color: rgb(var(--gray-dark));
 			}
-			.slip .hint {
-				display: block;
-				margin-top: 0.6em;
-				font-size: 0.82em;
-				color: rgb(var(--gray));
-			}
-			/* 档位配色：越好的签越亮 */
 			.slip[data-key='great'] {
-				--slip-color: #afffff;
-				border-color: rgba(175, 255, 255, 60%);
+				--tier: #b8352c;
 			}
 			.slip[data-key='good'] {
-				--slip-color: #b6ffd8;
-				border-color: rgba(120, 255, 190, 45%);
+				--tier: #a9761a;
 			}
-			.slip[data-key='middle'] {
-				--slip-color: #cfe8f0;
-			}
+			.slip[data-key='middle'],
 			.slip[data-key='small'] {
-				--slip-color: #cfe8f0;
+				--tier: #3d4a52;
 			}
 			.slip[data-key='late'] {
-				--slip-color: #ffd68a;
-				border-color: rgba(255, 200, 90, 35%);
+				--tier: #7a6a4f;
 			}
 			.slip[data-key='bad'] {
-				--slip-color: #ff9d9d;
-				border-color: rgba(255, 120, 120, 40%);
+				--tier: #7d5a5a;
 			}
+			/* 大吉：给点动静 */
+			.slip[data-key='great'].show {
+				animation: jackpot 0.9s ease;
+			}
+			@keyframes jackpot {
+				0% {
+					box-shadow:
+						0 12px 30px rgba(0, 0, 0, 42%),
+						0 0 0 0 rgba(255, 214, 138, 75%);
+				}
+				45% {
+					box-shadow:
+						0 12px 30px rgba(0, 0, 0, 42%),
+						0 0 0 14px rgba(255, 214, 138, 0%);
+				}
+				100% {
+					box-shadow: 0 12px 30px rgba(0, 0, 0, 42%);
+				}
+			}
+
+			/* ---------- 这一轮抽到过的 ---------- */
+			.history {
+				width: 100%;
+				margin-top: 0.6em;
+				padding-top: 1.4em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.history-title {
+				margin: 0 0 0.7em;
+				font-size: 0.8em;
+				letter-spacing: 0.1em;
+				color: rgb(var(--gray));
+			}
+			.history-list {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em;
+			}
+			.history-list a {
+				display: block;
+				width: 52px;
+				height: 52px;
+				border-radius: 10px;
+				overflow: hidden;
+				border: 1px solid rgb(var(--gray-light));
+				background: var(--surface);
+				transition: 0.18s ease;
+			}
+			.history-list a:hover {
+				transform: translateY(-2px);
+				box-shadow: var(--glow-shadow);
+			}
+			.history-list img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				object-position: center 18%;
+				display: block;
+			}
+
 			.note {
 				margin: 2.6em 0 0;
 				padding-top: 1.4em;
@@ -284,7 +422,7 @@ const first = pool[0];
 				color: var(--accent);
 			}
 			@media (max-width: 720px) {
-				.card,
+				.card3d,
 				.slip {
 					width: 100%;
 				}
@@ -300,44 +438,58 @@ const first = pool[0];
 		<main>
 			<h1>抽签</h1>
 			<p class="lead">
-				摇一支签，会遇见一位角色，签上还写着今天的运势。签筒里现有 {pool.length} 位。
+				摇一支签，会遇见一位角色，签上还写着今天的运势。签筒里现有 <a href="/draw/pool/"
+					>{pool.length} 位</a
+				>。
 			</p>
 
 			<div class="stage">
-				{/* 上半：角色 */}
-				<article class="card" id="card" style={`--card-color:${first.color}`}>
-					<div class="art">
-						<img id="art" src={first.art} alt="" width="680" height="850" />
+				{/* 卡牌：正面是卡背，反面是抽到的角色 */}
+				<div class="card3d" id="card3d">
+					<div class="card-inner">
+						<div class="face cover">
+							<span class="cover-ring" aria-hidden="true"></span>
+							<span class="cover-mark" aria-hidden="true">签</span>
+							<p class="cover-hint">摇一支，遇见一位</p>
+						</div>
+						<div class="face reveal" id="reveal" style={`--card-color:${first.color}`}>
+							<div class="art">
+								<img id="art" src={first.art} alt="" width="680" height="850" />
+							</div>
+							<div class="info">
+								<h2 id="name">{first.name}</h2>
+								<p class="meta" id="meta">{[first.race, first.title].filter(Boolean).join(' · ')}</p>
+								<p class="summary" id="summary">{first.summary}</p>
+								<p class="owner" id="owner">
+									设主：
+									{first.ownerUrl ? (
+										<a href={first.ownerUrl} target="_blank" rel="noreferrer">
+											{first.owner}
+										</a>
+									) : (
+										first.owner
+									)}
+								</p>
+								<a class="profile" id="profile" href={first.href}>看 TA 的档案 →</a>
+							</div>
+						</div>
 					</div>
-					<div class="info">
-						<h2 id="name">{first.name}</h2>
-						<p class="meta" id="meta">{[first.race, first.title].filter(Boolean).join(' · ')}</p>
-						<p class="summary" id="summary">{first.summary}</p>
-						<p class="owner" id="owner">
-							设主：
-							{first.ownerUrl ? (
-								<a href={first.ownerUrl} target="_blank" rel="noreferrer">
-									{first.owner}
-								</a>
-							) : (
-								first.owner
-							)}
-						</p>
-						<a class="profile" id="profile" href={first.href}>看 TA 的档案 →</a>
-					</div>
-				</article>
+				</div>
 
-				{/* 中间：摇签 */}
 				<div class="actions">
 					<button type="button" id="draw">摇一支签</button>
 					<a class="pool-link" href="/draw/pool/">看签筒里都有谁 →</a>
 				</div>
+				<p class="key-hint">也可以按 <kbd>空格</kbd> 或 <kbd>回车</kbd> 再摇一支</p>
 
-				{/* 下半：签的结果 */}
-				<div class="slip pending" id="slip" data-key="middle">
-					<span class="label" id="slip-label">？</span>
-					<span class="text" id="slip-text">摇一支，看看今天的运势。</span>
-					<span class="hint" id="slip-hint">摇出来的角色与运势是两件事</span>
+				<div class="slip pending" id="slip" data-key="none">
+					<span class="slip-tier" id="slip-tier">？</span>
+					<p class="slip-text" id="slip-text">摇一支，看看今天的运势。</p>
+				</div>
+
+				<div class="history" id="history" hidden>
+					<p class="history-title">这一轮抽到过</p>
+					<div class="history-list" id="history-list"></div>
 				</div>
 			</div>
 
@@ -348,50 +500,53 @@ const first = pool[0];
 		</main>
 		<Footer />
 
-		<script
-			type="application/json"
-			id="draw-data"
-			set:html={JSON.stringify({ pool, fortunes })}
-		/>
+		<script type="application/json" id="draw-data" set:html={JSON.stringify({ pool, fortunes })} />
 
 		<script>
 			const payload = JSON.parse(document.getElementById('draw-data')!.textContent!);
 			const pool = payload.pool;
 			const fortunes = payload.fortunes;
 
-			const card = document.getElementById('card')!;
+			const card3d = document.getElementById('card3d')!;
+			const reveal = document.getElementById('reveal')!;
 			const art = document.getElementById('art') as HTMLImageElement;
-			const name = document.getElementById('name')!;
-			const meta = document.getElementById('meta')!;
-			const summary = document.getElementById('summary')!;
-			const owner = document.getElementById('owner')!;
+			const nameEl = document.getElementById('name')!;
+			const metaEl = document.getElementById('meta')!;
+			const summaryEl = document.getElementById('summary')!;
+			const ownerEl = document.getElementById('owner')!;
 			const profile = document.getElementById('profile') as HTMLAnchorElement;
 			const slip = document.getElementById('slip')!;
-			const slipLabel = document.getElementById('slip-label')!;
+			const slipTier = document.getElementById('slip-tier')!;
 			const slipText = document.getElementById('slip-text')!;
-			const slipHint = document.getElementById('slip-hint')!;
-			const draw = document.getElementById('draw') as HTMLButtonElement;
+			const drawBtn = document.getElementById('draw') as HTMLButtonElement;
+			const historyBox = document.getElementById('history')!;
+			const historyList = document.getElementById('history-list')!;
 
 			let rolling = false;
+			let opened = false;
+			let current = 0;
+			const seen = new Set<number>();
 
-			const showCharacter = (index: number) => {
+			/** 把某一位填进卡面 */
+			const fillCharacter = (index: number) => {
 				const item = pool[index];
-				card.style.setProperty('--card-color', item.color);
+				current = index;
+				reveal.style.setProperty('--card-color', item.color);
 				if (art.getAttribute('src') !== item.art) art.src = item.art;
-				name.textContent = item.name;
-				meta.textContent = [item.race, item.title].filter(Boolean).join(' · ');
-				summary.textContent = item.summary;
-				owner.innerHTML = '';
-				owner.append('设主：');
+				nameEl.textContent = item.name;
+				metaEl.textContent = [item.race, item.title].filter(Boolean).join(' · ');
+				summaryEl.textContent = item.summary;
+				ownerEl.innerHTML = '';
+				ownerEl.append('设主：');
 				if (item.ownerUrl) {
 					const link = document.createElement('a');
 					link.href = item.ownerUrl;
 					link.target = '_blank';
 					link.rel = 'noreferrer';
 					link.textContent = item.owner;
-					owner.append(link);
+					ownerEl.append(link);
 				} else {
-					owner.append(item.owner);
+					ownerEl.append(item.owner);
 				}
 				profile.href = item.href;
 			};
@@ -409,47 +564,96 @@ const first = pool[0];
 
 			const showFortune = (fortune: (typeof fortunes)[number]) => {
 				slip.dataset.key = fortune.key;
-				slipLabel.textContent = fortune.label;
+				slipTier.textContent = fortune.label;
 				slipText.textContent = fortune.text;
-				slipHint.textContent = '摇出来的角色与运势是两件事';
 				slip.classList.remove('pending');
+				slip.classList.remove('show');
+				void slip.offsetWidth; // 重启动画
+				slip.classList.add('show');
 			};
 
-			const randomIndex = (avoid: number) => {
-				if (pool.length < 2) return 0;
-				let next = avoid;
-				while (next === avoid) next = Math.floor(Math.random() * pool.length);
-				return next;
+			/** 抽到过的记一笔，方便回头看 */
+			const remember = (index: number) => {
+				if (seen.has(index)) return;
+				seen.add(index);
+				const item = pool[index];
+				const a = document.createElement('a');
+				a.href = item.href;
+				a.title = item.name;
+				const img = document.createElement('img');
+				img.src = item.art;
+				img.alt = item.name;
+				img.loading = 'lazy';
+				a.append(img);
+				historyList.prepend(a);
+				historyBox.hidden = false;
 			};
 
-			let current = 0;
+			/** 合上卡牌，签纸回到「还没摇」的状态 */
+			const close = () => {
+				card3d.classList.remove('open');
+				opened = false;
+				slip.classList.remove('show');
+				slip.classList.add('pending');
+				slip.dataset.key = 'none';
+				slipTier.textContent = '？';
+				slipText.textContent = '签在筒里转……';
+			};
 
-			draw.addEventListener('click', () => {
+			const roll = () => {
 				if (rolling) return;
 				rolling = true;
-				draw.disabled = true;
-				card.classList.add('rolling');
-				slip.classList.add('pending');
-				slipLabel.textContent = '…';
-				slipText.textContent = '签在筒里转……';
-				slipHint.textContent = '';
+				drawBtn.disabled = true;
 
-				const timer = window.setInterval(() => {
-					showCharacter(Math.floor(Math.random() * pool.length));
-				}, 70);
+				const wasOpen = opened;
+				close();
 
-				window.setTimeout(() => {
-					window.clearInterval(timer);
-					current = randomIndex(current);
-					showCharacter(current);
-					card.classList.remove('rolling');
-					card.classList.remove('hit');
-					void card.offsetWidth;
-					card.classList.add('hit');
-					showFortune(pickFortune());
-					rolling = false;
-					draw.disabled = false;
-				}, 700);
+				// 已经摊开的话，等它先翻回去再摇
+				window.setTimeout(
+					() => {
+						card3d.classList.add('shaking');
+
+						// 先定好人，摇完就翻
+						let next = current;
+						while (next === current && pool.length > 1) next = Math.floor(Math.random() * pool.length);
+						fillCharacter(next);
+						const fortune = pickFortune();
+
+						window.setTimeout(
+							() => {
+								card3d.classList.remove('shaking');
+								card3d.classList.add('open');
+								opened = true;
+								drawBtn.textContent = '再摇一支';
+								// 等翻开之后再落签纸
+								window.setTimeout(
+									() => {
+										showFortune(fortune);
+										remember(next);
+										rolling = false;
+										drawBtn.disabled = false;
+									},
+									460,
+								);
+							},
+							520,
+						);
+					},
+					wasOpen ? 380 : 0,
+				);
+			};
+
+			drawBtn.addEventListener('click', roll);
+
+			// 空格 / 回车也能摇；但别抢走链接、按钮自己的按键
+			document.addEventListener('keydown', (event) => {
+				if (event.key !== ' ' && event.key !== 'Enter') return;
+				const el = event.target as HTMLElement | null;
+				const tag = el?.tagName;
+				if (tag === 'A' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+				if (tag === 'BUTTON' && el !== drawBtn) return;
+				event.preventDefault();
+				roll();
 			});
 		</script>
 	</body>
