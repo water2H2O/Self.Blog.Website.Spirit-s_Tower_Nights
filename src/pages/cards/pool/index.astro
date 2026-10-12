@@ -1,0 +1,207 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import Header from '../../../components/Header.astro';
+
+/**
+ * 卡池一览：按设主 A-Z 排。
+ *
+ * 设主名用 localeCompare('zh') 排序 —— 拉丁字母按字母序排前面，
+ * 中文名按拼音排后面（白茶 bái → 风汐铃月 fēng → 浅羽 qiǎn → 应祈 yìng）。
+ */
+
+const linked = await getCollection('characters', ({ data }) => !data.draft && data.ownership === '联动');
+
+const entries = await Promise.all(
+	linked.map(async (entry) => {
+		const race = entry.data.race ? await getEntry(entry.data.race) : null;
+		return {
+			id: entry.id,
+			name: entry.data.name,
+			title: entry.data.title ?? '',
+			race: race?.data.name ?? '',
+			owner: entry.data.owner ?? '待补',
+			ownerUrl: entry.data.ownerUrl ?? '',
+			color: entry.data.themeColor,
+			href: `/worldview/characters/${entry.id}/`,
+			art: entry.data.portrait?.src ?? '',
+			summary: entry.data.summary,
+		};
+	}),
+);
+
+/**
+ * 按设主归组，再按设主名 A-Z 排。
+ * 拉丁字母的名字排在前面（Aurelith、Ink_Bai…），中文名按拼音跟在后面
+ * （白茶 bái → 风汐铃月 fēng → 浅羽 qiǎn → 应祈 yìng）。
+ */
+const owners = [...new Set(entries.map((item) => item.owner))]
+	.sort((a, b) => {
+		const aLatin = /^[A-Za-z]/.test(a);
+		const bLatin = /^[A-Za-z]/.test(b);
+		if (aLatin !== bLatin) return aLatin ? -1 : 1;
+		return a.localeCompare(b, 'zh');
+	})
+	.map((owner) => ({
+		owner,
+		url: entries.find((item) => item.owner === owner)?.ownerUrl ?? '',
+		items: entries.filter((item) => item.owner === owner),
+	}));
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="卡池一览"
+			description={`卡池里全部 ${entries.length} 位 OC 与他们的 ${owners.length} 位设主，按设主名 A-Z 排列。`}
+		/>
+		<style>
+			main {
+				width: 1000px;
+			}
+			.lead {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+			}
+			.lead a {
+				color: var(--accent);
+			}
+			.owner-block {
+				margin-top: 2.4em;
+				padding-top: 1.6em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.owner-block:first-of-type {
+				border-top: none;
+			}
+			.owner-head {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: baseline;
+				gap: 0.7em;
+				margin-bottom: 1.1em;
+			}
+			.owner-head h2 {
+				margin: 0;
+				font-size: 1.2em;
+				color: var(--glow);
+			}
+			.owner-head .home {
+				font-size: 0.82em;
+				color: var(--accent);
+				word-break: break-all;
+			}
+			.owner-head .count {
+				font-size: 0.78em;
+				color: rgb(var(--gray));
+			}
+			.cards {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+				gap: 1.3em;
+			}
+			.card {
+				display: block;
+				border-radius: 14px;
+				overflow: hidden;
+				text-decoration: none;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-top: 3px solid var(--card-color, var(--accent));
+				transition: 0.2s ease;
+			}
+			.card:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--glow-shadow);
+			}
+			.card .art {
+				aspect-ratio: 1;
+				overflow: hidden;
+				background: color-mix(in srgb, var(--card-color, var(--accent)) 10%, var(--surface));
+			}
+			.card .art img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				object-position: center 18%;
+				display: block;
+			}
+			.card .body {
+				padding: 0.8em 0.95em 1em;
+			}
+			.card h3 {
+				margin: 0;
+				font-size: 1.02em;
+				color: rgb(var(--black));
+			}
+			.card .meta {
+				margin: 0.25em 0 0;
+				font-size: 0.76em;
+				color: rgb(var(--gray));
+			}
+			.note {
+				margin: 3em 0 0;
+				padding-top: 1.4em;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-size: 0.84em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+			}
+			.note a {
+				color: var(--accent);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>卡池一览</h1>
+			<p class="lead">
+				{entries.length} 位 OC，来自 {owners.length} 位设主，按设主名 A-Z 排列。想抽一张玩，回<a
+					href="/cards/">卡池</a
+				>。
+			</p>
+
+			{
+				owners.map((group) => (
+					<section class="owner-block">
+						<div class="owner-head">
+							<h2>{group.owner}</h2>
+							{group.url && (
+								<a class="home" href={group.url} target="_blank" rel="noreferrer">
+									{group.url}
+								</a>
+							)}
+							<span class="count">{group.items.length} 位 OC</span>
+						</div>
+						<div class="cards">
+							{group.items.map((item) => (
+								<a class="card" href={item.href} style={`--card-color:${item.color}`}>
+									<div class="art">
+										{item.art ? (
+											<img src={item.art} alt={item.name} loading="lazy" decoding="async" />
+										) : (
+											<span />
+										)}
+									</div>
+									<div class="body">
+										<h3>{item.name}</h3>
+										<p class="meta">{[item.race, item.title].filter(Boolean).join(' · ')}</p>
+									</div>
+								</a>
+							))}
+						</div>
+					</section>
+				))
+			}
+
+			<p class="note">
+				这些都是朋友与伙伴们的角色，版权归各设主所有，本站只是收录。
+				多数设主还没有主页，拿到链接会补在这里。
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>
