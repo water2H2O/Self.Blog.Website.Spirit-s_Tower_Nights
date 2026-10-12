@@ -92,8 +92,14 @@ const myItems = fs.existsSync(POOL)
 			})
 	: [];
 
-/** 指针类素材单独统计，供「数字资源」框显示预览数量 */
-const cursorItems = myItems.filter((item) => item.kind === '指针');
+/**
+ * 指针类素材。
+ * 预览只挑真正的指针图：同分类里还混着「如何调整鼠标指针大小」教程图
+ * 和「指针展示图」拼图，它们拿来当缩略图会显得莫名其妙。
+ */
+const cursorItems = myItems.filter(
+	(item) => item.kind === '指针' && !/如何调整|展示图/.test(item.file),
+);
 
 const artworks = myItems
 	.filter((item) => item.kind !== '指针')
@@ -171,7 +177,11 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 						<div class="res-list">
 							{resources.map((res) => (
 								<a class="res-card" href={encodeURI(res.href)} download>
-									{res.preview && <img src={res.preview} alt="" loading="lazy" decoding="async" />}
+									{res.preview && (
+										<span class="res-thumb">
+											<img src={res.preview} alt="" loading="lazy" decoding="async" />
+										</span>
+									)}
 									<span class="res-body">
 										<span class="res-label">
 											{res.label}
@@ -298,12 +308,14 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 	}
 	.res-list {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		/* 单张卡片时不要拉满整行，右边留一大片空白很难看 */
+		grid-template-columns: repeat(auto-fill, minmax(320px, 480px));
 		gap: 1em;
 		margin-top: 0.8em;
 	}
 	.res-card {
-		display: flex;
+		display: grid;
+		grid-template-columns: 92px minmax(0, 1fr);
 		align-items: center;
 		gap: 1em;
 		padding: 0.9em 1.1em;
@@ -319,13 +331,20 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 		box-shadow: var(--glow-shadow);
 		transform: translateY(-2px);
 	}
-	.res-card :global(img) {
-		flex: none;
+	/* 缩略图固定占第一列，图片本身撑满这一格 */
+	.res-card .res-thumb {
+		display: block;
 		width: 92px;
 		height: 92px;
-		object-fit: contain;
 		border-radius: 8px;
+		overflow: hidden;
 		background: rgba(6, 20, 28, 40%);
+	}
+	.res-card :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		display: block;
 	}
 	.res-body {
 		display: flex;
