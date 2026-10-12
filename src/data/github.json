@@ -1,11 +1,11 @@
 {
-  "fetchedAt": "2026-10-10T15:16:59.936Z",
+  "fetchedAt": "2026-10-12T04:10:34.617Z",
   "user": {
     "login": "water2H2O",
     "name": "",
     "url": "https://github.com/water2H2O",
     "avatar": "https://avatars.githubusercontent.com/u/189988544?v=4",
-    "publicRepos": 3,
+    "publicRepos": 4,
     "followers": 1,
     "createdAt": "2024-11-28T12:20:28Z"
   },
@@ -16,9 +16,20 @@
       "language": "Astro",
       "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
       "stars": 0,
-      "pushedAt": "2026-10-10T15:16:12Z",
+      "pushedAt": "2026-10-12T04:10:15Z",
       "createdAt": "2026-10-09T07:50:22Z",
-      "sizeKb": 41114,
+      "sizeKb": 44088,
+      "empty": false
+    },
+    {
+      "name": "COMP2056-2627PA1-25226177",
+      "description": "【截止日期已经过了，已开源】COMP2056很潦草的第一次Assignment……",
+      "language": "Java",
+      "url": "https://github.com/water2H2O/COMP2056-2627PA1-25226177",
+      "stars": 0,
+      "pushedAt": "2026-10-11T02:54:02Z",
+      "createdAt": "2026-09-29T09:21:47Z",
+      "sizeKb": 116,
       "empty": false
     },
     {
@@ -45,16 +56,14 @@
     }
   ],
   "contributions": {
-    "from": "2025-10-05",
-    "to": "2026-10-10",
-    "total": 69,
+    "from": "2025-10-12",
+    "to": "2026-10-12",
+    "total": 124,
     "weeks": [
       "0000000",
-      "0000000",
-      "0000030",
-      "2200020",
-      "0020000",
-      "0000000",
+      "0000010",
+      "1100010",
+      "0010000",
       "0000000",
       "0000000",
       "0000000",
@@ -88,6 +97,7 @@
       "0000000",
       "0000000",
       "0000000",
+      "0011000",
       "0000000",
       "0000000",
       "0000000",
@@ -99,9 +109,10 @@
       "0000000",
       "0000000",
       "0000000",
-      "0040020",
-      "0000000",
-      "0000044"
+      "0041010",
+      "0140030",
+      "0110044",
+      "4100000"
     ]
   }
 }
