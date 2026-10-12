@@ -1,11 +1,11 @@
 ---
 title: 天界与魔界
 summary: 灾变后，命运三神因逻辑悖论陷入沉默，只能试着维护现状；更能适应混乱的魔界活跃起来，“魔王”在现有规则下探寻未来。
-category: 势力
+category: 世界规则
 tags: ['天界', '魔界', '灾后格局']
 related: ['cataclysm', 'fate-triad', 'miasma']
 canon: open
-order: 50
+order: 60
 ---
 
 ## 灾变前后

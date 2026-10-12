@@ -126,7 +126,7 @@ order: 10                     # 越小越靠前
 ---
 title: 瘴素                   # 必填
 summary: 一句话说明            # 必填
-category: 瘴素                # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 历史 / 概念
+category: 世界规则            # 世界规则 / 势力 / 地域 / 历史 / 神器 / 魔法体系
 characters: ['miaomiao']      # 关联角色
 races: ['elemental-spirit']   # 关联种族
 related: ['cataclysm']        # 关联别的设定条目
@@ -212,6 +212,10 @@ order: 21
 > **设定（`lore`）的类目表在 `src/lib/lore.ts`**，索引页、侧栏、势力子页都读它。
 > 其中「势力」一支另有独立页面 `/worldview/lore/factions/`（`src/pages/worldview/lore/factions/`），
 > 侧栏的设定目录里也给它单独分了一组。加类目只改 `lore.ts` 一处 + `content.config.ts` 的枚举。
+>
+> 现有六类：**世界规则**（世界的底层机制，如大灾变、熵增衰变、时间环、命运三神、瘴素、天界与魔界）、
+> **势力**（谁在统治：圣盾共和国、银辉联邦、奥法联合……）、**地域**（地理实体：交界地、云穹城邦……）、
+> **历史**（精灵线、白塔试炼……）、**神器**、**魔法体系**。
 
 > **画廊不在这个表里。** 它不是 markdown 集合，而是一个**图池**：
 > 图片放在 `public/gallery/`，标注写在 `src/data/gallery-meta.json`，
@@ -288,7 +292,7 @@ order: 11
 ---
 title: 瘴素
 summary: 一句话说明
-category: 瘴素               # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 历史 / 概念
+category: 世界规则           # 世界规则 / 势力 / 地域 / 历史 / 神器 / 魔法体系
 themeColor: '#B6FF7A'
 characters: ['miaomiao']
 races: ['elemental-spirit']

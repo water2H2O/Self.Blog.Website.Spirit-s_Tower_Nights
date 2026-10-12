@@ -1,13 +1,13 @@
 ---
 title: 交界地
 summary: 精灵王以自身 90% 生命与力量本源“钉”成的不完整结界：时间近乎停滞、内外隔绝而极其脆弱；也是狼灵族最后的容身之处与银辉联邦的东部边境。
-category: 势力
+category: 地域
 tags: ['结界', '时空不稳', '精灵国度', '时锚孤岛', '时序牧者', '狼灵族']
 related: ['elf-arc', 'artifacts', 'cataclysm', 'miasma', 'cloudspire']
 characters: ['viola', 'fengxi-lingyue']
 races: ['elf']
 canon: open
-order: 80
+order: 10
 ---
 
 ## 形成：被“钉”住的结界
