@@ -225,6 +225,17 @@ hr {
 	white-space: nowrap;
 }
 
+/*
+ * 世界观各页在左侧有一条固定侧栏（由 Header 组件输出 #wv-toc）。
+ * 这里给 body 让出侧栏宽度，正文的居中布局不受影响；窄屏时侧栏收起，就不留白。
+ * 用 :has() 判断，省得每个页面都去加 class。
+ */
+@media (min-width: 1100px) {
+	body:has(#wv-toc) {
+		padding-left: 224px;
+	}
+}
+
 /* CC BY 4.0 标记：授权页与关于页共用 */
 .cc-badge {
 	display: inline-block;

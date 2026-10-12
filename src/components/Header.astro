@@ -31,6 +31,9 @@ const isActive = (href: string) => {
 	if (target === WORLDVIEW_BASE) return path === WORLDVIEW_BASE;
 	return path === target || path.startsWith(`${target}/`);
 };
+
+/** 当前所在栏目，窄屏那个目录按钮上显示 */
+const activeLabel = worldviewLinks.find((link) => isActive(link.href))?.label ?? '';
 ---
 
 <header>
@@ -59,31 +62,39 @@ const isActive = (href: string) => {
 			</a>
 		</div>
 	</nav>
-	{
-		inWorldview && (
-			<nav class="sub" id="sub-nav">
-				<span class="tag">世界观</span>
-				{
-					worldviewLinks.map((link) => (
-						<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
-							{link.label}
-						</a>
-					))
-				}
-			</nav>
-		)
-	}
 </header>
 
-<script>
-	/* 窄屏时二级导航要横向滑动：把当前栏目滚到可见处，别让「画廊」「回响之殿」被切在屏幕外 */
-	const sub = document.getElementById('sub-nav');
-	const active = sub?.querySelector('a.active');
-	if (sub && active && sub.scrollWidth > sub.clientWidth) {
-		const target = active.offsetLeft - sub.clientWidth / 2 + active.clientWidth / 2;
-		sub.scrollLeft = Math.max(0, Math.min(target, sub.scrollWidth - sub.clientWidth));
-	}
-</script>
+{
+	/*
+	 * 世界观栏目导航：桌面是左侧固定侧栏（wiki 那种），窄屏收成一个可展开的目录。
+	 * 必须放在 <header> 外面 —— 页头有 backdrop-filter，会给 fixed 定位另建包含块，
+	 * 放在里面侧栏就贴不到视口左边了。
+	 * 纯 CSS 实现（checkbox 展开），不依赖 JS。
+	 */
+	inWorldview && (
+		<>
+			<input type="checkbox" id="wv-nav-toggle" class="wv-nav-toggle" />
+			<label for="wv-nav-toggle" class="wv-nav-btn">
+				<span class="wv-nav-btn-ico" aria-hidden="true">
+					☰
+				</span>
+				<span>世界观目录{activeLabel && ` · ${activeLabel}`}</span>
+			</label>
+			<nav class="wv-toc" id="wv-toc" aria-label="世界观栏目">
+				<p class="wv-toc-title">世界观</p>
+				<ul>
+					{worldviewLinks.map((link) => (
+						<li>
+							<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
+								{link.label}
+							</a>
+						</li>
+					))}
+				</ul>
+			</nav>
+		</>
+	)
+}
 <style>
 	header {
 		margin: 0;
@@ -138,39 +149,62 @@ const isActive = (href: string) => {
 	.social-links a {
 		display: flex;
 	}
-	/* 二级导航：企划内部栏目 */
-	nav.sub {
+
+	/* ---------- 世界观侧栏（桌面）/ 目录（窄屏） ---------- */
+	.wv-nav-toggle {
+		display: none;
+	}
+	.wv-nav-btn {
+		display: none;
+	}
+	.wv-toc {
+		position: fixed;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		z-index: 4; /* 低于页头，页头压在它上面 */
+		width: 224px;
+		/* 顶部留出页头的高度（页头会换行，留宽裕些） */
+		padding: 7.5em 1em 2em 1.3em;
+		overflow-y: auto;
 		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.2em 0.4em;
-		padding: 0.35em 0 0.55em;
-		border-top: 1px solid rgba(175, 255, 255, 10%);
+		flex-direction: column;
+		border-right: 1px solid rgb(var(--gray-light));
+		background: rgba(20, 37, 50, 62%);
+		backdrop-filter: blur(10px);
 	}
-	nav.sub .tag {
+	.wv-toc-title {
+		margin: 0 0 1em 0.8em;
 		font-size: 0.72em;
-		letter-spacing: 0.16em;
-		color: var(--glow);
-		opacity: 0.7;
-		margin-right: 0.6em;
-	}
-	nav.sub :global(a) {
-		padding: 0.3em 0.7em;
-		font-size: 0.86em;
-		border-radius: 999px;
-		border-bottom: none;
+		letter-spacing: 0.3em;
 		color: rgb(var(--gray));
-		text-decoration: none;
 	}
-	nav.sub :global(a:hover) {
+	.wv-toc ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.15em;
+	}
+	.wv-toc :global(a) {
+		display: block;
+		padding: 0.5em 0.8em;
+		border-radius: 9px;
+		border-left: 2px solid transparent;
+		font-size: 0.92em;
+		text-decoration: none;
+		color: rgb(var(--gray-dark));
+		transition: 0.15s ease;
+	}
+	.wv-toc :global(a:hover) {
 		color: var(--glow);
 		background: rgba(175, 255, 255, 8%);
 	}
-	nav.sub :global(a.active) {
-		color: #08131d;
-		background: var(--glow);
-		font-weight: 700;
-		text-decoration: none;
+	.wv-toc :global(a.active) {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 12%);
+		border-left-color: var(--glow);
 	}
 	@media (max-width: 900px) {
 		h2 {
@@ -186,24 +220,55 @@ const isActive = (href: string) => {
 		.social-links {
 			display: none;
 		}
-		/* 二级导航在窄屏改为横向滑动，保持一行不换行 */
-		nav.sub {
-			overflow-x: auto;
-			flex-wrap: nowrap;
-			-webkit-overflow-scrolling: touch;
-			scrollbar-width: none;
-			/* 右侧留一点空白，滑到底时最后一项不会贴着边 */
-			padding-right: 0.6em;
+	}
+
+	/**
+	 * 窄屏（1100px 以下）：侧栏收成一个「世界观目录」按钮，
+	 * 点开才展开栏目列表 —— 不再有两条横栏叠在顶上。
+	 */
+	@media (max-width: 1099px) {
+		.wv-nav-btn {
+			display: flex;
+			align-items: center;
+			gap: 0.5em;
+			padding: 0.7em 1em;
+			font-size: 0.86em;
+			color: rgb(var(--gray-dark));
+			cursor: pointer;
+			border-bottom: 1px solid rgb(var(--gray-light));
+			background: rgba(20, 37, 50, 55%);
+			user-select: none;
 		}
-		nav.sub::-webkit-scrollbar {
+		.wv-nav-btn-ico {
+			color: var(--accent);
+		}
+		.wv-nav-toggle:checked ~ .wv-nav-btn {
+			color: var(--glow);
+		}
+		.wv-toc {
+			position: static;
+			width: auto;
+			z-index: auto;
+			display: none;
+			padding: 0.5em 1em 0.9em;
+			border-right: none;
+			border-bottom: 1px solid rgb(var(--gray-light));
+			background: rgba(20, 37, 50, 45%);
+			backdrop-filter: none;
+		}
+		.wv-nav-toggle:checked ~ .wv-toc {
+			display: flex;
+		}
+		.wv-toc-title {
 			display: none;
 		}
-		nav.sub > *,
-		nav.sub :global(a) {
-			flex: none;
+		.wv-toc ul {
+			flex-direction: column;
+			gap: 0.1em;
 		}
-		nav.sub :global(a) {
-			padding: 0.55em 0.5em;
+		.wv-toc :global(a) {
+			padding: 0.6em 0.8em;
+			font-size: 0.9em;
 		}
 	}
 </style>
