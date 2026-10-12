@@ -4,12 +4,11 @@ import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LoreCard from '../../../components/LoreCard.astro';
-
-const CATEGORY_ORDER = ['世界规则', '瘴素', '神器', '魔法体系', '势力', '历史', '概念'] as const;
+import { FACTION_CATEGORY, LORE_CATEGORIES } from '../../../lib/lore';
 
 const lore = await getCollection('lore', ({ data }) => !data.draft);
 
-const groups = CATEGORY_ORDER.map((category) => ({
+const groups = LORE_CATEGORIES.map((category) => ({
 	category,
 	items: lore
 		.filter((entry) => entry.data.category === category)
@@ -40,6 +39,19 @@ const groups = CATEGORY_ORDER.map((category) => ({
 				margin: 0 0 1em;
 				padding-left: 0.6em;
 				border-left: 4px solid var(--accent);
+			}
+			/* 「势力」这一类另有子页，标题右边挂个入口 */
+			section h2 .more {
+				margin-left: 0.5em;
+				font-size: 0.72em;
+				font-weight: 400;
+				letter-spacing: 0.04em;
+				text-decoration: none;
+				color: var(--accent);
+				white-space: nowrap;
+			}
+			section h2 .more:hover {
+				color: var(--glow);
 			}
 			/*
 			 * 类目块并排排布。
@@ -87,9 +99,14 @@ const groups = CATEGORY_ORDER.map((category) => ({
 				{
 					groups.length > 0 ? (
 						groups.map((group) => (
-							<section>
+							<section id={group.category === FACTION_CATEGORY ? 'lore-faction' : undefined}>
 								<h2>
 									{group.category}（{group.items.length}）
+									{group.category === FACTION_CATEGORY && (
+										<a class="more" href="/worldview/lore/factions/">
+											单独一页 →
+										</a>
+									)}
 								</h2>
 								<div class="grid">
 									{group.items.map((entry) => (

@@ -209,6 +209,10 @@ order: 21
 > 抽签卡与签筒卡上会挂一个金色「限定」角标，抽到后右侧档案里也会多一行「限定」。
 > 这是纯展示标记，不影响概率 —— 限定角色照样按人数均分。
 
+> **设定（`lore`）的类目表在 `src/lib/lore.ts`**，索引页、侧栏、势力子页都读它。
+> 其中「势力」一支另有独立页面 `/worldview/lore/factions/`（`src/pages/worldview/lore/factions/`），
+> 侧栏的设定目录里也给它单独分了一组。加类目只改 `lore.ts` 一处 + `content.config.ts` 的枚举。
+
 > **画廊不在这个表里。** 它不是 markdown 集合，而是一个**图池**：
 > 图片放在 `public/gallery/`，标注写在 `src/data/gallery-meta.json`，
 > 由 `tools/build-gallery-pool.mjs` 生成。详见后面「画廊图池」。

@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import { GITHUB_URL, SITE_TITLE, WORLDVIEW_BASE } from '../consts';
+import { FACTION_CATEGORY, FACTION_BASE } from '../lib/lore';
 
 /** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
 const mainLinks = [
@@ -55,6 +56,8 @@ interface SubItem {
 }
 
 let subItems: SubItem[] = [];
+/** 「势力」那一支单独成组列在侧栏里（见 lore.ts） */
+let factionSub: SubItem[] = [];
 
 if (inWorldview) {
 	const section = path === WORLDVIEW_BASE ? '' : path.slice(WORLDVIEW_BASE.length + 1).split('/')[0];
@@ -81,11 +84,14 @@ if (inWorldview) {
 		const all = (await getCollection('lore', ({ data }) => !data.draft)).sort(
 			(a, b) => a.data.order - b.data.order,
 		);
-		subItems = all.map((entry) => ({
+		// 势力那一支抽出来单独成组，剩下的平铺
+		const toItem = (entry: (typeof all)[number]) => ({
 			href: `${WORLDVIEW_BASE}/lore/${entry.id}/`,
 			label: entry.data.title,
 			active: path === `${WORLDVIEW_BASE}/lore/${entry.id}`,
-		}));
+		});
+		factionSub = all.filter((entry) => entry.data.category === FACTION_CATEGORY).map(toItem);
+		subItems = all.filter((entry) => entry.data.category !== FACTION_CATEGORY).map(toItem);
 	} else if (section === 'music') {
 		const all = (await getCollection('music', ({ data }) => !data.draft)).sort(
 			(a, b) => a.data.order - b.data.order,
@@ -167,8 +173,28 @@ if (inWorldview) {
 								{link.label}
 							</a>
 							{/* 二级目录：只在当前这一栏下展开 */}
-							{subItems.length > 0 && isActive(link.href) && (
+							{(subItems.length > 0 || factionSub.length > 0) && isActive(link.href) && (
 								<ul class="sub-list">
+									{/* 「势力」自成一组：一个分组入口 + 组内条目 */}
+									{factionSub.length > 0 && (
+										<>
+											<li class="group">
+												<a
+													href={`${WORLDVIEW_BASE}/lore/factions/`}
+													class:list={[{ active: path === FACTION_BASE }]}
+												>
+													势力<span class="count">{factionSub.length}</span>
+												</a>
+											</li>
+											{factionSub.map((item) => (
+												<li class="nested">
+													<a href={item.href} class:list={[{ active: item.active }]}>
+														{item.label}
+													</a>
+												</li>
+											))}
+										</>
+									)}
 									{subItems.map((item) => (
 										<li>
 											<a href={item.href} class:list={[{ active: item.active }]}>
@@ -326,6 +352,27 @@ if (inWorldview) {
 		background: rgba(175, 255, 255, 10%);
 		border-left-color: transparent;
 		font-weight: 700;
+	}
+	/* 「势力」分组：一小段自己的目录，跟外面平铺的条目隔开 */
+	.wv-toc .sub-list .group {
+		margin: 0.3em 0 0.15em;
+	}
+	.wv-toc .sub-list .group :global(a) {
+		font-size: 0.86em;
+		color: var(--glow);
+	}
+	.wv-toc .sub-list .group .count {
+		margin-left: 0.5em;
+		font-size: 0.82em;
+		color: rgb(var(--gray));
+	}
+	.wv-toc .sub-list .nested :global(a) {
+		padding-left: 1.1em;
+		font-size: 0.8em;
+	}
+	.wv-toc .sub-list .nested + li:not(.nested) {
+		margin-top: 0.4em;
+		border-top: 1px solid rgba(175, 255, 255, 8%);
 	}
 	@media (max-width: 900px) {
 		.brand :global(img) {
