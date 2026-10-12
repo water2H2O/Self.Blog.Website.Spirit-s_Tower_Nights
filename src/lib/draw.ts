@@ -29,6 +29,8 @@ export interface DrawItem {
 	pronouns: string;
 	tags: string[];
 	arts: number;
+	/** 抽签限定：卡片与签筒上带「限定」角标 */
+	limited: boolean;
 }
 
 const gallery = (galleryMeta as { items?: Record<string, { character?: string }> }).items ?? {};
@@ -62,6 +64,7 @@ export async function drawPool(): Promise<DrawItem[]> {
 				pronouns: entry.data.pronouns ?? '',
 				tags: entry.data.tags ?? [],
 				arts: artCount(entry.data.name),
+				limited: entry.data.limited,
 			};
 		}),
 	);
@@ -85,6 +88,7 @@ export async function drawPool(): Promise<DrawItem[]> {
 		pronouns: entry.data.pronouns ?? '',
 		tags: entry.data.tags ?? [],
 		arts: artCount(entry.data.name),
+		limited: entry.data.limited,
 	}));
 
 	// 正式入档的排在前面，签筒目录里的跟在后面；各自按 order 排

@@ -29,6 +29,7 @@ height: 145cm
 age: 不详
 pronouns: 女
 tags: ['标签']
+limited: false                 # 抽签限定；true 时卡片与签筒上挂金色「限定」角标
 canon: open                   # locked / open / draft
 order: 100                    # 越小越靠前
 ---

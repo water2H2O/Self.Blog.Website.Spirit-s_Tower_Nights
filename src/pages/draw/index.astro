@@ -227,6 +227,21 @@ const first = pool[0];
 				font-size: 1.3em;
 				color: var(--card-color, var(--glow));
 			}
+			/* 抽签限定：名字后面挂一个小角标 */
+			.limit {
+				margin-left: 0.5em;
+				padding: 0.1em 0.5em;
+				border-radius: 999px;
+				font-size: 0.62em;
+				font-weight: 400;
+				letter-spacing: 0.06em;
+				vertical-align: 0.22em;
+				color: #06121a;
+				background: #ffd68a;
+			}
+			.detail .d-name .limit {
+				font-size: 0.54em;
+			}
 			.reveal .cap p {
 				margin: 0.3em 0 0;
 				font-size: 0.8em;
@@ -539,7 +554,10 @@ const first = pool[0];
 									<img id="art" src={first.art} alt="" width="680" height="850" />
 								</div>
 								<div class="cap">
-									<h2 id="cap-name">{first.name}</h2>
+									<h2 id="cap-name">
+										{first.name}
+										{first.limited && <span class="limit" id="cap-limit" hidden>限定</span>}
+									</h2>
 									<p id="cap-meta">{[first.race || first.kind, first.title].filter(Boolean).join(' · ')}</p>
 								</div>
 							</div>
@@ -548,7 +566,10 @@ const first = pool[0];
 
 					{/* 右侧：这一位的详细档案 */}
 					<aside class="detail" id="detail">
-						<h2 class="d-name" id="d-name">{first.name}</h2>
+						<h2 class="d-name" id="d-name">
+							{first.name}
+							{first.limited && <span class="limit" id="d-limit" hidden>限定</span>}
+						</h2>
 						<p class="d-meta" id="d-meta">{[first.race || first.kind, first.title].filter(Boolean).join(' · ')}</p>
 						<p class="d-summary" id="d-summary">{first.summary}</p>
 						<dl id="d-fields"></dl>
@@ -598,8 +619,10 @@ const first = pool[0];
 			const reveal = document.getElementById('reveal')!;
 			const art = document.getElementById('art') as HTMLImageElement;
 			const capName = document.getElementById('cap-name')!;
+			const capLimit = document.getElementById('cap-limit') as HTMLElement;
 			const capMeta = document.getElementById('cap-meta')!;
 			const dName = document.getElementById('d-name')!;
+			const dLimit = document.getElementById('d-limit') as HTMLElement;
 			const dMeta = document.getElementById('d-meta')!;
 			const dSummary = document.getElementById('d-summary')!;
 			const dFields = document.getElementById('d-fields')!;
@@ -644,9 +667,11 @@ const first = pool[0];
 				if (art.getAttribute('src') !== item.art) art.src = item.art;
 
 				capName.textContent = item.name;
+				capLimit.hidden = !item.limited;
 				capMeta.textContent = [item.race || item.kind, item.title].filter(Boolean).join(' · ');
 
 				dName.textContent = item.name;
+				dLimit.hidden = !item.limited;
 				dMeta.textContent = [item.race || item.kind, item.title].filter(Boolean).join(' · ');
 				dSummary.textContent = item.summary;
 				dLink.href = item.href;
@@ -675,6 +700,10 @@ const first = pool[0];
 				}
 				field('设主', item.owner, item.ownerUrl || undefined);
 				rows += 1;
+				if (item.limited) {
+					field('限定', '本期抽签限定');
+					rows += 1;
+				}
 				if (item.arts > 0) {
 					field('画作', `${item.arts} 张`);
 					rows += 1;

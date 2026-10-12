@@ -137,6 +137,13 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 				color: #06121a;
 				background: rgba(175, 255, 255, 88%);
 			}
+			/* 抽签限定：挂在右上角，颜色跟「想加入」的提示同一族 */
+			.card .flag.limit {
+				left: auto;
+				right: 8px;
+				color: #3a2708;
+				background: #ffd68a;
+			}
 			.card .body {
 				padding: 0.8em 0.95em 1em;
 			}
@@ -200,6 +207,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 											<span />
 										)}
 										{item.href.startsWith('/draw/entry/') && <span class="flag">签筒</span>}
+										{item.limited && <span class="flag limit">限定</span>}
 									</div>
 									<div class="body">
 										<h3>{item.name}</h3>
@@ -216,7 +224,8 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 
 			<p class="note">
 				多数是朋友与伙伴们的角色，版权归各设主所有，本站只是收录；
-				淼渺是本站作者自己的角色。带「签筒」角标的条目只在这个区域出现，没有进入世界观正式档案。
+				淼渺是本站作者自己的角色。带「签筒」角标的条目只在这个区域出现，没有进入世界观正式档案；
+				带「限定」角标的是本期抽签限定。
 			</p>
 		</main>
 		<Footer />

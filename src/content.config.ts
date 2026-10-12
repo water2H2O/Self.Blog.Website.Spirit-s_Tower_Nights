@@ -122,6 +122,11 @@ const characters = defineCollection({
 			 * 默认 false（自己的 OC 一般不放进去），朋友家的孩子与想放进去的角色手动标 true。
 			 */
 			drawable: z.boolean().default(false),
+			/**
+			 * 抽签限定：只在这一期限定里露面，卡片与签筒上会带「限定」角标。
+			 * 与 drawable 无关 —— draw 目录里的条目也可以标。
+			 */
+			limited: z.boolean().default(false),
 			tags: z.array(z.string()).default([]),
 			/** 人际关系：指向其他角色 */
 			relations: z
@@ -303,6 +308,8 @@ const draw = defineCollection({
 			age: z.string().optional(),
 			pronouns: z.string().optional(),
 			tags: z.array(z.string()).default([]),
+			/** 抽签限定：卡片与签筒上会带「限定」角标 */
+			limited: z.boolean().default(false),
 			canon: canonLevel,
 			spoiler: spoilerLevel,
 			draft: z.boolean().default(false),

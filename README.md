@@ -204,6 +204,10 @@ order: 21
 > 只在 `/draw/` 与 `/draw/pool/` 露面（签筒页上带「签筒」角标）。
 > 适合放客串、玩梗、还没想好归哪支种族的角色。目录里的写作说明见 `src/content/draw/README.txt`。
 > 抽签的池子 = 这个目录的全部条目 + 角色集合里标了 `drawable: true` 的角色。
+>
+> **抽签限定**：`draw` 条目与 `characters` 条目都可以写 `limited: true`，
+> 抽签卡与签筒卡上会挂一个金色「限定」角标，抽到后右侧档案里也会多一行「限定」。
+> 这是纯展示标记，不影响概率 —— 限定角色照样按人数均分。
 
 > **画廊不在这个表里。** 它不是 markdown 集合，而是一个**图池**：
 > 图片放在 `public/gallery/`，标注写在 `src/data/gallery-meta.json`，
