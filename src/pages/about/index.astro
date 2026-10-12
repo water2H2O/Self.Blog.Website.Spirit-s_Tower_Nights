@@ -1,0 +1,105 @@
+---
+import AboutHeroImage from '../../assets/oc/about-hero.webp';
+import Layout from '../../layouts/BlogPost.astro';
+import {
+	BILIBILI_NAME,
+	BILIBILI_URL,
+	EMAIL,
+	GITHUB_NAME,
+	GITHUB_URL,
+	PROJECT_TITLE,
+	QQ_GROUP,
+	QQ_GROUP_URL,
+	SITE_AUTHOR,
+} from '../../consts';
+
+/** 其余几篇说明，放在页面末尾当入口 */
+const more = [
+	{
+		href: '/about/site/',
+		title: '关于这个站点',
+		desc: '站点怎么组织的，以及建站以来的改动记录。',
+	},
+	{
+		href: '/about/friends/',
+		title: '友情链接',
+		desc: '朋友们的站点，以及我在参与的项目。',
+	},
+	{
+		href: '/license/',
+		title: '作品使用与授权',
+		desc: '哪些内容可以自由使用（CC BY 4.0），哪些需要先联系我。',
+	},
+];
+---
+
+<Layout
+	title="关于"
+	description="关于作者水水，以及联系方式。"
+	pubDate={new Date('2026-10-10')}
+	heroImage={AboutHeroImage}
+>
+	<h2>关于我</h2>
+	<p>
+		叫我 <strong>{SITE_AUTHOR}</strong> 或者水水都行。在主站那边是「淼渺_Water2H2O」——
+		淼渺是我在这个世界里最早写下的角色，一个怕高、有点怂、但在正经事上很倔的水精灵实习药剂师。
+	</p>
+	<p>
+		平时做的三件事：写这个世界的设定和故事、给角色画图与约稿、以及做 OC
+		音乐企划（到现在和七位曲师合作过）。也做表情包小剧场一类的轻东西，纯粹因为好玩。
+	</p>
+	<p>
+		主要作品都在本站的 <a href="/worldview/">{PROJECT_TITLE}</a> 里，
+		其余是随笔与个人内容。
+	</p>
+	<!-- 维护备注：这段是按站内现有内容拟的草稿，改这里就行。 -->
+
+	<h2>联系</h2>
+	<ul>
+		<li>
+			邮箱：<a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+			（授权、转载、合作都发这里）
+		</li>
+		<li>
+			B 站：<a href={BILIBILI_URL} target="_blank" rel="noreferrer">{BILIBILI_NAME}</a>
+			（音乐 PV、表情包小剧场都在那边）
+		</li>
+		<li>
+			GitHub：<a href={GITHUB_URL} target="_blank" rel="noreferrer">{GITHUB_NAME}</a>
+		</li>
+		<li>
+			QQ 群：<a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">{QQ_GROUP}</a>
+			（点群号直接加群）
+		</li>
+	</ul>
+
+	<h2>还有这些</h2>
+	<ul class="more">
+		{
+			more.map((item) => (
+				<li>
+					<a href={item.href}>{item.title}</a>
+					<span class="desc">{item.desc}</span>
+				</li>
+			))
+		}
+	</ul>
+
+	<style>
+		.more {
+			list-style: none;
+			padding: 0;
+		}
+		.more li {
+			margin-bottom: 0.7em;
+		}
+		.more a {
+			font-weight: 700;
+		}
+		.more .desc {
+			display: block;
+			font-size: 0.86em;
+			color: rgb(var(--gray));
+		}
+	</style>
+</Layout>
