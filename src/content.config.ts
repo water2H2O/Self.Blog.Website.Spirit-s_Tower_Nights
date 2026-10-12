@@ -148,7 +148,7 @@ const lore = defineCollection({
 			title: z.string(),
 			summary: z.string(),
 			category: z
-				.enum(['世界规则', '瘴素', '神器', '魔法体系', '势力', '地理', '历史', '概念'])
+				.enum(['世界规则', '瘴素', '神器', '魔法体系', '势力', '历史', '概念'])
 				.default('概念'),
 			cover: z.optional(image()),
 			/* 与 global.css 的 --accent 保持一致 */

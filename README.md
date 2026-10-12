@@ -126,7 +126,7 @@ order: 10                     # 越小越靠前
 ---
 title: 瘴素                   # 必填
 summary: 一句话说明            # 必填
-category: 瘴素                # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 地理 / 历史 / 概念
+category: 瘴素                # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 历史 / 概念
 characters: ['miaomiao']      # 关联角色
 races: ['elemental-spirit']   # 关联种族
 related: ['cataclysm']        # 关联别的设定条目
@@ -280,7 +280,7 @@ order: 11
 ---
 title: 瘴素
 summary: 一句话说明
-category: 瘴素               # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 地理 / 历史 / 概念
+category: 瘴素               # 世界规则 / 瘴素 / 神器 / 魔法体系 / 势力 / 历史 / 概念
 themeColor: '#B6FF7A'
 characters: ['miaomiao']
 races: ['elemental-spirit']

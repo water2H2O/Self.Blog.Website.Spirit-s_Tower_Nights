@@ -5,7 +5,7 @@ import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LoreCard from '../../../components/LoreCard.astro';
 
-const CATEGORY_ORDER = ['世界规则', '瘴素', '神器', '魔法体系', '势力', '地理', '历史', '概念'] as const;
+const CATEGORY_ORDER = ['世界规则', '瘴素', '神器', '魔法体系', '势力', '历史', '概念'] as const;
 
 const lore = await getCollection('lore', ({ data }) => !data.draft);
 
@@ -22,7 +22,7 @@ const groups = CATEGORY_ORDER.map((category) => ({
 	<head>
 		<BaseHead
 			title="世界观"
-			description="Spirit's Tower Nights 的设定集：地理、种族、体系、组织与历史。"
+			description="Spirit's Tower Nights 的设定集：种族、体系、势力、组织与历史。"
 		/>
 		<style>
 			main {
@@ -44,7 +44,7 @@ const groups = CATEGORY_ORDER.map((category) => ({
 			/*
 			 * 类目块并排排布。
 			 *
-			 * 13 条设定分在 8 个类目里，其中 5 个只有 1 条 —— 每个类目独占一行时，
+			 * 13 条设定分在 7 个类目里，其中 4 个只有 1 条 —— 每个类目独占一行时，
 			 * 会出现「一行只有一个格子、右边全空」的情况。
 			 *
 			 * 这里用 CSS 多列而不是 grid：grid 里同一行的块会被最高的那个撑高，
