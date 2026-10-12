@@ -7,17 +7,16 @@
  */
 export const LORE_CATEGORIES = [
 	'世界规则',
-	'瘴素',
+	'势力',
+	'地域',
+	'历史',
 	'神器',
 	'魔法体系',
-	'势力',
-	'历史',
-	'概念',
 ] as const;
 
 export type LoreCategory = (typeof LORE_CATEGORIES)[number];
 
-/** 有独立子页的那一类：势力 */
+/** 有独立子页的那一类：势力（地域另算，见 LORE_CATEGORIES） */
 export const FACTION_CATEGORY: LoreCategory = '势力';
 
 /** 势力子页的网址（也是侧栏里那个分组的跳转目标） */

@@ -1,7 +1,7 @@
 ---
 title: 命运三神
 summary: 世界的“防火墙”。为维系存在，他们不断将元素衰变产生的“冗余”与“因果”导入独立时间环演算，试图找到逆转熵增的奇迹解，最终执行绝望措施。
-category: 概念
+category: 世界规则
 tags: ['防火墙', '天界', '沉默']
 related: ['cataclysm', 'entropy-decay', 'time-loop', 'celestial-infernal']
 canon: locked

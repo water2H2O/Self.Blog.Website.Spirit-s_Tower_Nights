@@ -1,11 +1,11 @@
 ---
 title: 云穹城邦
 summary: 悬浮于银辉联邦西北方向云层之上的天翼种城邦，俗称风翼城。由三座主浮岛组成，是工匠与情报的极致结合，保存着大量灾变前档案。
-category: 势力
+category: 地域
 tags: ['天翼种', '浮岛', '三大家族']
 related: ['elf-arc', 'artifacts', 'miasma']
 canon: locked
-order: 90
+order: 20
 ---
 
 ## 城邦概况
