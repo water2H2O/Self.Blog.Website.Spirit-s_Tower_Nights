@@ -15,12 +15,10 @@ const characters = (await getCollection('characters')).filter(isPublic);
 const stories = (await getCollection('stories', ({ data }) => data.status === 'published'));
 const gallery = (meta as { count?: number }).count ?? 0;
 const music = (await getCollection('music')).filter(isPublic);
-// 设定（lore）暂时没在总览里露出，页面本身仍在；要恢复只需把上面的房间条目加回来
+const lore = (await getCollection('lore')).filter(isPublic);
 
 /**
  * 世界观企划内部的房间，链接都在 /worldview/ 下。
- * 「设定」暂时没放进来（内容还在完善中）—— 页面没删，
- * 直接访问 /worldview/lore/ 依然能看。
  */
 const rooms = [
 	{
@@ -34,6 +32,12 @@ const rooms = [
 		title: '角色',
 		count: `${characters.length} 位`,
 		desc: '在这个世界里活着的人，以及他们之间的关系。',
+	},
+	{
+		href: '/worldview/lore/',
+		title: '设定',
+		count: `${lore.length} 条`,
+		desc: '世界的底子：瘴素、神器、魔法体系、势力与地理。',
 	},
 	{
 		href: '/worldview/stories/',
