@@ -272,13 +272,6 @@ hr {
 	.prose table {
 		font-size: 0.87em;
 	}
-	.prose table tr > *:first-child {
-		white-space: normal;
-	}
-	.prose table th,
-	.prose table td {
-		padding: 0.55em 0.7em;
-	}
 }
 
 /*
@@ -331,14 +324,51 @@ hr {
 	.facts-table {
 		font-size: 0.86em;
 	}
-	/* 窄屏允许标签换行，别把值列挤没 */
-	.facts-table th {
-		white-space: normal;
-		padding-right: 0.7em;
+}
+
+/*
+ * 手机上把两列字段表拆成一格一行：标签在上、内容在下。
+ *
+ * 窄屏里两列会互相挤 —— 标签一换行就把内容列压到只剩几个字宽，
+ * 角色卡这种长句子读起来非常难受。拆开之后任何宽度都能读。
+ *
+ * .prose table 与 .facts-table 共用这一套：前者是正文里合并出来的角色卡，
+ * 后者是信息栏与伊甸园生物档案的字段区。
+ */
+@media (max-width: 720px) {
+	.prose table,
+	.facts-table {
+		display: block;
 	}
-	.facts-table th,
-	.facts-table td {
-		padding: 0.55em 0.7em;
+	.prose table tbody,
+	.facts-table tbody {
+		display: block;
+	}
+	.prose table tr,
+	.facts-table tr {
+		display: block;
+		padding: 0.75em 0.95em;
+		border-bottom: 1px solid rgb(var(--gray-light));
+	}
+	.prose table tr:last-child,
+	.facts-table tr:last-child {
+		border-bottom: none;
+	}
+	.prose table tr > *,
+	.facts-table tr > * {
+		display: block;
+		width: auto;
+		padding: 0;
+		border: none;
+		background: none;
+		white-space: normal;
+	}
+	.prose table tr > *:first-child,
+	.facts-table tr > *:first-child {
+		margin-bottom: 0.25em;
+		font-size: 0.9em;
+		letter-spacing: 0.04em;
+		color: rgb(var(--gray));
 	}
 }
 
