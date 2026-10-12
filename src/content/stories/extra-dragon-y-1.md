@@ -1,5 +1,5 @@
 ---
-title: 雷娜
+title: 蕾娜莉塔·古斯汀娜
 act: 别传
 arc: 龙族篇
 code: 'y-1'
