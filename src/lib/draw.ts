@@ -27,7 +27,6 @@ export interface DrawItem {
 	height: string;
 	age: string;
 	pronouns: string;
-	tags: string[];
 	arts: number;
 	/** 抽签限定：卡片与签筒上带「限定」角标 */
 	limited: boolean;
@@ -62,7 +61,6 @@ export async function drawPool(): Promise<DrawItem[]> {
 				height: entry.data.height ?? '',
 				age: entry.data.age ?? '',
 				pronouns: entry.data.pronouns ?? '',
-				tags: entry.data.tags ?? [],
 				arts: artCount(entry.data.name),
 				limited: entry.data.limited,
 			};
@@ -86,7 +84,6 @@ export async function drawPool(): Promise<DrawItem[]> {
 		height: entry.data.height ?? '',
 		age: entry.data.age ?? '',
 		pronouns: entry.data.pronouns ?? '',
-		tags: entry.data.tags ?? [],
 		arts: artCount(entry.data.name),
 		limited: entry.data.limited,
 	}));

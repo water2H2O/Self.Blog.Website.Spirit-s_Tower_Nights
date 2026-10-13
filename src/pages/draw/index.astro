@@ -697,10 +697,6 @@ const first = pool[0];
 					field('性别', item.pronouns);
 					rows += 1;
 				}
-				if (item.tags.length) {
-					field('标签', item.tags.join(' · '));
-					rows += 1;
-				}
 				field('设主', item.owner, item.ownerUrl || undefined);
 				rows += 1;
 				if (item.limited) {
