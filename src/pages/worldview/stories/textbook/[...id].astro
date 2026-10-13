@@ -41,6 +41,8 @@ const [head, ...rest] = entry.data.title.split('　');
 const chapterNo = rest.length > 0 ? head : '';
 const chapterName = rest.length > 0 ? rest.join('　') : head;
 const chapterIndex = all.findIndex((item) => item.id === entry.id) + 1;
+/** 目录里那本册子的名字：书页上方的小字链接 */
+const bookLabel = `${HANDBOOK.title}${chapterNo ? ` · ${chapterNo}` : ''}`;
 ---
 
 <!doctype html>
@@ -343,7 +345,7 @@ const chapterIndex = all.findIndex((item) => item.id === entry.id) + 1;
 
 			<header class="chapter-head">
 				<p class="book">
-					<a href={HANDBOOK_BASE}>{HANDBOOK.title}</a>
+					<a href={HANDBOOK_BASE}>{bookLabel}</a>
 					· 第 {chapterIndex} / {all.length} 篇
 				</p>
 				<h1>
