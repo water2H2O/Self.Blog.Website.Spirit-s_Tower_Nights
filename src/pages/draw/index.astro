@@ -96,6 +96,13 @@ const first = pool[0];
 				background: rgba(255, 200, 90, 9%);
 				border: 1px solid rgba(255, 200, 90, 28%);
 			}
+			/* 窄屏用短版文案，长版藏起来 —— 手机上这段会占掉小半屏 */
+			.join .wide {
+				display: inline;
+			}
+			.join .thin {
+				display: none;
+			}
 			.join a {
 				color: #ffd68a;
 			}
@@ -501,25 +508,132 @@ const first = pool[0];
 				color: var(--accent);
 			}
 
-			/* 窄屏：不改横排，直接竖着叠，也不做左移 */
+			/*
+			 * 窄屏：竖着叠，也不做左移。
+			 *
+			 * 手机版的重点是别让立绘把整屏吃满 —— 原来卡面是 cover 面的 4:5 撑出来的，
+			 * 而「反面」里的立绘 + 名字加起来比这个高度还高，名字就被挤到卡面外面去，
+			 * 得往下滚才看得见。这里给整卡一个确定的高度，立绘改成弹性收缩，
+			 * 名字就稳稳落在卡里了。
+			 */
 			@media (max-width: 860px) {
+				main {
+					padding-top: 1.6em;
+					/* 给吸底的按钮条留出位置，免得挡住页脚 */
+					padding-bottom: 5.5em;
+				}
 				.pair {
 					flex-direction: column;
 					align-items: center;
 					min-height: 0;
+					gap: 1.2em;
 				}
 				.pair:not(.drawn) .card3d {
 					transform: none;
 				}
-				.card3d,
+				/*
+				 * 宽度不要用 `width: 100%` —— 本站没有全局 border-box，
+				 * content-box 下 100% 还要再叠一层左右 padding，页面就会横向溢出。
+				 * 用 min()/calc 让出一份，剩下的空间才是内容宽度。
+				 */
 				.detail,
 				.slip {
-					width: 100%;
-					max-width: 420px;
+					width: min(100%, 420px);
+					max-width: none;
 				}
+				.slip {
+					width: min(calc(100% - 2.8em), 420px);
+				}
+
+				/* 卡面：固定高度，立绘弹性收缩，名字留在卡内 */
+				.card3d {
+					display: flex;
+					flex-direction: column;
+					width: 290px;
+					height: 400px;
+				}
+				.card-inner {
+					flex: 1;
+					min-height: 0;
+				}
+				.card3d .face {
+					position: absolute;
+					inset: 0;
+					aspect-ratio: auto;
+				}
+				.reveal {
+					display: flex;
+					flex-direction: column;
+				}
+				.reveal .art {
+					flex: 1;
+					min-height: 0;
+					aspect-ratio: auto;
+				}
+				.reveal .cap {
+					flex: none;
+					padding: 0.7em 1em 0.85em;
+				}
+				.reveal .cap h2 {
+					font-size: 1.15em;
+				}
+
 				.actions {
 					flex-direction: column;
-					width: 100%;
+					width: min(100%, 420px);
+					max-width: none;
+				}
+				/* 吸底：摇完往下看档案时，不用翻回页首也能再摇一支 */
+				.actions {
+					position: sticky;
+					bottom: 0;
+					z-index: 5;
+					gap: 0.7em;
+					margin-top: -0.3em;
+					padding: 0.8em 0 0.9em;
+					background: rgba(14, 27, 38, 92%);
+					backdrop-filter: blur(10px);
+					border-top: 1px solid rgb(var(--gray-light));
+				}
+
+				/* 页首那几段在手机上占掉小半屏，收一收 */
+				h1 {
+					font-size: 1.7em;
+					margin-bottom: 0.35em;
+				}
+				.join {
+					margin-bottom: 0.8em;
+					padding: 0.7em 0.9em;
+					font-size: 0.8em;
+					line-height: 1.7;
+				}
+				.join .wide {
+					display: none;
+				}
+				.join .thin {
+					display: inline;
+				}
+				.lead {
+					margin-bottom: 0.6em;
+					font-size: 0.84em;
+				}
+				.stage {
+					margin-top: 0.9em;
+					gap: 1.1em;
+				}
+				/* 空格/回车是桌面习惯，手机上写明是点按钮 */
+				.key-hint {
+					font-size: 0.72em;
+				}
+				.slip {
+					padding: 1.1em 1.2em 1.2em;
+				}
+				.slip-tier {
+					font-size: 2.1em;
+				}
+				.history-list a {
+					width: 40px;
+					height: 40px;
 				}
 			}
 		</style>
@@ -529,9 +643,16 @@ const first = pool[0];
 		<main>
 			<h1>抽签</h1>
 			<p class="join">
-				想把自己家的 OC 也放进签筒？<strong>发邮件到
+				<span class="wide"
+					>想把自己家的 OC 也放进签筒？<strong>发邮件到
 					<a href={`mailto:${EMAIL}`}>{EMAIL}</a></strong
-				>，把<strong>立绘与设定文件一起带上</strong>就行。
+					>，把<strong>立绘与设定文件一起带上</strong>就行。</span
+				>
+				<span class="thin"
+					>想让自己家的 OC 进签筒？<strong>邮件到
+					<a href={`mailto:${EMAIL}`}>{EMAIL}</a></strong
+					>，附立绘与设定文件。</span
+				>
 			</p>
 			<p class="lead">
 				摇一支签，会遇见一位角色，右边是 TA 的档案，下面还写着今天的运势。签筒里现有 <a
@@ -580,11 +701,12 @@ const first = pool[0];
 					</aside>
 				</div>
 
+				<p class="key-hint">也可以按 <kbd>空格</kbd> 或 <kbd>回车</kbd> 再摇一支</p>
+
 				<div class="actions">
 					<button type="button" id="draw">摇一支签</button>
 					<a class="pool-link" href="/draw/pool/">看签筒里都有谁 →</a>
 				</div>
-				<p class="key-hint">也可以按 <kbd>空格</kbd> 或 <kbd>回车</kbd> 再摇一支</p>
 
 				<div class="slip pending" id="slip" data-key="none">
 					<span class="slip-tier" id="slip-tier">？</span>
