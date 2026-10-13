@@ -1,7 +1,7 @@
 {
-  "note": "画廊标注文件。ownership: 原创|联动|企划|其他（四个同级、互斥的分类，页面按它筛选）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
-  "updated": "2026-10-10",
-  "count": 160,
+  "note": "画廊标注文件。ownership: 原创|联动|其他（联动会在页面标出设主，填 owner）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
+  "updated": "2026-10-13",
+  "count": 170,
   "items": {
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
@@ -9,6 +9,7 @@
       "owner": "Aurelith",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/Aurelith.webp",
       "w": 914,
       "h": 1600
     },
@@ -18,6 +19,7 @@
       "owner": "北音",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/北音.webp",
       "w": 914,
       "h": 1600
     },
@@ -27,6 +29,7 @@
       "owner": "Ink_Bai",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/墨白.webp",
       "w": 914,
       "h": 1600
     },
@@ -36,6 +39,7 @@
       "owner": "",
       "kind": "设定",
       "title": "屑魔女（薇奥拉的外号）",
+      "source": "【企划】水塔OC补完计划/屑魔女.webp",
       "w": 914,
       "h": 1600
     },
@@ -45,6 +49,7 @@
       "owner": "应祈",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/应祈.webp",
       "w": 914,
       "h": 1600
     },
@@ -54,6 +59,7 @@
       "owner": "温雪",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/温雪.webp",
       "w": 914,
       "h": 1600
     },
@@ -63,7 +69,18 @@
       "owner": "白茶",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/白茶_汉服.webp",
       "w": 914,
+      "h": 1600
+    },
+    "企划-缪伊伊.webp": {
+      "character": "缪伊伊",
+      "ownership": "企划",
+      "owner": "缪伊伊",
+      "kind": "设定",
+      "title": "",
+      "source": "【企划】水塔OC补完计划/缪伊伊.webp",
+      "w": 1093,
       "h": 1600
     },
     "企划-苯胺.webp": {
@@ -72,6 +89,7 @@
       "owner": "苯胺",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/苯胺.webp",
       "w": 914,
       "h": 1600
     },
@@ -81,6 +99,7 @@
       "owner": "霜霖星",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/霜霖星.webp",
       "w": 914,
       "h": 1600
     },
@@ -90,6 +109,7 @@
       "owner": "风汐铃月",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/风汐铃月.webp",
       "w": 1600,
       "h": 1600
     },
@@ -99,6 +119,7 @@
       "owner": "风汐铃月",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/风汐铃月_带ui.webp",
       "w": 1600,
       "h": 914
     },
@@ -108,6 +129,7 @@
       "owner": "白血尘",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/香菇.webp",
       "w": 914,
       "h": 1600
     },
@@ -117,6 +139,7 @@
       "owner": "鹤戾",
       "kind": "设定",
       "title": "",
+      "source": "【企划】水塔OC补完计划/鹤戾.webp",
       "w": 913,
       "h": 1600
     },
@@ -1100,6 +1123,56 @@
       "w": 500,
       "h": 500
     },
+    "淼渺__与天涯_13.webp": {
+      "character": "淼渺",
+      "ownership": "原创",
+      "owner": "",
+      "kind": "表情包",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_13.webp",
+      "w": 900,
+      "h": 900
+    },
+    "淼渺__与天涯_14.webp": {
+      "character": "淼渺",
+      "ownership": "原创",
+      "owner": "",
+      "kind": "表情包",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_14.webp",
+      "w": 900,
+      "h": 900
+    },
+    "淼渺__与天涯_15.webp": {
+      "character": "淼渺",
+      "ownership": "原创",
+      "owner": "",
+      "kind": "表情包",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_15.webp",
+      "w": 900,
+      "h": 900
+    },
+    "淼渺__与天涯_16_1.webp": {
+      "character": "淼渺",
+      "ownership": "原创",
+      "owner": "",
+      "kind": "表情包",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_16_1.webp",
+      "w": 900,
+      "h": 900
+    },
+    "淼渺__与天涯_16_2.webp": {
+      "character": "淼渺",
+      "ownership": "原创",
+      "owner": "",
+      "kind": "表情包",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_16_2.webp",
+      "w": 900,
+      "h": 900
+    },
     "淼渺__36e2fa0bf152fd9ae74bd3e7f64dca75.webp": {
       "character": "淼渺",
       "ownership": "原创",
@@ -1148,8 +1221,7 @@
       "title": "啥子猫……啥子狐……",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/Image_1765358221838.webp",
       "w": 700,
-      "h": 514,
-      "always": true
+      "h": 514
     },
     "淼渺__设计稿-汉服.webp": {
       "character": "淼渺",
@@ -1421,6 +1493,56 @@
       "w": 1500,
       "h": 1500
     },
+    "天涯__天涯-撑伞.webp": {
+      "character": "天涯",
+      "ownership": "联动",
+      "owner": "天涯",
+      "kind": "插画",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[联动]天涯/插画/天涯-撑伞.webp",
+      "w": 1400,
+      "h": 1867
+    },
+    "天涯__天涯-立绘.webp": {
+      "character": "天涯",
+      "ownership": "联动",
+      "owner": "天涯",
+      "kind": "插画",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[联动]天涯/插画/天涯-立绘.webp",
+      "w": 1400,
+      "h": 1867
+    },
+    "天涯__天涯-白裙色稿.webp": {
+      "character": "天涯",
+      "ownership": "联动",
+      "owner": "天涯",
+      "kind": "设定",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[联动]天涯/设定/天涯-白裙色稿.webp",
+      "w": 1400,
+      "h": 1867
+    },
+    "天涯__天涯-设定图.webp": {
+      "character": "天涯",
+      "ownership": "联动",
+      "owner": "天涯",
+      "kind": "设定",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[联动]天涯/设定/天涯-设定图.webp",
+      "w": 1600,
+      "h": 647
+    },
+    "Aurelith PrismWing__Aurelinth.webp": {
+      "character": "Aurelith PrismWing",
+      "ownership": "联动",
+      "owner": "",
+      "kind": "设定",
+      "title": "",
+      "source": "芸芸众生（人物档案）/[色彩和棱镜]Aurelith PrismWing/Aurelinth.webp",
+      "w": 1214,
+      "h": 1600
+    },
     "莉莉安娜__Image_1760020152511.webp": {
       "character": "莉莉安娜·萨拉姆博",
       "ownership": "联动",
@@ -1580,42 +1702,6 @@
       "source": "讯息（重要的和通信邮件记录）/和RT的合作提供的资料/插画-魔法药剂师.webp",
       "w": 1600,
       "h": 1131
-    },
-    "企划-缪伊伊.webp": {
-      "character": "缪伊伊",
-      "ownership": "企划",
-      "owner": "缪伊伊",
-      "kind": "设定",
-      "title": "",
-      "w": 1093,
-      "h": 1600
-    },
-    "淼渺__插画-女仆装.webp": {
-      "character": "淼渺",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "插画",
-      "title": "",
-      "w": 1067,
-      "h": 1600
-    },
-    "薇奥拉__插画-星轨魔女.webp": {
-      "character": "薇奥拉",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "插画",
-      "title": "",
-      "w": 1600,
-      "h": 1131
-    },
-    "淼渺__表情包-和11的联合贴贴.webp": {
-      "character": "淼渺",
-      "ownership": "联动",
-      "owner": "11",
-      "kind": "表情包",
-      "title": "和 11 的联合贴贴",
-      "w": 1600,
-      "h": 1067
     }
   }
 }

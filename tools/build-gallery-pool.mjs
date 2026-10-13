@@ -37,6 +37,8 @@ const CHARACTERS = {
 	风汐铃月: { ownership: '联动', owner: '风汐铃月' },
 	莉莉安娜: { ownership: '联动', owner: '' },
 	'Aurelith PrismWing': { ownership: '联动', owner: '' },
+	// 朋友的角色，只进签筒与图池，不进世界观档案；角色名与设主同名
+	天涯: { ownership: '联动', owner: '天涯' },
 };
 
 /** 非角色目录 → 分类 */

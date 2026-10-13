@@ -3,7 +3,8 @@ name: 芳基胺
 title: Arylamine
 kind: 角色
 summary: 风狼族少女。自幼能看见风的轨迹，却在崇尚骁勇抱团的族群中被视为异类 —— 某个黄昏，她安静地离开了族群，独自走进山林深处。
-ownership: 原创
+ownership: 联动
+owner: 芳基胺
 themeColor: '#EBA7B2'
 portrait: '../../assets/oc/characters/arylamine.webp'
 aliases: ['苯胺']
