@@ -41,6 +41,16 @@ const CHARACTERS = {
 	天涯: { ownership: '联动', owner: '天涯' },
 };
 
+/**
+ * staging 目录名 → 图池里的角色名。
+ *
+ * `[醉酒的星辰]戴薇娜` 这个目录装的是**薇奥拉**（戴薇娜是她的真名），
+ * 图池里另外 8 张就是这么归的。目录名不改，但条目要落到同一个角色上。
+ */
+const CHARACTER_ALIASES = {
+	戴薇娜: '薇奥拉',
+};
+
 /** 非角色目录 → 分类 */
 const CATEGORIES = {
 	'回响之殿（音乐作品）': { kind: '曲绘', ownership: '其他' },
@@ -83,8 +93,10 @@ function classify(relPath) {
 		const raw = folder.replace(/^\[[^\]]+\]/, '').replace(/（.*?）$/, '').trim();
 		// 用包含匹配，兼容「莉莉安娜•萨拉姆博」这类带姓氏的全名
 		const hit = Object.keys(CHARACTERS).find((key) => raw.includes(key));
-		const name = hit ?? raw;
-		const info = hit ? CHARACTERS[hit] : { ownership: '其他' };
+		// 目录名与角色名不同的（戴薇娜 → 薇奥拉），按别名表归到同一个角色
+		const alias = Object.entries(CHARACTER_ALIASES).find(([dir]) => raw.includes(dir));
+		const name = hit ?? (alias ? alias[1] : raw);
+		const info = hit ? CHARACTERS[hit] : alias ? CHARACTERS[alias[1]] ?? {} : { ownership: '其他' };
 		const rest = parts.slice(2).join('/');
 		let kind = '设定';
 		if (/表情包/.test(relPath)) kind = '表情包';
