@@ -1,0 +1,150 @@
+---
+import { groupByArc, publishedEpisodes } from '../lib/stories';
+
+/**
+ * 手机端的「全部正文」目录。
+ *
+ * 桌面版左侧已经有固定侧栏（世界观目录），所以这一块只在窄屏出现 ——
+ * 一个可以收起的目录按钮，展开就是全部幕 → 篇 → 话。
+ * 手机读者翻 58 话时不用一路滚到底，也不用退回目录页。
+ *
+ * 纯 CSS 实现（`<details>`），不依赖 JS。
+ */
+interface Props {
+	/** 正文：当前这一话的 id，命中就在目录里标出来 */
+	currentId?: string;
+}
+
+const { currentId } = Astro.props;
+
+const groups = groupByArc(await publishedEpisodes()).map((act) => ({
+	title: act.act,
+	sub: `${act.arcs.reduce((sum, arc) => sum + arc.episodes.length, 0)} 话`,
+	items: act.arcs.flatMap((arc) =>
+		arc.episodes.map((episode) => ({
+			href: `/worldview/stories/${episode.id}/`,
+			label: `${episode.data.code} ${episode.data.title}`,
+			active: episode.id === currentId,
+		})),
+	),
+}));
+
+const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+---
+
+<details class="toc">
+	<summary>
+		<span class="ico" aria-hidden="true">☰</span>
+		全部正文
+		<span class="count">{total} 话</span>
+	</summary>
+	<div class="body">
+		{
+			groups.map((group) => (
+				<section>
+					<p class="act">
+						{group.title} <span>{group.sub}</span>
+					</p>
+					<ul>
+						{group.items.map((item) => (
+							<li>
+								<a href={item.href} class:list={[{ active: item.active }]}>
+									{item.label}
+								</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			))
+		}
+	</div>
+</details>
+
+<style>
+	/* 桌面版不显示：左侧固定侧栏已经承担了这件事 */
+	.toc {
+		display: none;
+	}
+
+	@media (max-width: 1099px) {
+		.toc {
+			display: block;
+			margin-bottom: 1.4em;
+			border: 1px solid rgb(var(--gray-light));
+			border-radius: 12px;
+			background: rgba(20, 37, 50, 45%);
+		}
+		summary {
+			display: flex;
+			align-items: center;
+			gap: 0.5em;
+			padding: 0.8em 1em;
+			font-size: 0.88em;
+			color: rgb(var(--gray-dark));
+			cursor: pointer;
+			list-style: none;
+			user-select: none;
+		}
+		summary::-webkit-details-marker {
+			display: none;
+		}
+		summary .ico {
+			color: var(--accent);
+		}
+		summary .count {
+			margin-left: auto;
+			font-size: 0.86em;
+			color: rgb(var(--gray));
+		}
+		.toc[open] summary {
+			color: var(--glow);
+			border-bottom: 1px solid rgb(var(--gray-light));
+		}
+		.body {
+			max-height: 62vh;
+			overflow-y: auto;
+			padding: 0.5em 0.6em 0.9em;
+			-webkit-overflow-scrolling: touch;
+		}
+		.body section + section {
+			margin-top: 0.9em;
+			padding-top: 0.7em;
+			border-top: 1px dashed rgb(var(--gray-light));
+		}
+		.act {
+			margin: 0.3em 0 0.4em;
+			padding-left: 0.5em;
+			font-size: 0.84em;
+			letter-spacing: 0.06em;
+			color: var(--accent);
+			border-left: 3px solid var(--accent);
+		}
+		.act span {
+			margin-left: 0.4em;
+			font-size: 0.9em;
+			color: rgb(var(--gray));
+		}
+		.body ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+		.body a {
+			display: block;
+			padding: 0.5em 0.8em;
+			border-radius: 8px;
+			font-size: 0.86em;
+			text-decoration: none;
+			color: rgb(var(--gray-dark));
+		}
+		.body a:hover {
+			color: var(--glow);
+			background: rgba(175, 255, 255, 7%);
+		}
+		.body a.active {
+			color: var(--glow);
+			background: rgba(175, 255, 255, 12%);
+			font-weight: 700;
+		}
+	}
+</style>

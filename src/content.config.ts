@@ -168,6 +168,31 @@ const lore = defineCollection({
 		}),
 });
 
+/**
+ * 教材：《T6 魔法指令集导论》（白塔学院第一学年课程总览）。
+ *
+ * 与「故事」分开存 —— 它是世界观里的**书**，不是叙事正文：
+ * 一篇一个文件，粒度到章（章内的节用小标题排在正文里）。
+ * 正文由 tools/import-textbook-docx.py 从作者的 docx 逐字导入，
+ * 书的目录结构（含还没写的章）另见 src/lib/handbook.ts。
+ */
+const textbook = defineCollection({
+	loader: glob({ base: './src/content/textbook', pattern: '**/*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			title: z.string(),
+			/** 所属卷，例如 第二卷　基础元素导论；序篇没有卷 */
+			volume: z.string().optional(),
+			volumeNo: z.number().optional(),
+			/** 这一章的提要（目录里显示；留空就只显示章名） */
+			summary: z.string().optional(),
+			/** 学习目标（目录与页首会摘出来显示） */
+			goals: z.array(z.string()).default([]),
+			/** 还没写完的章不上站 */
+			draft: z.boolean().default(false),
+		}),
+});
+
 /** 故事：幕 → 篇 → 话 */
 const stories = defineCollection({
 	loader: glob({ base: './src/content/stories', pattern: '**/*.{md,mdx}' }),
@@ -315,4 +340,4 @@ const draw = defineCollection({
 		}),
 });
 
-export const collections = { blog, races, characters, lore, stories, music, eden, draw };
+export const collections = { blog, races, characters, lore, stories, textbook, music, eden, draw };

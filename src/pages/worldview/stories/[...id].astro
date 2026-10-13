@@ -5,6 +5,8 @@ import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LicenseBadge from '../../../components/LicenseBadge.astro';
 import SpoilerNote from '../../../components/SpoilerNote.astro';
+import StoriesTabs from '../../../components/StoriesTabs.astro';
+import StoryToc from '../../../components/StoryToc.astro';
 import { getCollection } from 'astro:content';
 import { arcIdOf, publishedEpisodes } from '../../../lib/stories';
 
@@ -225,6 +227,7 @@ const themeSongs = (await getCollection('music', ({ data }) => !data.draft))
 	<body>
 		<Header />
 		<main>
+			<StoriesTabs current="stories" />
 			<a class="crumb" href="/worldview/stories/">← 故事目录 ／ {act} ／ {arc}</a>
 			<h1 class="title">
 				<span class="code">{code}</span>
@@ -240,6 +243,8 @@ const themeSongs = (await getCollection('music', ({ data }) => !data.draft))
 				{pubDate && <span>{pubDate.toLocaleDateString('zh-CN')}</span>}
 			</p>
 			<SpoilerNote level={spoiler} />
+			{/* 窄屏才出现：58 话的折叠目录，读到一半想换一话不用退回目录页 */}
+			<StoryToc currentId={entry.id} />
 			<div class="prose">
 				<Content />
 			</div>

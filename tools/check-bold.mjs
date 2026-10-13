@@ -27,6 +27,8 @@ const COLLECTIONS = {
 	characters: ['worldview', 'characters'],
 	lore: ['worldview', 'lore'],
 	stories: ['worldview', 'stories'],
+	// 教材挂在故事下面：/worldview/stories/textbook/<章>/
+	textbook: ['worldview', 'stories', 'textbook'],
 	music: ['worldview', 'music'],
 	eden: ['project', 'eden'],
 	draw: ['draw', 'entry'],

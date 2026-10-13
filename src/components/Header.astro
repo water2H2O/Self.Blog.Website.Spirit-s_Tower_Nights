@@ -9,6 +9,7 @@ import {
 	type LoreCategory,
 	loreCategoryHref,
 } from '../lib/lore';
+import { HANDBOOK_BASE, HANDBOOK_VOLUMES } from '../lib/handbook';
 
 /** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
 const mainLinks = [
@@ -61,6 +62,8 @@ interface SubItem {
 	href: string;
 	label: string;
 	active: boolean;
+	/** 只当分组标签用（教材的卷标题），不做成链接 */
+	heading?: boolean;
 }
 
 /** 设定目录里的一个类目组 */
@@ -129,16 +132,41 @@ if (inWorldview) {
 	} else if (section === 'stories') {
 		// 只有具体到某一话时才展开，索引页不列（一列就是 56 条）
 		const currentId = path.slice(`${WORLDVIEW_BASE}/stories/`.length).replace(/\/+$/, '');
-		const arc = currentId.replace(/-(?:\d+|ep)$/, '');
-		if (arc && arc !== currentId) {
-			const siblings = (await getCollection('stories', ({ data }) => !data.draft))
-				.filter((entry) => entry.id.startsWith(`${arc}-`))
-				.sort((a, b) => a.data.code.localeCompare(b.data.code, 'en', { numeric: true }));
-			subItems = siblings.map((entry) => ({
-				href: `${WORLDVIEW_BASE}/stories/${entry.id}/`,
-				label: `${entry.data.code} ${entry.data.title}`,
-				active: entry.id === currentId,
-			}));
+		// 「故事」下有两个入口：正文与教材。在读书时，侧栏列出本书的卷/章
+		if (currentId === 'textbook' || currentId.startsWith('textbook/')) {
+			const currentSlug = currentId.replace(/^textbook\/?/, '');
+			const written = new Set(
+				(await getCollection('textbook', ({ data }) => !data.draft)).map((entry) => entry.id),
+			);
+			subItems = HANDBOOK_VOLUMES.flatMap((volume) => [
+				{
+					href: HANDBOOK_BASE,
+					label: volume.no > 0 && volume.no <= 5
+						? `第${'一二三四五'[volume.no - 1]}卷　${volume.title}`
+						: volume.title,
+					active: false,
+					heading: true,
+				},
+				...volume.pieces
+					.filter((piece) => written.has(piece.slug))
+					.map((piece) => ({
+						href: `${HANDBOOK_BASE}/${piece.slug}/`,
+						label: piece.title.replace('　', ' '),
+						active: piece.slug === currentSlug,
+					})),
+			]);
+		} else {
+			const arc = currentId.replace(/-(?:\d+|ep)$/, '');
+			if (arc && arc !== currentId) {
+				const siblings = (await getCollection('stories', ({ data }) => !data.draft))
+					.filter((entry) => entry.id.startsWith(`${arc}-`))
+					.sort((a, b) => a.data.code.localeCompare(b.data.code, 'en', { numeric: true }));
+				subItems = siblings.map((entry) => ({
+					href: `${WORLDVIEW_BASE}/stories/${entry.id}/`,
+					label: `${entry.data.code} ${entry.data.title}`,
+					active: entry.id === currentId,
+				}));
+			}
 		}
 	}
 }
@@ -218,13 +246,20 @@ if (inWorldview) {
 											))}
 										</>
 									))}
-									{subItems.map((item) => (
-										<li>
-											<a href={item.href} class:list={[{ active: item.active }]}>
-												{item.label}
-											</a>
-										</li>
-									))}
+									{subItems.map((item) =>
+										// 教材目录里的卷标题：不是链接，只当分组标签用
+										item.heading ? (
+											<li class="group">
+												<span class="group-label">{item.label}</span>
+											</li>
+										) : (
+											<li>
+												<a href={item.href} class:list={[{ active: item.active }]}>
+													{item.label}
+												</a>
+											</li>
+										),
+									)}
 								</ul>
 							)}
 						</li>
@@ -394,6 +429,15 @@ if (inWorldview) {
 		font-size: 0.82em;
 		font-weight: 400;
 		color: rgb(var(--gray));
+	}
+	/* 卷标题这种纯标签：颜色同组头，但没有链接的下划线 */
+	.wv-toc .sub-list .group .group-label {
+		display: block;
+		padding: 0.32em 0.6em;
+		font-size: 0.85em;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		color: var(--accent);
 	}
 	.wv-toc .sub-list .nested :global(a) {
 		padding-left: 1.1em;

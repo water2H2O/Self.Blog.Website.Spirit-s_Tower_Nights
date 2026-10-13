@@ -1,0 +1,264 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../../components/BaseHead.astro';
+import Footer from '../../../../components/Footer.astro';
+import Header from '../../../../components/Header.astro';
+import StoriesTabs from '../../../../components/StoriesTabs.astro';
+import { HANDBOOK, HANDBOOK_BASE, HANDBOOK_VOLUMES } from '../../../../lib/handbook';
+
+/**
+ * 教材目录页：《T6 魔法指令集导论》。
+ *
+ * 这是「故事」下面的第二个入口（第一个是正文）。书是先定目录再逐章写的，
+ * 所以目录里会把还没写的卷/章一并列出来、标上「待写」——
+ * 读者一眼能看到这本书的全貌，作者写完一章就少一个待写标记。
+ */
+
+const written = await getCollection('textbook', ({ data }) => !data.draft);
+const bySlug = new Map(written.map((entry) => [entry.id, entry]));
+
+const totalPieces = HANDBOOK_VOLUMES.reduce((sum, volume) => sum + volume.pieces.length, 0);
+const writtenPieces = HANDBOOK_VOLUMES.reduce(
+	(sum, volume) => sum + volume.pieces.filter((piece) => bySlug.has(piece.slug)).length,
+	0,
+);
+const chars = written.reduce((sum, entry) => sum + (entry.body?.length ?? 0), 0);
+
+/** 「第一章　魔法是什么」→ 序号「第一章」＋ 标题「魔法是什么」；没有序号的（序篇）整条当标题 */
+const splitTitle = (title: string) => {
+	const [head, ...rest] = title.split('　');
+	return rest.length > 0 ? { head, name: rest.join('　') } : { head: '', name: head };
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title={`${HANDBOOK.title} · 教材`}
+			description={`${HANDBOOK.subtitle}。白塔学院发给新学徒的第一学年课程总览，按「卷 → 章」组织，目前写完 ${writtenPieces} / ${totalPieces} 篇。`}
+		/>
+		<style>
+			main {
+				width: 900px;
+			}
+			.reader-top {
+				margin-bottom: 2.4em;
+			}
+
+			/* ---------- 书的版头：像一页扉页 ---------- */
+			.book {
+				padding: 1.8em 2em 1.9em;
+				border-radius: 14px;
+				background:
+					radial-gradient(120% 90% at 12% 0%, rgba(175, 255, 255, 9%), transparent 60%),
+					var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				border-left: 4px solid var(--accent);
+			}
+			.book h1 {
+				margin: 0;
+				font-size: 1.9em;
+				letter-spacing: 0.02em;
+			}
+			.book .sub {
+				margin: 0.35em 0 0;
+				font-size: 0.92em;
+				color: var(--accent);
+			}
+			.book .blurb {
+				margin: 1.1em 0 0;
+				font-size: 0.9em;
+				line-height: 1.95;
+				color: rgb(var(--gray-dark));
+			}
+			/* 版本信息：书里那几行，排成一行行的「字段」 */
+			.book dl {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 0.4em 1.1em;
+				margin: 1.4em 0 0;
+				padding-top: 1.1em;
+				border-top: 1px solid rgb(var(--gray-light));
+				font-size: 0.84em;
+			}
+			.book dt {
+				color: rgb(var(--gray));
+				white-space: nowrap;
+			}
+			.book dd {
+				margin: 0;
+				color: rgb(var(--gray-dark));
+			}
+			.book .notice {
+				margin: 1.1em 0 0;
+				font-size: 0.8em;
+				letter-spacing: 0.06em;
+				color: #ffd68a;
+			}
+			.progress {
+				margin: 1.5em 0 0;
+				font-size: 0.84em;
+				color: rgb(var(--gray));
+			}
+			.progress b {
+				color: var(--glow);
+				font-weight: 400;
+			}
+
+			/* ---------- 目录：卷 → 章 ---------- */
+			.volume {
+				margin-top: 2.6em;
+			}
+			.volume > h2 {
+				margin: 0;
+				font-size: 1.2em;
+				color: var(--glow);
+			}
+			.volume > .note {
+				margin: 0.4em 0 1.1em;
+				font-size: 0.84em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			.pieces {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.pieces li {
+				display: flex;
+				align-items: baseline;
+				gap: 0.8em;
+				padding: 0.6em 0;
+				border-bottom: 1px dashed rgb(var(--gray-light));
+			}
+			.pieces li:last-child {
+				border-bottom: none;
+			}
+			.pieces .no {
+				flex: none;
+				width: 5.2em;
+				font-size: 0.78em;
+				letter-spacing: 0.04em;
+				color: rgb(var(--gray));
+				font-variant-numeric: tabular-nums;
+			}
+			.pieces a {
+				text-decoration: none;
+				color: rgb(var(--black));
+			}
+			.pieces a:hover {
+				color: var(--glow);
+			}
+			/* 还没写的篇目：灰一点，但留在目录里 */
+			.pieces .pending {
+				color: rgb(var(--gray));
+			}
+			.pieces .todo {
+				margin-left: 0.6em;
+				padding: 0.1em 0.5em;
+				border-radius: 999px;
+				font-size: 0.7em;
+				letter-spacing: 0.06em;
+				color: rgb(var(--gray));
+				border: 1px solid rgb(var(--gray-light));
+				white-space: nowrap;
+			}
+			.pieces .summary {
+				display: block;
+				margin-top: 0.15em;
+				font-size: 0.82em;
+				line-height: 1.65;
+				color: rgb(var(--gray));
+			}
+
+			@media (max-width: 720px) {
+				.book {
+					padding: 1.3em 1.2em 1.4em;
+				}
+				.book h1 {
+					font-size: 1.5em;
+				}
+				.book dl {
+					grid-template-columns: 1fr;
+					gap: 0.15em;
+				}
+				.book dt {
+					margin-top: 0.5em;
+				}
+				.pieces li {
+					gap: 0.5em;
+				}
+				.pieces .no {
+					width: 4.4em;
+					font-size: 0.72em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="reader-top">
+				<StoriesTabs current="textbook" />
+			</div>
+
+			<section class="book">
+				<h1>{HANDBOOK.title}</h1>
+				<p class="sub">{HANDBOOK.subtitle}</p>
+				<p class="blurb">{HANDBOOK.blurb}</p>
+				<dl>
+					<dt>编者</dt>
+					<dd>{HANDBOOK.editor}</dd>
+					<dt>版次</dt>
+					<dd>{HANDBOOK.edition}</dd>
+					<dt>适用范围</dt>
+					<dd>{HANDBOOK.audience}</dd>
+				</dl>
+				<p class="notice">{HANDBOOK.notice}</p>
+				<p class="progress">
+					目前写完 <b>{writtenPieces}</b> / {totalPieces} 篇，约 <b>{Math.round(chars / 1000)}</b> 千字；
+					标「待写」的是还没落笔的部分。
+				</p>
+			</section>
+
+			{
+				HANDBOOK_VOLUMES.map((volume) => (
+					<section class="volume">
+						<h2>
+							{volume.no > 0 && volume.no <= 5 ? `第${'一二三四五'[volume.no - 1]}卷　` : ''}
+							{volume.title}
+						</h2>
+						{volume.note && <p class="note">{volume.note}</p>}
+						<ul class="pieces">
+							{volume.pieces.map((piece) => {
+								const entry = bySlug.get(piece.slug);
+								const { head, name } = splitTitle(piece.title);
+								// 序篇/结语这类没有「第X章」序号的，序号列留空会显得缺一块
+								const label = head || (volume.no === 0 ? '序篇' : volume.no === 6 ? '结语' : '');
+								return (
+									<li>
+										<span class="no">{label}</span>
+										<span class="entry">
+											{entry ? (
+												<a href={`${HANDBOOK_BASE}/${entry.id}/`}>{name}</a>
+											) : (
+												<>
+													<span class="pending">{name}</span>
+													<span class="todo">待写</span>
+												</>
+											)}
+											{entry?.data.summary && <span class="summary">{entry.data.summary}</span>}
+										</span>
+									</li>
+								);
+							})}
+						</ul>
+					</section>
+				))
+			}
+		</main>
+		<Footer />
+	</body>
+</html>

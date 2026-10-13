@@ -2,6 +2,8 @@
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
+import StoriesTabs from '../../../components/StoriesTabs.astro';
+import StoryToc from '../../../components/StoryToc.astro';
 import { groupByArc, publishedEpisodes } from '../../../lib/stories';
 
 const episodes = await publishedEpisodes();
@@ -105,10 +107,14 @@ const acts = groupByArc(episodes);
 	<body>
 		<Header />
 		<main>
+			<StoriesTabs current="stories" />
 			<h1>故事</h1>
 			<p class="lead">
 				共 {episodes.length} 话。按“幕 → 篇 → 话”组织；点开任意一话即为正文，页底可以翻到上一篇 / 下一篇。
 			</p>
+
+			{/* 窄屏才出现的折叠目录：58 话在手机上滚起来太长 */}
+			<StoryToc />
 			{
 				acts.length > 0 ? (
 					acts.map((act) => (

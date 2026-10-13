@@ -1,0 +1,69 @@
+---
+/**
+ * 「故事」栏目下的两个入口：正文 ／ 教材。
+ *
+ * 两页各自是一个独立列表：正文按「幕 → 篇 → 话」，教材按「卷 → 章」。
+ * 放一条标签横栏，读者在两个入口之间切换时不会迷路。
+ */
+interface Props {
+	/** 当前在哪个入口 */
+	current: 'stories' | 'textbook';
+}
+
+const { current } = Astro.props;
+
+const tabs = [
+	{ key: 'stories', href: '/worldview/stories/', label: '正文' },
+	{ key: 'textbook', href: '/worldview/stories/textbook/', label: '教材' },
+] as const;
+---
+
+<nav class="tabs" aria-label="故事栏目">
+	{
+		tabs.map((tab) => (
+			<a href={tab.href} class:list={['tab', { active: current === tab.key }]}>
+				{tab.label}
+			</a>
+		))
+	}
+</nav>
+
+<style>
+	.tabs {
+		display: flex;
+		gap: 0.4em;
+		margin-bottom: 1.6em;
+		border-bottom: 1px solid rgb(var(--gray-light));
+	}
+	.tab {
+		padding: 0.5em 1.1em;
+		margin-bottom: -1px;
+		border: 1px solid transparent;
+		border-bottom: 2px solid transparent;
+		border-radius: 9px 9px 0 0;
+		font-size: 0.9em;
+		letter-spacing: 0.04em;
+		text-decoration: none;
+		color: rgb(var(--gray));
+		transition: 0.15s ease;
+	}
+	.tab:hover {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 6%);
+	}
+	.tab.active {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 10%);
+		border-color: rgb(var(--gray-light));
+		border-bottom-color: var(--glow);
+	}
+	@media (max-width: 720px) {
+		.tabs {
+			gap: 0.3em;
+			margin-bottom: 1.2em;
+		}
+		.tab {
+			padding: 0.55em 1em;
+		}
+	}
+</style>

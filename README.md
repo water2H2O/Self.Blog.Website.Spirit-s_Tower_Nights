@@ -195,6 +195,7 @@ order: 21
 | `characters` | `src/content/characters/` | `/worldview/characters/文件名/` | 角色档案 |
 | `lore` | `src/content/lore/` | `/worldview/lore/文件名/` | 设定条目：世界规则、瘴素、神器、魔法体系…… |
 | `stories` | `src/content/stories/` | `/worldview/stories/文件名/` | 故事正文，按“幕 → 篇 → 话” |
+| `textbook` | `src/content/textbook/` | `/worldview/stories/textbook/文件名/` | **教材**：世界观里的书，一章一个文件 |
 | `music` | `src/content/music/` | `/worldview/music/文件名/` | 与曲师合作的曲目 |
 | `blog` | `src/content/blog/` | `/blog/文件名/` | 随笔（个人区，不在 /worldview/ 下） |
 | `eden` | `src/content/eden/` | `/project/eden/文件名/` | 群创企划「伊甸园」的稿件 |
@@ -225,6 +226,33 @@ order: 21
 > **画廊不在这个表里。** 它不是 markdown 集合，而是一个**图池**：
 > 图片放在 `public/gallery/`，标注写在 `src/data/gallery-meta.json`，
 > 由 `tools/build-gallery-pool.mjs` 生成。详见后面「画廊图池」。
+
+> **教材（`textbook`）挂在「故事」下面，是第二个入口。**
+> 它是世界观里的**书**（《T6 魔法指令集导论》，白塔学院第一学年课程总览），
+> 所以与叙事正文分开存：`/worldview/stories/` 是「正文」标签，`/worldview/stories/textbook/` 是「教材」标签。
+>
+> - **一章一个文件**，粒度到章；章内的「5.1」「申明示例」「常见错误」这些小标题排在正文里。
+> - 书的**全目录在 `src/lib/handbook.ts`**（`HANDBOOK_VOLUMES`）—— 先定目录再逐章写，
+>   还没写的卷/章也列在里面，页面上自动标「待写」。写完一章就少一个待写标记。
+> - 正文由 `python tools/import-textbook-docx.py <作者的 docx>` 逐字导入（只做标题层级与表格转换，
+>   自检：源里每一段都要原样出现在产出里，对不上就不落盘）。加一章：先在 `handbook.ts` 补一条，再导一个 md。
+>   导入器**按文本形状认标题、不认样式名** —— Word 那边的层级怎么排都不影响导入。
+>
+> **书稿（docx）的格式体检与修复**：`python tools/fix-textbook-docx.py <书.docx>`。
+> 作者稿子里出过三个真问题，都在这个脚本里收拾：
+>
+> 1. **标题层级乱**：第 1–4 章完全没有标题样式（Word 导航窗格与自动目录都认不出）、
+>    小节与栏目混用 Heading 3/4、卷与章缺分页符。脚本统一成「卷/序篇/结语 = 一级、
+>    第 N 章 = 二级、N.N 小节与五个栏目 = 三级」，并给卷与章补上另起一页。
+> 2. **标题继承主题字体会让 PDF 抓不到文字**：只套样式时 LibreOffice 导出的 PDF 会把中文标题
+>    的字序打乱（提取出来是「第一卷　 ：法 、魔力与施法者总论 则」），于是量页码的脚本按行首
+>    找不到标题、目录里那些行页码留空。脚本给标题补上**直接字体与字号**（微软雅黑）解决。
+> 3. **正文里的交叉引用会被误判成标题**（「8.3 那三次记录，已经并排抄在本子上了；」
+>    这种回指）：判据收紧成「编号 + 全角空格 + 不含句读」。
+>
+> 脚本只改样式与分页，**落盘前逐段复查正文，改了就回滚**。
+> 改完书稿重跑作者的构建链（`_scripts/make_t6_skeleton.py` → `build_t6.py`）重新生成目录与 PDF，
+> 再用 `python tools/check-textbook-pdf.py <pdf> <docx>` 独立核对 91 条目录页码。
 
 新增内容 = 在对应目录下新建 `.md`，**文件名就是网址的最后一段**。
 

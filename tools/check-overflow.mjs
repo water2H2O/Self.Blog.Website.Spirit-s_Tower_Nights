@@ -123,10 +123,22 @@ const { result } = await call('Runtime.evaluate', {
 			};
 		};
 		const out = [];
+		const inScroller = (el) => {
+			// 祖先里有横向可滚动的容器时，元素「越界」是那个容器自己的设计
+			// （例如本卷章节的横滑条），不算页面被撑宽 —— 文档滚动宽那行才是判据。
+			for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+				const cs = getComputedStyle(p);
+				if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') return true;
+			}
+			return false;
+		};
 		for (const el of document.querySelectorAll('body *')) {
 			const r = el.getBoundingClientRect();
 			if (r.width === 0 && r.height === 0) continue;
-			if (r.right > vw + 0.5 || r.left < -0.5) out.push(describe(el));
+			if (r.right > vw + 0.5 || r.left < -0.5) {
+				if (inScroller(el)) continue;
+				out.push(describe(el));
+			}
 		}
 		out.sort((a, b) => b.right - a.right);
 		return {

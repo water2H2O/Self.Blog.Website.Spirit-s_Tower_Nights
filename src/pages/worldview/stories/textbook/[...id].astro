@@ -1,0 +1,416 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseHead from '../../../../components/BaseHead.astro';
+import Footer from '../../../../components/Footer.astro';
+import Header from '../../../../components/Header.astro';
+import StoriesTabs from '../../../../components/StoriesTabs.astro';
+import { HANDBOOK, HANDBOOK_BASE, HANDBOOK_VOLUMES, handbookOrder } from '../../../../lib/handbook';
+
+/**
+ * 教材正文页：一章一页。
+ *
+ * 读长文的排版与「故事」正文分开调 —— 这本册子有大量小节、表格与边栏框，
+ * 所以：小节做成可点的目录、表格允许横向滚动、边栏框（引用）做得显眼一点。
+ */
+
+export async function getStaticPaths() {
+	const entries = await getCollection('textbook', ({ data }) => !data.draft);
+	return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+/** 这一章前面的那一章 / 后面的那一章（按书的阅读顺序，跨卷也连着翻） */
+const all = (await getCollection('textbook', ({ data }) => !data.draft)).sort(
+	(a, b) => handbookOrder(a.id) - handbookOrder(b.id),
+);
+const position = all.findIndex((item) => item.id === entry.id);
+const prev = position > 0 ? all[position - 1] : null;
+const next = position < all.length - 1 ? all[position + 1] : null;
+
+/** 书的目录：这一章在第几卷、同卷还有哪几章 */
+const volume = HANDBOOK_VOLUMES.find((item) => item.no === entry.data.volumeNo);
+const inVolume = volume?.pieces.filter((piece) => all.some((item) => item.id === piece.slug)) ?? [];
+
+/** 章内小节目录（只取二级标题，正文里的小节） */
+const sections = headings.filter((heading) => heading.depth === 2);
+
+/** 「第一章　魔法是什么」→ 序号与名字分开，页首排得好看些 */
+const [head, ...rest] = entry.data.title.split('　');
+const chapterNo = rest.length > 0 ? head : '';
+const chapterName = rest.length > 0 ? rest.join('　') : head;
+const chapterIndex = all.findIndex((item) => item.id === entry.id) + 1;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title={`${chapterName} · ${HANDBOOK.title}`}
+			description={entry.data.summary ?? `${HANDBOOK.subtitle}：${entry.data.title}`}
+		/>
+		<style>
+			main {
+				width: 780px;
+			}
+			.reader-top {
+				margin-bottom: 2em;
+			}
+
+			/* ---------- 页首：章的题头 ---------- */
+			.chapter-head {
+				margin-bottom: 2em;
+				text-align: center;
+			}
+			.chapter-head .book {
+				margin: 0 0 0.8em;
+				font-size: 0.74em;
+				letter-spacing: 0.22em;
+				text-indent: 0.22em;
+				color: rgb(var(--gray));
+			}
+			.chapter-head .book a {
+				color: var(--accent);
+				text-decoration: none;
+			}
+			.chapter-head h1 {
+				margin: 0;
+				font-size: 1.9em;
+				line-height: 1.35;
+			}
+			.chapter-head .no {
+				display: block;
+				margin-bottom: 0.35em;
+				font-size: 0.42em;
+				letter-spacing: 0.3em;
+				text-indent: 0.3em;
+				color: var(--glow);
+				opacity: 0.75;
+			}
+			.chapter-head .vol {
+				margin: 0.7em 0 0;
+				font-size: 0.8em;
+				letter-spacing: 0.06em;
+				color: rgb(var(--gray));
+			}
+
+			/* ---------- 本章小节：横向可点的一排 ---------- */
+			.sections {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4em;
+				margin: 0 0 2.4em;
+				padding: 0.9em 1em;
+				border-radius: 12px;
+				background: rgba(175, 255, 255, 5%);
+				border: 1px solid rgba(175, 255, 255, 16%);
+			}
+			.sections .label {
+				flex: none;
+				align-self: center;
+				margin-right: 0.3em;
+				font-size: 0.76em;
+				letter-spacing: 0.16em;
+				color: var(--accent);
+			}
+			.sections a {
+				padding: 0.28em 0.7em;
+				border-radius: 999px;
+				font-size: 0.82em;
+				text-decoration: none;
+				color: rgb(var(--gray-dark));
+				border: 1px solid rgb(var(--gray-light));
+				transition: 0.15s ease;
+			}
+			.sections a:hover {
+				color: var(--glow);
+				border-color: rgba(175, 255, 255, 45%);
+			}
+
+			/* ---------- 正文 ---------- */
+			.prose {
+				color: rgb(var(--gray-dark));
+				font-size: 1.02em;
+				line-height: 2;
+			}
+			.prose :global(p) {
+				margin: 0 0 0.9em;
+				text-indent: 2em;
+				text-align: justify;
+				text-justify: inter-ideograph;
+			}
+			/* 「本节从略，详见讲堂」这类单独成行的小字，不缩进更像书里的旁注 */
+			.prose :global(h3) {
+				margin: 2.4em 0 1em;
+				padding-left: 0.6em;
+				font-size: 1.05em;
+				border-left: 3px solid var(--accent);
+				scroll-margin-top: 6em;
+			}
+			.prose :global(h2) {
+				margin: 2.8em 0 1.2em;
+				padding-bottom: 0.4em;
+				font-size: 1.12em;
+				letter-spacing: 0.06em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+				scroll-margin-top: 6em;
+			}
+			/* 边栏框：［法则视角］［编者注］［塔里的事］ */
+			.prose :global(blockquote) {
+				margin: 1.8em 0;
+				padding: 1em 1.2em;
+				border-left: 3px solid var(--accent);
+				border-radius: 0 10px 10px 0;
+				background: rgba(175, 255, 255, 6%);
+				font-size: 0.94em;
+				line-height: 1.85;
+				color: rgb(var(--gray-dark));
+			}
+			.prose :global(blockquote p) {
+				text-indent: 0;
+				margin: 0 0 0.5em;
+			}
+			.prose :global(blockquote p:last-child) {
+				margin-bottom: 0;
+			}
+			/* 表格：宽了让它自己横滑，别把页面撑破 */
+			.prose :global(table) {
+				display: block;
+				width: 100%;
+				overflow-x: auto;
+				font-size: 0.88em;
+			}
+			.prose :global(table) :global(th),
+			.prose :global(table) :global(td) {
+				min-width: 6em;
+			}
+			.prose :global(ul),
+			.prose :global(ol) {
+				margin: 0 0 1em;
+				padding-left: 1.6em;
+			}
+			.prose :global(li) {
+				margin-bottom: 0.35em;
+			}
+			/* 「学习目标」那几条：勾选感 */
+			.prose :global(ul li)::marker {
+				color: var(--accent);
+			}
+
+			/* ---------- 卷内导航 / 翻页 ---------- */
+			.volume-nav {
+				margin: 3.4em 0 0;
+				padding-top: 1.6em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.volume-nav .label {
+				margin: 0 0 0.7em;
+				font-size: 0.76em;
+				letter-spacing: 0.16em;
+				color: rgb(var(--gray));
+			}
+			.volume-nav ul {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4em;
+			}
+			.volume-nav a {
+				display: block;
+				padding: 0.35em 0.8em;
+				border-radius: 999px;
+				font-size: 0.8em;
+				text-decoration: none;
+				color: rgb(var(--gray-dark));
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.volume-nav a:hover {
+				color: var(--glow);
+				border-color: rgba(175, 255, 255, 45%);
+			}
+			.volume-nav a.active {
+				color: var(--glow);
+				background: rgba(175, 255, 255, 10%);
+				border-color: rgba(175, 255, 255, 40%);
+			}
+
+			.pager {
+				display: flex;
+				justify-content: space-between;
+				gap: 1em;
+				margin-top: 2.2em;
+				padding-top: 1.6em;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			.pager a {
+				flex: 1 1 0;
+				padding: 0.9em 1.1em;
+				border-radius: 12px;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				text-decoration: none;
+				color: rgb(var(--gray-dark));
+				font-size: 0.86em;
+				transition: 0.2s ease;
+			}
+			.pager a:hover {
+				border-color: rgba(175, 255, 255, 45%);
+				box-shadow: var(--glow-shadow);
+			}
+			.pager a.next {
+				text-align: right;
+			}
+			.pager .dir {
+				display: block;
+				font-size: 0.8em;
+				letter-spacing: 0.1em;
+				color: rgb(var(--gray));
+			}
+			.pager .name {
+				color: var(--glow);
+			}
+
+			/*
+			 * 手机版：长文阅读的三件事 —— 少缩进、行距收一点、翻页够大。
+			 * 小节的 pill 那一排改成横滑，免得占掉半屏。
+			 */
+			@media (max-width: 720px) {
+				.reader-top {
+					margin-bottom: 1.4em;
+				}
+				.prose {
+					font-size: 1.01em;
+					line-height: 1.95;
+				}
+				.prose :global(p) {
+					text-indent: 1.4em;
+					text-align: left;
+				}
+				.chapter-head {
+					margin-bottom: 1.4em;
+					text-align: left;
+				}
+				.chapter-head h1 {
+					font-size: 1.5em;
+				}
+				.sections {
+					flex-wrap: nowrap;
+					overflow-x: auto;
+					margin-bottom: 1.8em;
+					padding: 0.8em;
+					-webkit-overflow-scrolling: touch;
+				}
+				.sections .label {
+					display: none;
+				}
+				.sections a {
+					white-space: nowrap;
+				}
+				.prose :global(h2) {
+					margin-top: 2.2em;
+					scroll-margin-top: 5.5em;
+				}
+				.prose :global(h3) {
+					margin-top: 1.9em;
+					scroll-margin-top: 5.5em;
+				}
+				.pager {
+					flex-direction: column;
+				}
+				.pager a {
+					padding: 0.85em 1em;
+				}
+				.volume-nav ul {
+					flex-wrap: nowrap;
+					overflow-x: auto;
+					padding-bottom: 0.3em;
+				}
+				.volume-nav a {
+					white-space: nowrap;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="reader-top">
+				<StoriesTabs current="textbook" />
+			</div>
+
+			<header class="chapter-head">
+				<p class="book">
+					<a href={HANDBOOK_BASE}>{HANDBOOK.title}</a>
+					· 第 {chapterIndex} / {all.length} 篇
+				</p>
+				<h1>
+					{chapterNo && <span class="no">{chapterNo}</span>}
+					{chapterName}
+				</h1>
+				{entry.data.volume && <p class="vol">{entry.data.volume}</p>}
+			</header>
+
+			{
+				sections.length > 0 && (
+					<nav class="sections" aria-label="本章小节">
+						<span class="label">本章</span>
+						{sections.map((section) => (
+							<a href={`#${section.slug}`}>{section.text}</a>
+						))}
+					</nav>
+				)
+			}
+
+			<div class="prose">
+				<Content />
+			</div>
+
+			{
+				inVolume.length > 1 && (
+					<nav class="volume-nav" aria-label="本卷其他章">
+						<p class="label">{entry.data.volume ?? '本书'}</p>
+						<ul>
+							{inVolume.map((piece) => (
+								<li>
+									<a
+										href={`${HANDBOOK_BASE}/${piece.slug}/`}
+										class:list={[{ active: piece.slug === entry.id }]}
+									>
+										{piece.title.split('　').pop()}
+									</a>
+								</li>
+							))}
+						</ul>
+					</nav>
+				)
+			}
+
+			<nav class="pager">
+				{
+					prev ? (
+						<a href={`${HANDBOOK_BASE}/${prev.id}/`}>
+							<span class="dir">← 上一篇</span>
+							<span class="name">{prev.data.title.split('　').pop()}</span>
+						</a>
+					) : (
+						<span></span>
+					)
+				}
+				{
+					next ? (
+						<a class="next" href={`${HANDBOOK_BASE}/${next.id}/`}>
+							<span class="dir">下一篇 →</span>
+							<span class="name">{next.data.title.split('　').pop()}</span>
+						</a>
+					) : (
+						<span></span>
+					)
+				}
+			</nav>
+		</main>
+		<Footer />
+	</body>
+</html>
