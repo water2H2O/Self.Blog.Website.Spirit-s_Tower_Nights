@@ -603,6 +603,35 @@ node tools/favicon-contact-sheet.mjs 150       # 把轮换池拼成一张联系�
 - `DIRECT` 列表里的素材不走透明筛选，而是按指定区域方形裁切
   （例如带背景的双人贴贴，就取中间那块框住两张脸）
 
+## 定时任务：主页的 GitHub 热力图每天自动刷新
+
+主页「最近在写什么」那一块的**贡献热力图与仓库列表**，数据来自 `src/data/github.json`。
+它是**构建时读的缓存**，不是实时请求 —— 好处是构建不依赖网络，接口抽风也能出站。
+
+自动更新走 GitHub Actions（`.github/workflows/refresh-github.yml`）：
+
+| 项 | 值 |
+| --- | --- |
+| 触发 | 每天 22:10 UTC（= 次日 06:10 UTC+8），也可以在 Actions 页面手动 `Run workflow` |
+| 为什么挑这个点 | GitHub 的贡献日历按 **UTC 天**算，这时 UTC 的一天刚好过完，抓到的数据是完整的 |
+| 做什么 | 抓数据 → 体检 → **有变化才提交** → Cloudflare 照常自动部署 |
+| 权限 | `permissions: contents: write` —— 只用仓库自带的写权限，不需要另配 token 或密码 |
+| 并发 | `concurrency` 锁住，同一时间只跑一个，避免两个提交撞在一起 |
+
+**本机想立刻刷一次**（改完抓取逻辑验证、或不想等到早上）：
+
+```bash
+pnpm run github:refresh     # 只抓数据，并打印这次变了什么（哪些日期等级变了、仓库增删）
+pnpm run github:build       # 抓完再跑一次构建
+```
+
+抓取脚本是 `tools/fetch-github.mjs`，体检脚本是 `tools/check-github-data.mjs`
+（Action 在提交前会过这一关：万一 GitHub 改了页面结构、抓到半截数据，
+宁可让那次 Action 失败，也不要把残缺的热力图提交上去）。
+
+> 热力图右下角那行「数据截至 …」就是这份缓存的区间末端；GitHub 个人页上的格子
+> 如果显示得更多，等到下一次刷新就会对齐。
+
 ## 部署（Cloudflare Workers + 自定义域名）
 
 正式地址：**https://water2h2o.com**（域名在 Dynadot，DNS 托管在 Cloudflare）。

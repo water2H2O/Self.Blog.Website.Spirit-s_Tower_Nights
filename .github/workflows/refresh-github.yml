@@ -1,0 +1,60 @@
+# 定时刷新「GitHub 动态」——主页的贡献热力图与仓库列表。
+#
+# 为什么用 Actions 而不是本机计划任务：
+#   · 本机得开机才跑，且要自己管 git 凭据；Actions 是 GitHub 自己的机器，到点就跑
+#   · 只需要仓库的写权限（下面 permissions: contents: write），不用密码、不用 token
+#   · 提交之后 Cloudflare 会照常自动部署，这条链不用另接
+#
+# 流程：抓数据 → 数据体检 → 变了才提交 → Cloudflare 自动部署
+# 想立刻刷一次：Actions 页面选这个 workflow，点 Run workflow（workflow_dispatch）
+
+name: 刷新 GitHub 动态
+
+on:
+  schedule:
+    # 每天 22:10 UTC = 次日 06:10（UTC+8）。
+    # 挑这个点是因为 GitHub 的贡献日历按 UTC 天算 —— 这时 UTC 的一天刚好过完，
+    # 抓到的数据是完整的。
+    - cron: '10 22 * * *'
+  workflow_dispatch:
+
+# 只给它改仓库内容所需的权限，其余一律不给
+permissions:
+  contents: write
+
+# 同一时间只跑一个；后到的排队等前一个跑完，避免两个提交撞在一起
+concurrency:
+  group: refresh-github
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取出仓库
+        uses: actions/checkout@v4
+
+      - name: 装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: 抓取 GitHub 公开数据
+        run: node tools/fetch-github.mjs
+
+      - name: 数据体检
+        run: node tools/check-github-data.mjs
+
+      - name: 有变化才提交
+        run: |
+          if git diff --quiet -- src/data/github.json; then
+            echo "数据没有变化，不提交。"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/github.json
+          git commit -m "GitHub 动态：定时刷新 $(date -u '+%Y-%m-%d %H:%M UTC')"
+          # 万一这中间有人推了东西，先变基再推
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
