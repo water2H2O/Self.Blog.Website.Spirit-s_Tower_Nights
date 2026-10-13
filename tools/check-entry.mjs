@@ -90,17 +90,31 @@ for (const row of src.matchAll(/^\|(.+)\|$/gm)) {
 
 // ---------- 3. 强调标记有没有真的渲染出来 ----------
 /**
- * 这条是踩过坑才加的：`**正文。**后面紧跟字` 这种写法，Sätteri 不会当成粗体，
- * 而是把两个星号原样印在页面上。纯文字对照发现不了（星号在正文里被当成标记去掉了），
- * 只能直接数一遍。
+ * 这条是踩过坑才加的：闭合的 `**` 后面直接紧跟中文（或开口 `**` 前面是中文）时，
+ * Sätteri 不会当成粗体，而是把星号原样印在页面上。纯文字对照发现不了
+ * （星号在正文里当标记被去掉了），只能直接数。
+ *
+ * 注意区分两种星号：成对出现的 `**`（该变成粗体）与有意写的单个 `*` 标记
+ * （本站有些文件用它标随注，渲染出来就是星号，不算错）。所以这里按「连续两个
+ * 及以上」来判定，单个星号一律忽略。
  */
-const boldMarks = (src.match(/\*\*/g) ?? []).length;
+const pairedAsterisks = (html.match(/\*{2,}/g) ?? []).length;
+const marks = (src.match(/\*\*/g) ?? []).length;
+const boldMarks = Math.floor(marks / 2);
 const strongs = (html.match(/<strong>/g) ?? []).length;
-if (boldMarks / 2 !== strongs) {
-	const literals = html.match(/[^<>]{0,24}\*\*[^*<>]{0,24}/g) ?? [];
+if (marks % 2 !== 0) {
+	// 源文里星号落单：页面上会原样印出两个星号，删掉那两个即可（属笔误，不在本次判定内）
+	console.log(`· 注意：源文里有落单的 \`**\`（共 ${marks} 个），页面上会多印两个星号`);
+}
+/** 页面上还剩下的成对星号（单个的不算），这些才是真漏渲染的 */
+const literalPairs = Math.max(0, pairedAsterisks - (boldMarks - strongs));
+if (boldMarks !== strongs || literalPairs > 0) {
+	const literals = (html.match(/[^<>]{0,24}\*{2,}[^*<>]{0,24}/g) ?? [])
+		.map((s) => s.trim())
+		.slice(0, 3);
 	problems.push(
-		`源文里 ${boldMarks / 2} 处粗体，页面上只渲染出 ${strongs} 处；` +
-			`残留：${literals.slice(0, 3).map((s) => s.trim()).join(' ／ ')}`,
+		`源文里 ${boldMarks} 处粗体，页面上渲染出 ${strongs} 处` +
+			(literals.length > 0 ? `；残留：${literals.join(' ／ ')}` : ''),
 	);
 }
 
