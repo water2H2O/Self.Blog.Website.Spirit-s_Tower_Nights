@@ -1,7 +1,7 @@
 {
   "note": "画廊标注文件。ownership: 原创|联动|其他（联动会在页面标出设主，填 owner）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
   "updated": "2026-10-14",
-  "count": 176,
+  "count": 177,
   "items": {
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
@@ -1619,6 +1619,21 @@
       "watermark": "sample",
       "w": 1080,
       "h": 1080
+    },
+    "檐下汐__插画-和淼渺（四格漫）.webp": {
+      "character": "檐下汐",
+      "ownership": "联动",
+      "owner": "浅水 ShallowAqua",
+      "kind": "插画",
+      "title": "魔法师的烦恼（四格漫·与淼渺）",
+      "source": "芸芸众生（人物档案）/[水母使]檐下汐/插画-和淼渺（四格漫）.webp",
+      "watermark": "sample",
+      "characters": [
+        "檐下汐",
+        "淼渺"
+      ],
+      "w": 1500,
+      "h": 1500
     },
     "风汐铃月__1-(1).webp": {
       "character": "风汐铃月",

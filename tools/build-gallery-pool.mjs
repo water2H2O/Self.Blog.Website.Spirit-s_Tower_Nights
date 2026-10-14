@@ -168,6 +168,15 @@ const AUTHOR_NOTES = {
 		kind: '插画',
 		title: '小宠物（像素水母）',
 	},
+	// 四格漫《魔法师的烦恼》：淼渺 × 檐下汐，两个人的页面都该看到
+	'芸芸众生（人物档案）/[水母使]檐下汐/插画-和淼渺（四格漫）.webp': {
+		character: '檐下汐',
+		characters: ['檐下汐', '淼渺'],
+		ownership: '联动',
+		owner: '浅水 ShallowAqua',
+		kind: '插画',
+		title: '魔法师的烦恼（四格漫·与淼渺）',
+	},
 	'平行时空（同人&群友创作）/浅水的六岁生日合照图.webp': {
 		character: '檐下汐',
 		owner: '浅水 ShallowAqua',
