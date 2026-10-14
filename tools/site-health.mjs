@@ -1,0 +1,148 @@
+/**
+ * 全站健康检查：死链、缺资源、内容缺口。
+ *
+ * 为什么需要它：站上有 160 个页面、173 张图池图、140 个内容条目，
+ * 手工点不完。改完内容跑一遍，能立刻看出有没有链接指空、图片漏进产物、
+ * 或者哪个角色少了该有的字段。
+ *
+ * 用法：
+ *   node tools/site-health.mjs            # 只查产物（要先生成 dist）
+ *   node tools/site-health.mjs --content  # 连带内容缺口一起报（角色字段、教材进度）
+ *
+ * 判定说明：站内路径要先做 **URL 解码**再比对 —— 中文文件名在 href 里是
+ * percent-encoded 的，不解码会把好链接误报成死链（踩过）。
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+
+const ROOT = process.cwd();
+const DIST = path.join(ROOT, 'dist');
+const WITH_CONTENT = process.argv.includes('--content');
+
+if (!fs.existsSync(DIST)) {
+	console.error('没有 dist —— 先 pnpm run build');
+	process.exit(2);
+}
+
+/** 递归列出文件 */
+function walk(dir) {
+	return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+		const full = path.join(dir, entry.name);
+		return entry.isDirectory() ? walk(full) : [full];
+	});
+}
+
+const pages = walk(DIST).filter((f) => f.endsWith('.html'));
+const rel = (f) => path.relative(ROOT, f).replace(/\\/g, '/');
+
+/** 站内引用 → dist 里的实际路径（先解码百分号转义） */
+function resolveRef(href) {
+	const clean = decodeURIComponent(href.split('#')[0].split('?')[0]);
+	if (!clean || !clean.startsWith('/')) return null;
+	return path.join(DIST, clean.replace(/^\//, '').replace(/\//g, path.sep));
+}
+
+function refExists(href) {
+	const target = resolveRef(href);
+	if (!target) return true;
+	if (fs.existsSync(target) && fs.statSync(target).isFile()) return true;
+	if (fs.existsSync(path.join(target, 'index.html'))) return true;
+	return false;
+}
+
+// ---------------------------------------------------------------- 1) 死链
+const deadLinks = new Map();
+const missingAssets = new Map();
+for (const page of pages) {
+	const html = fs.readFileSync(page, 'utf8');
+	for (const match of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
+		const ref = match[1];
+		if (ref.startsWith('//')) continue;
+		if (refExists(ref)) continue;
+		const bucket = /\.(?:webp|png|jpe?g|gif|svg|mp3|ogg|zip|ico)$/i.test(ref) ? missingAssets : deadLinks;
+		if (!bucket.has(ref)) bucket.set(ref, []);
+		bucket.get(ref).push(rel(page));
+	}
+}
+
+// ---------------------------------------------------------------- 2) 内容缺口
+let contentReport = '';
+if (WITH_CONTENT) {
+	const readFront = (file) => {
+		const text = fs.readFileSync(file, 'utf8').slice(0, 6000);
+		const match = text.match(/^---\n([\s\S]*?)\n---/);
+		return match ? match[1] : '';
+	};
+	const field = (front, key) => {
+		const match = front.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+		return match ? match[1].trim().replace(/^['"]|['"]$/g, '') : '';
+	};
+	const list = (front, key) => {
+		const match = front.match(new RegExp(`^${key}:\\s*\\[(.*?)\\]`, 'ms'));
+		return match ? match[1].split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean) : [];
+	};
+	const files = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.md')) : []);
+
+	const gaps = [];
+	const charactersDir = path.join(ROOT, 'src/content/characters');
+	for (const file of files(charactersDir)) {
+		const front = readFront(path.join(charactersDir, file));
+		const name = field(front, 'name');
+		if (!field(front, 'portrait')) gaps.push(`${name}：没有立绘`);
+		if (!field(front, 'race')) gaps.push(`${name}：没写种族`);
+		if (list(front, 'tags').length === 0) gaps.push(`${name}：没有标签`);
+	}
+	for (const coll of ['races', 'lore']) {
+		const dir = path.join(ROOT, 'src/content', coll);
+		for (const file of files(dir)) {
+			const front = readFront(path.join(dir, file));
+			if (!field(front, 'cover')) gaps.push(`${field(front, 'title') || field(front, 'name')}（${coll}）：没有配图`);
+		}
+		if (files(dir).length > 0) gaps.push(`（以上「${coll} 没有配图」是整类现象，共 ${files(dir).length} 条）`);
+	}
+
+	// 图池里有人名、站上却没档案
+	const meta = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/gallery-meta.json'), 'utf8'));
+	const known = new Set();
+	for (const coll of ['characters', 'draw']) {
+		for (const file of files(path.join(ROOT, 'src/content', coll))) {
+			known.add(field(readFront(path.join(ROOT, 'src/content', coll, file)), 'name'));
+		}
+	}
+	const byCharacter = new Map();
+	for (const item of Object.values(meta.items ?? meta)) {
+		const key = item.character || '（未标注）';
+		byCharacter.set(key, (byCharacter.get(key) ?? 0) + 1);
+	}
+	const strangers = [...byCharacter.entries()].filter(([name]) => !known.has(name) && name !== '（未标注）');
+	const untagged = byCharacter.get('（未标注）') ?? 0;
+
+	contentReport = [
+		'',
+		'=== 内容缺口 ===',
+		...gaps.map((g) => `  · ${g}`),
+		strangers.length > 0
+			? `  · 图池里有人名、站上没档案：${strangers.map(([n, c]) => `${n}(${c})`).join('、')}`
+			: '',
+		untagged > 0 ? `  · 图池里完全没有角色标注：${untagged} 张` : '',
+	]
+		.filter(Boolean)
+		.join('\n');
+}
+
+// ---------------------------------------------------------------- 输出
+console.log(`=== 全站健康检查（${pages.length} 个页面）===`);
+
+console.log('\n站内死链：');
+if (deadLinks.size === 0) console.log('  ✓ 没有');
+else for (const [ref, from] of deadLinks) console.log(`  ✗ ${ref}\n      出现在：${[...new Set(from)].slice(0, 3).join('、')}`);
+
+console.log('\n页面引用但产物里没有的资源：');
+if (missingAssets.size === 0) console.log('  ✓ 没有');
+else for (const [ref, from] of missingAssets) console.log(`  ✗ ${ref}\n      被引用于：${[...new Set(from)].slice(0, 3).join('、')}`);
+
+if (contentReport) console.log(contentReport);
+
+const failed = deadLinks.size > 0 || missingAssets.size > 0;
+console.log(failed ? '\n✗ 有问题（见上）' : '\n✓ 链接与资源都没有问题');
+process.exit(failed ? 1 : 0);
