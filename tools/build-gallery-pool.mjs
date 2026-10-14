@@ -120,9 +120,15 @@ const watermarkTile = Buffer.from(
  *   · 其余：联动角色的图打，自己原创角色的图不打
  */
 function needsWatermark(info, fileName, top) {
+	// 归属判定优先：联动（朋友家的角色）与企划（别的设主交来的成品）都算别人的画。
+	// 这一条必须在「按目录判定」之前 —— 否则挂在 芸芸众生/ 下的联动角色
+	// （檐下汐的宠物图就是这样）会漏掉。
+	if (info.ownership === '联动' || info.ownership === '企划') {
+		// 表情包除外：小图、本来就是用来转发的
+		return info.kind !== '表情包';
+	}
 	if (info.kind === '表情包') return false;
 	if (top === '【企划】水塔OC补完计划' || top === '平行时空（同人&群友创作）') return true;
-	if (info.ownership === '联动' || info.ownership === '企划') return true;
 	if (fileName.startsWith('企划-')) return true;
 	return false;
 }
@@ -138,6 +144,19 @@ function needsWatermark(info, fileName, top) {
  *   characters                   —— 画面里都有谁（双人图靠它同时出现在多个角色页）
  */
 const AUTHOR_NOTES = {
+	// 檐下汐（设主 浅水 ShallowAqua）：立绘与宠物图都是别人画的，归属记在设主名下
+	'【企划】水塔OC补完计划/檐下汐.webp': {
+		character: '檐下汐',
+		ownership: '联动',
+		owner: '浅水 ShallowAqua',
+	},
+	'芸芸众生（人物档案）/[水母使]檐下汐/宠物-水母.webp': {
+		character: '檐下汐',
+		ownership: '联动',
+		owner: '浅水 ShallowAqua',
+		kind: '插画',
+		title: '小宠物（像素水母）',
+	},
 	'平行时空（同人&群友创作）/浅水的六岁生日合照图.webp': {
 		character: '檐下汐',
 		owner: '浅水 ShallowAqua',
@@ -331,22 +350,22 @@ for (const rel of files) {
 	const src = path.join(SRC, rel);
 	const dst = path.join(OUT, fileName);
 
+	// 作者逐图的口径最优先：**先覆盖**，再据此判水印 ——
+	// 否则用的是推断出来的归属（例如檐下汐的宠物图会被当成「原创」而不打水印）
+	const note = AUTHOR_NOTES[relPosix];
+	const effective = note ? { ...info, ...note } : info;
+
 	/**
 	 * 别人的立绘要打水印。
 	 *
-	 * 口径（作者 2026-10-14）：
-	 *   · 联动角色的图、别的设主交给本站收录的图 → 打
-	 *   · 自己原创角色的图（淼渺、飒岚、薇奥拉、蔚蓝）→ 不打
-	 *   · 表情包不打（本来就是小图、转发用的）
-	 *
+	 * 口径（作者 2026-10-14）：按**画是谁的**判，而不是角色是谁的。
 	 * 为什么在这里做而不是像以前那样烧进 staging：
 	 * 图池是**从 staging 重建**的 —— 烧在 staging 上等于改源文件，不可逆；
 	 * 在这里生成则每次重建都会重新烧一遍，源文件保持干净，规则改了也能重来。
 	 */
-	const marked = needsWatermark(info, fileName, relPosix.split('/')[0]);
+	const marked = needsWatermark(effective, fileName, relPosix.split('/')[0]);
 	if (!dryRun) {
 		if (marked) {
-			const meta = await sharp(src).metadata();
 			await sharp(src)
 				.composite([{ input: watermarkTile, tile: true, blend: 'over' }])
 				.webp({ quality: 88, effort: 4 })
@@ -366,17 +385,8 @@ for (const rel of files) {
 		title: '',
 		source: relPosix,
 		...(marked ? { watermark: 'sample' } : {}),
+		...note,
 	};
-
-	// 作者逐图的口径最优先：覆盖归属 / 标题 / 画面里的人
-	const note = AUTHOR_NOTES[relPosix];
-	if (note) {
-		Object.assign(items[fileName], note);
-		// 归属角色被改过时，文件名前缀也跟着走（否则清单名与实际归属对不上）
-		if (note.character && note.character !== info.character) {
-			// 保持既有文件名：只在条目里换归属，不改磁盘文件名
-		}
-	}
 }
 
 // 读现有清单，保留人工标注过的字段，只补新文件与尺寸

@@ -1,7 +1,7 @@
 {
   "note": "画廊标注文件。ownership: 原创|联动|其他（联动会在页面标出设主，填 owner）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
   "updated": "2026-10-14",
-  "count": 169,
+  "count": 170,
   "items": {
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
@@ -60,8 +60,8 @@
     },
     "企划-檐下汐.webp": {
       "character": "檐下汐",
-      "ownership": "企划",
-      "owner": "",
+      "ownership": "联动",
+      "owner": "浅水 ShallowAqua",
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/檐下汐.webp",
@@ -1522,6 +1522,17 @@
       "source": "芸芸众生（人物档案）/[名为薛定谔的猫]墨白/ink_bai表情包/趴趴_16.webp",
       "w": 700,
       "h": 700
+    },
+    "檐下汐__宠物-水母.webp": {
+      "character": "檐下汐",
+      "ownership": "联动",
+      "owner": "浅水 ShallowAqua",
+      "kind": "插画",
+      "title": "小宠物（像素水母）",
+      "source": "芸芸众生（人物档案）/[水母使]檐下汐/宠物-水母.webp",
+      "watermark": "sample",
+      "w": 1080,
+      "h": 1080
     },
     "风汐铃月__1-(1).webp": {
       "character": "风汐铃月",
