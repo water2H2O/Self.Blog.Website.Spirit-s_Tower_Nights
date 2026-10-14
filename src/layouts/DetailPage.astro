@@ -126,6 +126,33 @@ const CANON = {
 				border-radius: 14px;
 				box-shadow: var(--box-shadow);
 			}
+			/*
+			 * 还没有立绘时的占位框：虚线框 + 一行 #NO INFO。
+			 * 为什么不做成「干脆不显示」——留白会让人以为是页面坏了；
+			 * 明写「暂无」既诚实，也方便以后补图时一眼找到位置。
+			 */
+			.cover.none {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.5em;
+				aspect-ratio: 16 / 10;
+				border-radius: 14px;
+				border: 1px dashed rgba(127, 233, 240, 26%);
+				background: rgba(127, 233, 240, 4%);
+				color: rgb(var(--gray));
+			}
+			.cover.none .none-mark {
+				font-family: Consolas, monospace;
+				font-size: 1.1em;
+				letter-spacing: 0.18em;
+				color: var(--accent);
+				opacity: 0.9;
+			}
+			.cover.none .none-text {
+				font-size: 0.82em;
+			}
 			/* 信息栏：表格样式来自 global.css 的 .facts-table，这里只补间距与描边色 */
 			.meta {
 				margin: 0 0 2em;
@@ -209,7 +236,19 @@ const CANON = {
 				{canon && <p class="canon" data-level={canon} title={CANON[canon].hint}>{CANON[canon].label}</p>}
 				<SpoilerNote level={spoiler} />
 				<TagList tags={tags} color={themeColor} />
-				{cover && <div class="cover"><Image src={cover} alt={title} width={1020} /></div>}
+				{
+					cover ? (
+						<div class="cover">
+							<Image src={cover} alt={title} width={1020} />
+						</div>
+					) : (
+						/* 还没有图：占位框，明说「暂无」而不是留一片空白 */
+						<div class="cover none" data-no-info>
+							<span class="none-mark">#NO INFO</span>
+							<span class="none-text">这一位还没有立绘</span>
+						</div>
+					)
+				}
 			</header>
 			{
 				meta.length > 0 && (

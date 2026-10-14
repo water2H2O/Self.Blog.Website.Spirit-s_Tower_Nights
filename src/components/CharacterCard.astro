@@ -1,14 +1,13 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import TagList from './TagList.astro';
 
 interface Props {
 	entry: CollectionEntry<'characters'>;
 }
 
 const { entry } = Astro.props;
-const { name, aliases, summary, title, portrait, themeColor, tags, ownership, owner } = entry.data;
+const { name, aliases, summary, title, portrait, themeColor, ownership, owner } = entry.data;
 
 // 没有立绘时用名字首字做一个色块，避免列表里出现空洞
 const monogram = name.replace(/[（()）·\s]/g, '').slice(0, 1) || '?';
@@ -35,7 +34,6 @@ const aliasText = aliases.filter(Boolean).join(' / ');
 				<p class="owner">设主：{owner || '待补'}</p>
 			)}
 			<p class="summary">{summary}</p>
-			<TagList tags={tags.slice(0, 4)} color={themeColor} />
 		</div>
 	</a>
 </article>

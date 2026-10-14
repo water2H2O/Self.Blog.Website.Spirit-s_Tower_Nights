@@ -7,7 +7,6 @@ summary: 光暗元素之神中“光”的那一半，如今已遗忘一切，�
 portrait: '../../assets/oc/characters/baicha.webp'
 drawable: true
 pronouns: 女
-tags: ['神界使', '治愈', '光元素']
 lore: ['fate-triad', 'celestial-infernal', 'cataclysm']
 relations:
   - to: 'miaomiao'

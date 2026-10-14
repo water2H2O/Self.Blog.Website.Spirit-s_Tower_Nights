@@ -11,9 +11,8 @@ aliases: ['苯胺']
 height: 1米65
 age: 19岁
 pronouns: 女
-tags: ['风狼族', '风的轨迹', '敏捷', '隐匿', '本期限定']
 limited: true
-canon: draft
+canon: open
 order: 10
 ---
 

@@ -11,7 +11,6 @@ age: 不详（精灵寿命漫长，心理年龄与外表均显稚嫩）
 themeColor: '#AFFFFF'
 portrait: '../../assets/oc/characters/miaomiao-portrait.webp'
 drawable: true
-tags: ['主角', '水精灵', '药剂师', '旅行者']
 lore: ['miasma', 'artifacts', 'elf-arc']
 relations:
   - to: 'liliana-salambo'

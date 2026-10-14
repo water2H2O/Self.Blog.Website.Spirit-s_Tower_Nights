@@ -7,7 +7,6 @@ owner: 天涯
 themeColor: '#A8CDEE'
 portrait: '../../assets/oc/characters/tianya.webp'
 pronouns: 女
-tags: ['天涯', '白发', '蓝丝带', '伞', '联动']
 canon: draft
 order: 20
 ---

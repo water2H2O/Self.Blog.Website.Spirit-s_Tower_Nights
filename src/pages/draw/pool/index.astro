@@ -125,6 +125,28 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 				object-position: center 18%;
 				display: block;
 			}
+			/* 没有立绘时的占位：一根虚线框里写「暂无」 */
+			.card .no-info {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 0.3em;
+				width: 100%;
+				height: 100%;
+				border: 1px dashed rgba(127, 233, 240, 22%);
+				color: rgb(var(--gray));
+			}
+			.card .no-info b {
+				font-family: Consolas, monospace;
+				font-size: 0.9em;
+				letter-spacing: 0.14em;
+				color: var(--accent);
+			}
+			.card .no-info i {
+				font-size: 0.76em;
+				font-style: normal;
+			}
 			/* 签筒目录里的条目：标一个角标，和正式入档的区分开 */
 			.card .flag {
 				position: absolute;
@@ -204,7 +226,11 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 										{item.art ? (
 											<img src={item.art} alt={item.name} loading="lazy" decoding="async" />
 										) : (
-											<span />
+											/* 还没有立绘：明写「暂无」，别留一个空框 */
+											<span class="no-info">
+												<b>#NO INFO</b>
+												<i>暂无立绘</i>
+											</span>
 										)}
 										{item.href.startsWith('/draw/entry/') && <span class="flag">签筒</span>}
 										{item.limited && <span class="flag limit">限定</span>}

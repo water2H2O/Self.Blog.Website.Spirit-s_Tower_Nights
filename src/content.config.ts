@@ -127,7 +127,11 @@ const characters = defineCollection({
 			 * 与 drawable 无关 —— draw 目录里的条目也可以标。
 			 */
 			limited: z.boolean().default(false),
-			tags: z.array(z.string()).default([]),
+			/**
+			 * 角色不打标签。
+			 * 作者的口径是「不给 OC 打标签」——标签体系已从角色与签筒里撤掉；
+			 * 设定（lore）与种族（races）仍保留 tags，那是分类用途，不是给角色贴标签。
+			 */
 			/** 人际关系：指向其他角色 */
 			relations: z
 				.array(z.object({ to: reference('characters'), note: z.string() }))
@@ -330,7 +334,7 @@ const draw = defineCollection({
 			height: z.string().optional(),
 			age: z.string().optional(),
 			pronouns: z.string().optional(),
-			tags: z.array(z.string()).default([]),
+			/* 与 characters 一致：签筒条目也不打标签 */
 			/** 抽签限定：卡片与签筒上会带「限定」角标 */
 			limited: z.boolean().default(false),
 			canon: canonLevel,

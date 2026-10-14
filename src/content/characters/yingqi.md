@@ -10,7 +10,6 @@ portrait: '../../assets/oc/characters/yingqi.webp'
 drawable: true
 pronouns: 女
 age: '14'
-tags: ['奇美拉', '人造生命', '逃亡者']
 lore: ['holy-shield', 'artifacts']
 relations:
   - to: 'miaomiao'
