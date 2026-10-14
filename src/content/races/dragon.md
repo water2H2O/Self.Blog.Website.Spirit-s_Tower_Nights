@@ -3,6 +3,8 @@ name: 龙族
 epithet: 天下无敌(物理)
 aliases: ['天穹之主', '真龙（自称）', '大蜥蜴（他族蔑称，尤以血族爱用）']
 summary: 屹立于世界之巅的巅峰种族，其存在本身即是力量的象征——大灾变后内乱不止，纯粹的力量在复杂的现实面前也并非万能。
+themeColor: '#E8B45C'
+cover: '../../assets/oc/races/dragon.webp'
 miasmaTolerance: 极强
 population: 是所有智慧种族中人口最稀少的，现存个体预估不过数千。
 habitat: 大陆北方的辽阔国度—— 圣鳞帝国；以龙皇为核心的部落-领主联合制

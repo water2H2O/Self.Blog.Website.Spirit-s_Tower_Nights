@@ -3,6 +3,8 @@ name: 血族
 epithet: 染上血色的蔷薇
 aliases: ['吸血鬼', '夜之主']
 summary: 以血魔法与初拥延续血脉的种族，在大陆西方建立起等级森严的蔷薇帝国；现任代理女皇以同盟制度与贸易路线周旋于各国之间，帝国正等待属于自己的时代。
+themeColor: '#E06A7A'
+cover: '../../assets/oc/races/vampire.webp'
 miasmaTolerance: 较脆弱
 population: 血族拥有着可观的人口
 habitat: 于大陆西方建立了自己的帝国”蔷薇帝国”

@@ -3,6 +3,8 @@ name: 人类
 epithet: 新世界的火种
 aliases: []
 summary: 灾变前就遍布大陆的人形种族，单体力量与寿命平平，却靠着组织、分工与技术，在废墟上重建出「人类三国」这样的政权 —— 他们最擅长的，是把别人的规则拿来为己所用。
+themeColor: '#FFD68A'
+cover: '../../assets/oc/races/human.webp'
 tags: ['人类三国', '圣盾共和国', '银辉联邦']
 canon: open
 order: 130

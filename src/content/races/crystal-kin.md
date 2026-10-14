@@ -3,6 +3,8 @@ name: 晶裔
 epithet: 信息的闪光
 aliases: ['世界之疤', '熵之子民（外界称呼）', '记录者', '调谐者（自称）']
 summary: 大灾变后在高浓度瘴素环境中由生物异变而成的碳-硅基混合智慧生命体，是元素衰变的活体产物与终极适应者，以晶脉网络扩张着属于自己的新秩序。
+themeColor: '#9BE7E0'
+cover: '../../assets/oc/races/crystal-kin.webp'
 miasmaTolerance: 绝对依存与掌控
 population: 未知，但其群落正在扩张。
 habitat: 分布于大陆上瘴素浓度最高的“腐化区”，这些区域是旧世界元素秩序崩溃的焦点；以“晶脉网络”为核心的蜂巢式群居

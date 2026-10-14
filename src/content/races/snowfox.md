@@ -3,6 +3,8 @@ name: 雪狐一族
 epithet: 冰雪中的晶花
 aliases: ['冰裔', '北境之灵（自称）', '霜狐（他称，中性）']
 summary: 由纯净的二级元素「冰元素」构成的智慧生命体，是严酷北境的化身与主人，在永霜冻土与泣泪山脉间避世而居，静待世界重启后的那份纯净。
+themeColor: '#D8ECFF'
+cover: '../../assets/oc/races/snowfox.webp'
 miasmaTolerance: 良好
 population: 相对稀少。因其独特的元素构成和苛刻的生存环境，人口增长缓慢。
 habitat: 大陆最北端的「永霜冻土」与「泣泪山脉」；以血缘和元素共鸣为纽带，形成部落联邦制

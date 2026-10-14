@@ -3,6 +3,8 @@ name: 神界使
 epithet: 眼中再无星辰
 aliases: []
 summary: 命运三神之下的普通神明，曾是星辰的化身与规则的执行者；命运三神沉默后，他们失去方向的指引、神力受限或扭曲，成为在神域中迷茫的诸神。
+themeColor: '#C9A8FF'
+cover: '../../assets/oc/races/divine-envoy.webp'
 tags: ['命运三神', '星辰化身', '神力受限', '概念生命体']
 canon: open
 order: 110

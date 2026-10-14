@@ -3,6 +3,8 @@ name: 恶魔
 epithet: 混乱的可能性
 aliases: []
 summary: 将大灾变视为一场“解放”的种族，天生擅长在混乱的规则中寻找漏洞，是危险的“现实黑客”，与天使形成“一个试图修，一个试图改”的微妙对立。
+themeColor: '#C0605F'
+cover: '../../assets/oc/races/demon.webp'
 tags: ['现实黑客', '混乱规则', '瘴素环境']
 canon: open
 order: 100

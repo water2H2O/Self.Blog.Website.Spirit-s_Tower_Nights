@@ -3,6 +3,8 @@ name: 天使
 epithet: 秩序的维护者
 aliases: []
 summary: 世界“防火墙”的恪守者，依然在执行命运三神留下的、部分已过时的维护协议，试图修复世界的系统漏洞；高效、冷酷，因规则的矛盾而充满内在的痛苦。
+themeColor: '#F4E7A8'
+cover: '../../assets/oc/races/angel.webp'
 tags: ['天界', '维护协议', '秩序化身', '系统漏洞']
 canon: open
 order: 120

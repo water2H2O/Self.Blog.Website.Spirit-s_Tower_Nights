@@ -3,6 +3,8 @@ name: 亚人
 epithet: 存在于新旧秩序的夹缝中
 aliases: []
 summary: 包括兽人、哥布林、人马等所有非人形智慧种，既没有精灵的高傲，也没有人类的庞大组织，只能在废墟与各方势力的夹缝中为族群的存续找到一条血路。
+themeColor: '#B9C6A8'
+cover: '../../assets/oc/races/demi-human.webp'
 tags: ['非人形智慧种', '部落', '蛮族', '生存专家']
 canon: open
 order: 90

@@ -4,6 +4,7 @@ epithet: 旧时代的遗民
 aliases: ['精灵', '自然之灵']
 summary: 由最纯粹的基本魔法元素或二级魔法元素构成的个体。他们并非虚无的规则化身，而是一个个有情绪、有想法的独立生命——也是大灾变最大的受害者。
 themeColor: '#AFFFFF'
+cover: '../../assets/oc/races/elemental-spirit.webp'
 miasmaTolerance: 极度脆弱
 population: 各分支情况不同，仍以“元素精灵”自称者仅存少量个体
 habitat: 散落在瘴素浓度较低的地区，以个体流浪为主

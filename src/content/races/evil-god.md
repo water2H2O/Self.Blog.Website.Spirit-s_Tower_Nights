@@ -3,6 +3,8 @@ name: 邪神
 epithet: 千分之一的可能
 aliases: []
 summary: 并非传统意义的邪恶之神，更像是从世界“系统漏洞”中诞生的异常进程或概念实体，通常被认为是魔界的统领者；其存在本身就在扭曲周围的规则。
+themeColor: '#A66BE0'
+cover: '../../assets/oc/races/evil-god.webp'
 tags: ['魔界统领', '系统漏洞', '异常进程', '概率产物']
 canon: open
 order: 80

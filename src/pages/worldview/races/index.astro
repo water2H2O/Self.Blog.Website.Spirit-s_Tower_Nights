@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
@@ -49,6 +50,25 @@ const countOf = (raceId: string) => characters.filter((c) => c.data.race?.id ===
 				transform: translateY(-3px);
 				box-shadow: var(--glow-shadow);
 				border-color: color-mix(in srgb, var(--card-color) 45%, transparent);
+			}
+			/*
+			 * 封面：16:9，裁切填满。
+			 * 卡片的 padding 由 thumb 自己撑开 —— 图要贴到卡片边缘，
+			 * 所以给它负边距抵掉父级的 padding。
+			 */
+			.card .thumb {
+				margin: -1.3em -1.4em 1.1em;
+				aspect-ratio: 16 / 9;
+				overflow: hidden;
+				border-radius: 11px 11px 0 0;
+				background: color-mix(in srgb, var(--card-color) 12%, var(--surface));
+			}
+			.card .thumb :global(img) {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				display: block;
+				border-radius: 0;
 			}
 			.epithet {
 				font-size: 0.75em;
@@ -100,6 +120,16 @@ const countOf = (raceId: string) => characters.filter((c) => c.data.race?.id ===
 				{
 					races.map((race) => (
 						<a class="card" href={`/worldview/races/${race.id}/`} style={`--card-color:${race.data.themeColor}`}>
+							{race.data.cover && (
+								<div class="thumb">
+									<Image
+										src={race.data.cover}
+										alt={race.data.name}
+										widths={[640, 1280]}
+										sizes="(max-width: 720px) 92vw, 340px"
+									/>
+								</div>
+							)}
 							{race.data.canon === 'locked' && <span class="lock" title="正典 · 不可变更">◆</span>}
 							{race.data.epithet && <span class="epithet">[{race.data.epithet}]</span>}
 							<h2>{race.data.name}</h2>

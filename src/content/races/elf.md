@@ -3,6 +3,8 @@ name: 精灵族
 epithet: 名为信仰的诅咒
 aliases: ['森林精灵（旧称）', '固守者（天翼种私下称呼）', '被遗忘的荣光（某些精灵学者自嘲）']
 summary: 最繁盛的元素魔法文明的继承者，因追随精灵王构筑结界而被封闭在时间近乎停滞的地面；对元素精灵的绝对信仰，如今成了无法兑现的诅咒。
+themeColor: '#8FDC9B'
+cover: '../../assets/oc/races/elf.webp'
 miasmaTolerance: 在结界保护下不直接暴露于瘴素，但结界的能量在不断衰减
 habitat: 时间近乎停滞的结界内，与外界隔绝。
 conflicts:
