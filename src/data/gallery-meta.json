@@ -1,7 +1,7 @@
 {
   "note": "画廊标注文件。ownership: 原创|联动|其他（联动会在页面标出设主，填 owner）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
   "updated": "2026-10-14",
-  "count": 178,
+  "count": 176,
   "items": {
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
@@ -1813,26 +1813,6 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[醉酒的星辰]戴薇娜/img_3956.webp",
-      "w": 1200,
-      "h": 1600
-    },
-    "戴薇娜__img_3957.webp": {
-      "character": "薇奥拉",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "设定",
-      "title": "",
-      "source": "芸芸众生（人物档案）/[醉酒的星辰]戴薇娜/img_3957.webp",
-      "w": 1200,
-      "h": 1600
-    },
-    "戴薇娜__img_3958.webp": {
-      "character": "薇奥拉",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "设定",
-      "title": "",
-      "source": "芸芸众生（人物档案）/[醉酒的星辰]戴薇娜/img_3958.webp",
       "w": 1200,
       "h": 1600
     },
