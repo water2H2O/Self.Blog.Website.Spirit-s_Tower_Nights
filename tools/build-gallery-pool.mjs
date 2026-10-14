@@ -92,6 +92,122 @@ const EXCLUDE = [
 	'回响之殿（音乐作品）/pv/[OC世界观音乐企划#7]梅干茶漬け-Dabbling-封面.webp',
 ];
 
+/**
+ * 水印瓦片：斜排的浅色 sample，浅底深底都看得见。
+ * 与 tools/watermark-samples.mjs 用的是同一款，风格保持一致。
+ */
+const TILE = 460;
+const watermarkTile = Buffer.from(
+	`<svg xmlns="http://www.w3.org/2000/svg" width="${TILE}" height="${TILE * 0.62}">
+		<text x="50%" y="60%"
+			font-family="Arial, Helvetica, sans-serif"
+			font-size="44" font-weight="700" letter-spacing="3"
+			text-anchor="middle"
+			fill="rgba(255,255,255,0.40)"
+			stroke="rgba(24,30,42,0.32)" stroke-width="1.4"
+			transform="rotate(-28 ${TILE / 2} ${TILE * 0.31})">sample</text>
+	</svg>`,
+);
+
+/**
+ * 这张图要不要打水印。
+ *
+ * 口径（作者 2026-10-14）：**别人的立绘要打水印**。
+ * 关键不是「角色是谁的」，而是「画是谁的」——所以按来源目录判定：
+ *   · 企划（别的设主交给本站收录的成品）→ 打
+ *   · 平行时空（同人 & 群友创作）        → 打
+ *   · 表情包                            → 不打（小图、转发用）
+ *   · 其余：联动角色的图打，自己原创角色的图不打
+ */
+function needsWatermark(info, fileName, top) {
+	if (info.kind === '表情包') return false;
+	if (top === '【企划】水塔OC补完计划' || top === '平行时空（同人&群友创作）') return true;
+	if (info.ownership === '联动' || info.ownership === '企划') return true;
+	if (fileName.startsWith('企划-')) return true;
+	return false;
+}
+
+/**
+ * 作者口径：逐图指定归属、标题、画面里的人。
+ *
+ * 为什么要写在这里而不是改清单：图池是**每次重建都从 staging 重算元数据**的，
+ * 手改清单会在下次重建时被覆盖。写进脚本才是持久的。
+ * key 用「staging 相对路径」（正斜杠），值里：
+ *   character / ownership / owner —— 覆盖推断结果
+ *   title                        —— 相册里显示的标题
+ *   characters                   —— 画面里都有谁（双人图靠它同时出现在多个角色页）
+ */
+const AUTHOR_NOTES = {
+	'平行时空（同人&群友创作）/浅水的六岁生日合照图.webp': {
+		character: '檐下汐',
+		owner: '浅水 ShallowAqua',
+		title: '大合照',
+		characters: ['檐下汐'],
+	},
+	'芸芸众生（人物档案）/[名为薛定谔的猫]墨白/ink_bai表情包/水水支付_04.webp': {
+		character: '墨白',
+		characters: ['墨白'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2025年12月26日表情包/表情包2/贴贴_17.webp': {
+		character: '淼渺',
+		characters: ['淼渺', '飒岚'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_13.webp': {
+		characters: ['淼渺', '天涯'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_14.webp': {
+		characters: ['淼渺', '天涯'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_15.webp': {
+		characters: ['淼渺', '天涯'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_16_1.webp': {
+		characters: ['淼渺', '天涯'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_16_2.webp': {
+		characters: ['淼渺', '天涯'],
+	},
+	'回响之殿（音乐作品）/[#1]Lum1n0u2-Late Glow, Twin Trails_.webp': {
+		character: '淼渺',
+		characters: ['淼渺', '飒岚'],
+	},
+	'回响之殿（音乐作品）/[#2]ああああ-アドベンチャー・パレード.webp': {
+		character: '淼渺',
+		characters: ['淼渺', '飒岚'],
+	},
+	'回响之殿（音乐作品）/[#3]Kyakii-OBLIVION.webp': {
+		character: '风汐铃月',
+		characters: ['风汐铃月'],
+	},
+	'回响之殿（音乐作品）/[#5]CS4W - Subjugator.webp': {
+		character: '淼渺',
+		characters: ['淼渺'],
+	},
+	'回响之殿（音乐作品）/[#6]米虾Fomiki-Ventus Murorum.webp': {
+		character: '淼渺',
+		characters: ['淼渺', '白茶', '应祈'],
+	},
+	'回响之殿（音乐作品）/[#7]Dabbling-梅干茶漬け.webp': {
+		character: '飒岚',
+		characters: ['飒岚'],
+	},
+	'讯息（重要的和通信邮件记录）/和RT的合作提供的资料/131-魔药双人.webp': {
+		character: '墨白',
+		characters: ['墨白'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/多人插-和鸟姐姐一起玩水花.webp': {
+		character: '淼渺',
+		characters: ['淼渺', '小凤'],
+		title: '和小凤一起玩水花',
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/双人贴贴-灌药（淼渺×月月）.webp': {
+		characters: ['淼渺', '风汐铃月'],
+	},
+	'芸芸众生（人物档案）/[元素精灵]淼渺/双人贴贴-拍立得（水水×白茶）.webp': {
+		characters: ['淼渺', '白茶'],
+	},
+};
+
 /** 从路径推断角色与分类 */
 function classify(relPath) {
 	const parts = relPath.split(path.sep);
@@ -190,6 +306,7 @@ const used = new Map();
 const items = {};
 let copied = 0;
 let skipped = 0;
+let watermarked = 0;
 
 if (!dryRun) fs.mkdirSync(OUT, { recursive: true });
 
@@ -214,8 +331,30 @@ for (const rel of files) {
 	const src = path.join(SRC, rel);
 	const dst = path.join(OUT, fileName);
 
+	/**
+	 * 别人的立绘要打水印。
+	 *
+	 * 口径（作者 2026-10-14）：
+	 *   · 联动角色的图、别的设主交给本站收录的图 → 打
+	 *   · 自己原创角色的图（淼渺、飒岚、薇奥拉、蔚蓝）→ 不打
+	 *   · 表情包不打（本来就是小图、转发用的）
+	 *
+	 * 为什么在这里做而不是像以前那样烧进 staging：
+	 * 图池是**从 staging 重建**的 —— 烧在 staging 上等于改源文件，不可逆；
+	 * 在这里生成则每次重建都会重新烧一遍，源文件保持干净，规则改了也能重来。
+	 */
+	const marked = needsWatermark(info, fileName, relPosix.split('/')[0]);
 	if (!dryRun) {
-		fs.copyFileSync(src, dst);
+		if (marked) {
+			const meta = await sharp(src).metadata();
+			await sharp(src)
+				.composite([{ input: watermarkTile, tile: true, blend: 'over' }])
+				.webp({ quality: 88, effort: 4 })
+				.toFile(dst);
+			watermarked += 1;
+		} else {
+			fs.copyFileSync(src, dst);
+		}
 		copied += 1;
 	}
 
@@ -225,8 +364,19 @@ for (const rel of files) {
 		owner: info.owner ?? '',
 		kind: info.kind,
 		title: '',
-		source: rel.split(path.sep).join('/'),
+		source: relPosix,
+		...(marked ? { watermark: 'sample' } : {}),
 	};
+
+	// 作者逐图的口径最优先：覆盖归属 / 标题 / 画面里的人
+	const note = AUTHOR_NOTES[relPosix];
+	if (note) {
+		Object.assign(items[fileName], note);
+		// 归属角色被改过时，文件名前缀也跟着走（否则清单名与实际归属对不上）
+		if (note.character && note.character !== info.character) {
+			// 保持既有文件名：只在条目里换归属，不改磁盘文件名
+		}
+	}
 }
 
 // 读现有清单，保留人工标注过的字段，只补新文件与尺寸
@@ -242,9 +392,16 @@ if (fs.existsSync(META)) {
 for (const [name, item] of Object.entries(items)) {
 	const old = previous.items?.[name];
 	if (!old) continue;
-	// 保留人工改过的分类字段；尺寸等生成字段稍后覆盖
-	for (const key of ['ownership', 'owner', 'kind', 'title', 'character']) {
-		if (typeof old[key] === 'string') item[key] = old[key];
+	/**
+	 * 保留人工改过的字段（清单里手写的归属不该被重建冲掉），但**作者口径优先** ——
+	 * AUTHOR_NOTES 里明确写了的字段以脚本为准，否则改了脚本却看不出变化。
+	 */
+	const forced = new Set(Object.keys(AUTHOR_NOTES[item.source] ?? {}));
+	for (const key of ['ownership', 'owner', 'kind', 'title', 'character', 'characters']) {
+		if (forced.has(key)) continue;
+		const value = old[key];
+		if (typeof value === 'string' && value !== '') item[key] = value;
+		else if (Array.isArray(value) && value.length > 0) item[key] = value;
 	}
 }
 
@@ -297,6 +454,7 @@ console.log(`分类：${Object.entries(byKind).map(([k, v]) => `${k} ${v}`).join
 if (removed.length) console.log(`清单中已不存在的图（${removed.length}）：${removed.slice(0, 5).join(', ')}${removed.length > 5 ? ' …' : ''}`);
 console.log(`\n输出目录：${path.relative(ROOT, OUT)}`);
 console.log(`标注清单：${path.relative(ROOT, META)}`);
+if (!dryRun) console.log(`已打水印：${watermarked} 张（别人的立绘）`);
 
 // 收尾自检：磁盘上的图必须和清单条目一一对应，否则画廊会静默少图
 if (!dryRun) {

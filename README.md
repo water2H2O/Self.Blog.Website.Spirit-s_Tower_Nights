@@ -566,21 +566,36 @@ node tools/build-gallery-pool.mjs            # 把 assets-staging 摊平进图�
 node tools/build-gallery-pool.mjs --dry-run  # 只看会做什么
 ```
 
-- 标注文件 **`src/data/gallery-meta.json`**：`ownership`、`owner`（联动设主）、`kind`、`title`。
-  重新跑脚本只补新文件与尺寸，**不会覆盖手改过的值**
+- 标注文件 **`src/data/gallery-meta.json`**：`ownership`、`owner`（联动设主）、`kind`、`title`、
+  `characters`（画面里都有谁）。重新跑脚本只补新文件与尺寸，**不会覆盖手改过的值**；
+  但 `AUTHOR_NOTES` 里明确写了的字段以脚本为准
+- **一张图可以同时出现在多个角色页**：`characters` 数组记录画面里的所有人
+  （淼渺×飒岚、淼渺+白茶+祈、淼渺×天涯…），角色的「画作」区按它筛选。
+  作者逐张确认过的归属、标题、画面成员写在脚本顶部的 **`AUTHOR_NOTES`** 里 ——
+  写清单没用，因为图池每次重建都从 staging 重算元数据
 - `ownership` 有四个**同级、互斥**的分类：`原创` / `联动` / `企划` / `其他`。页面按它筛选，
   每张图只属于其中一类（`企划` 是「水塔 OC 补完计划」的成品，页面上是绿色小标）
+- **别人的立绘要打水印**，判定按「画是谁的」而不是「角色是谁的」：
+  企划与平行时空目录的图、以及联动角色的图都打斜排 `sample` 水印，自己的原创角色不打，
+  表情包不打。水印在**重建图池时生成**（源文件保持干净、可重复跑），
+  打了的条目在清单里带 `watermark: 'sample'`
 - 想再挂一批图进 `企划`：改 `tools/build-gallery-pool.mjs` 顶部的 `PROJECT_DIR` / `PROJECT_OWNERSHIP`
-- `EXCLUDE` 数组里的文件名片段不会进图池（例如明确不要用的某张图）
-- 归属对照表在脚本顶部的 `CHARACTERS` 里，改那里就能挪动原创／联动
+- `EXCLUDE` 数组里的路径片段不会进图池（例如明确不要用的某张图，或**内容重复的副本** ——
+  同一个文件散在多个来源目录里时，只留带角色归属的那份）
+- 归属对照表在脚本顶部的 `CHARACTERS` 里，改那里就能挪动原创／联动；
+  某条目的 `as` 字段表示「文件名里叫这个，但归属归到那个角色」（苯胺 → 芳基胺、
+  戴薇娜 → 薇奥拉）：归属名与文件名前缀是两回事，后者保持不变，否则整批文件会改名
 - 文件名只保留「中文 + 字母数字 + `-` `_` + 全角括号」：实测 `&` `,` `#` 和空格
   会让静态服务器返回 404（147 个文件逐个测过）
 - 页面每次打开随机抽 `SAMPLE_SIZE` 张（在 `src/pages/worldview/gallery/index.astro` 里改），
   大小、横竖、顺序都随机
-- 水印是**页面叠加**的：截图带，右键另存的原图不带
+- 除了烧进图里的 `sample` 水印，页面还**叠一层**署名水印：截图带，右键另存的原图不带
 - 照片墙本身是共享组件 [`src/components/GalleryWall.astro`](src/components/GalleryWall.astro)：
   画廊页与角色页用的是同一套（随机抽样、随机大小、水印、灯箱），后者不显示筛选按钮、
   也不排除任何分类（表情包与指针素材在角色页会一并铺开）
+
+> 排查用的两支小工具：`node tools/site-health.mjs --content` 查全站死链、缺失资源与内容缺口；
+> `python tools/tag-multi-character.py` 列出「文件名里出现多个角色」的图并补 `characters`。
 
 ### 站点图标与分享图
 

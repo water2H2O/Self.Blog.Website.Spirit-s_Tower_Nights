@@ -1,7 +1,7 @@
 {
   "note": "画廊标注文件。ownership: 原创|联动|其他（联动会在页面标出设主，填 owner）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
   "updated": "2026-10-14",
-  "count": 168,
+  "count": 169,
   "items": {
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
@@ -10,6 +10,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/Aurelith.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -20,6 +21,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/北音.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -30,6 +32,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/墨白.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -40,6 +43,7 @@
       "kind": "设定",
       "title": "屑魔女（薇奥拉的外号）",
       "source": "【企划】水塔OC补完计划/屑魔女.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -50,8 +54,20 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/应祈.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
+    },
+    "企划-檐下汐.webp": {
+      "character": "檐下汐",
+      "ownership": "企划",
+      "owner": "",
+      "kind": "设定",
+      "title": "",
+      "source": "【企划】水塔OC补完计划/檐下汐.webp",
+      "watermark": "sample",
+      "w": 1600,
+      "h": 2400
     },
     "企划-温雪.webp": {
       "character": "温雪",
@@ -60,6 +76,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/温雪.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -70,6 +87,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/白茶_汉服.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -80,6 +98,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/缪伊伊.webp",
+      "watermark": "sample",
       "w": 1093,
       "h": 1600
     },
@@ -90,6 +109,7 @@
       "kind": "设定",
       "title": "苯胺（源图名）",
       "source": "【企划】水塔OC补完计划/苯胺.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -100,6 +120,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/霜霖星.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -110,6 +131,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/风汐铃月.webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 1600
     },
@@ -120,6 +142,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/风汐铃月_带ui.webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 914
     },
@@ -130,6 +153,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/香菇.webp",
+      "watermark": "sample",
       "w": 914,
       "h": 1600
     },
@@ -140,6 +164,7 @@
       "kind": "设定",
       "title": "",
       "source": "【企划】水塔OC补完计划/鹤戾.webp",
+      "watermark": "sample",
       "w": 913,
       "h": 1600
     },
@@ -160,6 +185,10 @@
       "kind": "曲绘",
       "title": "",
       "source": "回响之殿（音乐作品）/[#1]Lum1n0u2-Late Glow, Twin Trails_.webp",
+      "characters": [
+        "淼渺",
+        "飒岚"
+      ],
       "w": 1099,
       "h": 1600
     },
@@ -170,6 +199,10 @@
       "kind": "曲绘",
       "title": "",
       "source": "回响之殿（音乐作品）/[#2]ああああ-アドベンチャー・パレード.webp",
+      "characters": [
+        "淼渺",
+        "飒岚"
+      ],
       "w": 1600,
       "h": 914
     },
@@ -180,6 +213,9 @@
       "kind": "曲绘",
       "title": "",
       "source": "回响之殿（音乐作品）/[#3]Kyakii-OBLIVION.webp",
+      "characters": [
+        "风汐铃月"
+      ],
       "w": 1600,
       "h": 900
     },
@@ -190,6 +226,9 @@
       "kind": "曲绘",
       "title": "",
       "source": "回响之殿（音乐作品）/[#5]CS4W - Subjugator.webp",
+      "characters": [
+        "淼渺"
+      ],
       "w": 1600,
       "h": 900
     },
@@ -200,6 +239,11 @@
       "kind": "曲绘",
       "title": "",
       "source": "回响之殿（音乐作品）/[#6]米虾Fomiki-Ventus Murorum.webp",
+      "characters": [
+        "淼渺",
+        "白茶",
+        "应祈"
+      ],
       "w": 1600,
       "h": 1131
     },
@@ -210,16 +254,23 @@
       "kind": "曲绘",
       "title": "",
       "source": "回响之殿（音乐作品）/[#7]Dabbling-梅干茶漬け.webp",
+      "characters": [
+        "飒岚"
+      ],
       "w": 600,
       "h": 450
     },
     "平行时空__浅水的六岁生日合照图.webp": {
-      "character": "浅水",
+      "character": "檐下汐",
       "ownership": "联动",
-      "owner": "浅水",
+      "owner": "浅水 ShallowAqua",
       "kind": "同人",
-      "title": "",
+      "title": "大合照",
       "source": "平行时空（同人&群友创作）/浅水的六岁生日合照图.webp",
+      "watermark": "sample",
+      "characters": [
+        "檐下汐"
+      ],
       "w": 1600,
       "h": 960
     },
@@ -300,6 +351,10 @@
       "kind": "插画",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/双人贴贴-拍立得（水水×白茶）.webp",
+      "characters": [
+        "淼渺",
+        "白茶"
+      ],
       "w": 1200,
       "h": 1600
     },
@@ -310,6 +365,10 @@
       "kind": "插画",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/双人贴贴-灌药（淼渺×月月）.webp",
+      "characters": [
+        "淼渺",
+        "风汐铃月"
+      ],
       "w": 1600,
       "h": 1000
     },
@@ -318,8 +377,12 @@
       "ownership": "联动",
       "owner": "",
       "kind": "插画",
-      "title": "",
+      "title": "和小凤一起玩水花",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/多人插-和鸟姐姐一起玩水花.webp",
+      "characters": [
+        "淼渺",
+        "小凤"
+      ],
       "w": 1600,
       "h": 900
     },
@@ -1080,6 +1143,10 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2025年12月26日表情包/表情包2/贴贴_17.webp",
+      "characters": [
+        "淼渺",
+        "飒岚"
+      ],
       "w": 500,
       "h": 500
     },
@@ -1130,6 +1197,10 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_13.webp",
+      "characters": [
+        "淼渺",
+        "天涯"
+      ],
       "w": 900,
       "h": 900
     },
@@ -1140,6 +1211,10 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_14.webp",
+      "characters": [
+        "淼渺",
+        "天涯"
+      ],
       "w": 900,
       "h": 900
     },
@@ -1150,6 +1225,10 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_15.webp",
+      "characters": [
+        "淼渺",
+        "天涯"
+      ],
       "w": 900,
       "h": 900
     },
@@ -1160,6 +1239,10 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_16_1.webp",
+      "characters": [
+        "淼渺",
+        "天涯"
+      ],
       "w": 900,
       "h": 900
     },
@@ -1170,6 +1253,10 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[元素精灵]淼渺/表情包/2026年10月-与天涯联动/与天涯_16_2.webp",
+      "characters": [
+        "淼渺",
+        "天涯"
+      ],
       "w": 900,
       "h": 900
     },
@@ -1360,6 +1447,9 @@
       "kind": "表情包",
       "title": "",
       "source": "芸芸众生（人物档案）/[名为薛定谔的猫]墨白/ink_bai表情包/水水支付_04.webp",
+      "characters": [
+        "墨白"
+      ],
       "w": 700,
       "h": 700
     },
@@ -1440,6 +1530,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[狼灵]风汐铃月/1 (1).webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 900
     },
@@ -1450,6 +1541,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[狼灵]风汐铃月/1.webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 900
     },
@@ -1460,6 +1552,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[狼灵]风汐铃月/2.webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 900
     },
@@ -1470,6 +1563,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[狼灵]风汐铃月/立绘-铃月.webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 1000
     },
@@ -1480,6 +1574,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[狼灵]风汐铃月/立绘-黑沫.webp",
+      "watermark": "sample",
       "w": 1081,
       "h": 1600
     },
@@ -1490,6 +1585,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[神界使]白茶（光元素之神碎片）/1761003969616.webp",
+      "watermark": "sample",
       "w": 1500,
       "h": 1500
     },
@@ -1500,6 +1596,7 @@
       "kind": "插画",
       "title": "",
       "source": "芸芸众生（人物档案）/[联动]天涯/插画/天涯-撑伞.webp",
+      "watermark": "sample",
       "w": 1400,
       "h": 1867
     },
@@ -1510,6 +1607,7 @@
       "kind": "插画",
       "title": "",
       "source": "芸芸众生（人物档案）/[联动]天涯/插画/天涯-立绘.webp",
+      "watermark": "sample",
       "w": 1400,
       "h": 1867
     },
@@ -1520,6 +1618,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[联动]天涯/设定/天涯-白裙色稿.webp",
+      "watermark": "sample",
       "w": 1400,
       "h": 1867
     },
@@ -1530,6 +1629,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[联动]天涯/设定/天涯-设定图.webp",
+      "watermark": "sample",
       "w": 1600,
       "h": 647
     },
@@ -1540,6 +1640,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[色彩和棱镜]Aurelith PrismWing/Aurelinth.webp",
+      "watermark": "sample",
       "w": 1214,
       "h": 1600
     },
@@ -1550,6 +1651,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[血族]莉莉安娜•萨拉姆博（Liliana Salambo）/Image_1760020152511.webp",
+      "watermark": "sample",
       "w": 1500,
       "h": 1500
     },
@@ -1560,6 +1662,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[血族]莉莉安娜•萨拉姆博（Liliana Salambo）/Image_1764475308317.webp",
+      "watermark": "sample",
       "w": 1152,
       "h": 1600
     },
@@ -1570,6 +1673,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[血族]莉莉安娜•萨拉姆博（Liliana Salambo）/img_6441_fb83a1c4a5cb0324067426db8b5ac4e9.webp",
+      "watermark": "sample",
       "w": 1118,
       "h": 1600
     },
@@ -1580,6 +1684,7 @@
       "kind": "设定",
       "title": "",
       "source": "芸芸众生（人物档案）/[血族]莉莉安娜•萨拉姆博（Liliana Salambo）/img_6442_343e2421ff4999410e58a3ca1b1e8ea6.webp",
+      "watermark": "sample",
       "w": 1118,
       "h": 1600
     },
@@ -1654,12 +1759,15 @@
       "h": 1600
     },
     "讯息__131-魔药双人.webp": {
-      "character": "淼渺",
+      "character": "墨白",
       "ownership": "原创",
       "owner": "",
       "kind": "资料",
       "title": "",
       "source": "讯息（重要的和通信邮件记录）/和RT的合作提供的资料/131-魔药双人.webp",
+      "characters": [
+        "墨白"
+      ],
       "w": 1600,
       "h": 900
     },
