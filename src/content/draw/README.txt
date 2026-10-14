@@ -9,6 +9,14 @@
 - 还没想好归到哪一支种族的设定
 - 只想给朋友抽着玩、不想正式入档的角色
 
+## 一条规矩
+
+**一位设主，签筒里只放一位角色。** 签筒是按设主名分组的（`/draw/pool/` 上一位设主一个板块），
+所以同一个 `owner` 名下出现两位就会破规矩 —— 想再放第二位时，先问设主换谁上场。
+
+- 站主自己那一位是**淼渺**（她没写 `owner`，默认归到站主名下）
+- 设主名相同的两个角色会并到同一个板块里，注意别重名
+
 ## 怎么写
 
 一个 `.md` = 一个条目，文件名就是网址最后一段（英文/拼音小写，例如 `mystery-cat.md`）。
@@ -23,22 +31,26 @@ ownership: 原创               # 原创 / 联动（联动时填 owner）
 owner: 设主名                  # 联动必填
 ownerUrl: 'https://…'         # 设主主页，填了以后名字可点
 themeColor: '#AFFFFF'
-portrait: '../../assets/oc/characters/xxx.webp'   # 立绘；没有就留空
+portrait: '../../assets/oc/characters/xxx.webp'   # 立绘；没有就留空（卡片会显示 #NO INFO）
 aliases: ['别称']
 height: 145cm
 age: 不详
 pronouns: 女
-tags: ['标签']
 limited: false                 # 抽签限定；true 时卡片与签筒上挂金色「限定」角标
-canon: open                   # locked / open / draft
-order: 100                    # 越小越靠前
+canon: open                    # locked / open / draft
+draft: false                   # true = 先不放进签筒，也不生成条目页
+order: 100                     # 越小越靠前
 ---
 
 正文：抽到之后点「看 TA 的完整档案」会进到 /draw/entry/文件名/，这里写详细设定。
 ```
 
+> 角色**不打标签**（`tags` 已从 schema 里去掉了）：标签只用在设定（lore）与种族（races）上。
+
 - 抽签页写不下的字段（身高、年龄…）空着就不显示；一条都没有时会随机显示一句兜底文案
 - `kind: 设定` 的条目照样能进签筒，只是卡片上标「设定」，档案字段通常更少
 - 不想上线：`draft: true`
+- 画面里有多个人时（与别的角色合照、四格漫），在图池清单的 `characters` 里写上所有人 ——
+  这样一张图会同时出现在各人的页面下；写法见 `tools/build-gallery-pool.mjs` 的 `AUTHOR_NOTES`
 
 > 图片请交给站长压好再放进 `src/assets/`，别直接往这个目录塞大图。

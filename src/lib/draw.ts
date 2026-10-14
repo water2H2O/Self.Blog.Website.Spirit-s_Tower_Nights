@@ -90,5 +90,25 @@ export async function drawPool(): Promise<DrawItem[]> {
 
 	// 正式入档的排在前面，签筒目录里的跟在后面；各自按 order 排
 	const byOrder = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id);
-	return [...characters.sort(byOrder), ...extras.sort(byOrder)];
+	const pool = [...characters.sort(byOrder), ...extras.sort(byOrder)];
+
+	/**
+	 * 规矩：**一位设主，签筒里只放一位角色**。
+	 * 签筒按设主名分组（一位设主一个板块），所以同一个 owner 名下出现两位就破了规矩。
+	 * 构建时提醒一声 —— 不然只会表现为「某个板块里多了一张卡」，很难注意到。
+	 */
+	const byOwner = new Map<string, string[]>();
+	for (const item of pool) {
+		byOwner.set(item.owner, [...(byOwner.get(item.owner) ?? []), item.name]);
+	}
+	for (const [owner, names] of byOwner) {
+		if (names.length > 1) {
+			console.warn(
+				`[签筒] 设主「${owner}」名下放了 ${names.length} 位角色（${names.join('、')}）——` +
+					'规矩是一位设主只能放一个人，请换掉一位或改成 draft。',
+			);
+		}
+	}
+
+	return pool;
 }
