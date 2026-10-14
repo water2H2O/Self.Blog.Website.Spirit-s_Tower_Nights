@@ -85,10 +85,20 @@ const myItems = fs.existsSync(POOL)
 			.filter((file) => /\.webp$/i.test(file))
 			.sort()
 			.map((file) => ({ file, ...(galleryMeta[file] ?? {}) }))
-			// 宽松匹配：条目里的名字可能比图池里的更长（例如「莉莉安娜·萨拉姆博」）
+			/**
+			 * 一张图可能画着好几个人（淼渺×飒岚、淼渺×白茶…），
+			 * 所以先看 `characters` 数组里有没有我；没有这个字段才退回旧的单值匹配。
+			 * 宽松匹配保留：条目里的名字可能比图池里的更长（例如「莉莉安娜·萨拉姆博」）。
+			 */
 			.filter((item) => {
-				const name = item.character ?? '';
-				return name !== '' && (name === myName || name.includes(myName) || myName.includes(name));
+				const list: string[] = Array.isArray(item.characters) ? item.characters : [];
+				const hit = (name: string) =>
+					name !== '' && (name === myName || name.includes(myName) || myName.includes(name));
+				if (list.length > 0) {
+					const two = item as { characters?: string[] };
+					return (two.characters ?? []).some(hit);
+				}
+				return hit(item.character ?? '');
 			})
 	: [];
 

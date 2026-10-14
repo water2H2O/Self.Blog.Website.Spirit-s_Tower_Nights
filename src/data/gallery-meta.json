@@ -1,7 +1,7 @@
 {
   "note": "画廊标注文件。ownership: 原创|联动|其他（联动会在页面标出设主，填 owner）；kind 为分类；title 可选。重新运行 tools/build-gallery-pool.mjs 只补新文件与尺寸，不会覆盖这里手改的值。",
-  "updated": "2026-10-13",
-  "count": 173,
+  "updated": "2026-10-14",
+  "count": 168,
   "items": {
     "企划-Aurelith.webp": {
       "character": "Aurelith PrismWing",
@@ -84,11 +84,11 @@
       "h": 1600
     },
     "企划-苯胺.webp": {
-      "character": "苯胺",
-      "ownership": "企划",
-      "owner": "苯胺",
+      "character": "芳基胺",
+      "ownership": "联动",
+      "owner": "芳基胺",
       "kind": "设定",
-      "title": "",
+      "title": "苯胺（源图名）",
       "source": "【企划】水塔OC补完计划/苯胺.webp",
       "w": 914,
       "h": 1600
@@ -144,7 +144,7 @@
       "h": 1600
     },
     "水塔夜谈__世界观logo.webp": {
-      "character": "",
+      "character": "水塔夜谈",
       "ownership": "原创",
       "owner": "",
       "kind": "标志",
@@ -154,7 +154,7 @@
       "h": 1600
     },
     "回响之殿__No.1_Lum1n0u2-Late-Glow-Twin-Trails.webp": {
-      "character": "",
+      "character": "淼渺",
       "ownership": "原创",
       "owner": "",
       "kind": "曲绘",
@@ -164,7 +164,7 @@
       "h": 1600
     },
     "回响之殿__No.2_ああああ-アドベンチャー・パレード.webp": {
-      "character": "",
+      "character": "淼渺",
       "ownership": "原创",
       "owner": "",
       "kind": "曲绘",
@@ -174,7 +174,7 @@
       "h": 914
     },
     "回响之殿__No.3_Kyakii-OBLIVION.webp": {
-      "character": "",
+      "character": "风汐铃月",
       "ownership": "其他",
       "owner": "",
       "kind": "曲绘",
@@ -183,18 +183,8 @@
       "w": 1600,
       "h": 900
     },
-    "回响之殿__No.4_Halv-Snowflower.webp": {
-      "character": "",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "曲绘",
-      "title": "",
-      "source": "回响之殿（音乐作品）/[#4]Halv - Snowflower.webp",
-      "w": 1600,
-      "h": 914
-    },
     "回响之殿__No.5_CS4W-Subjugator.webp": {
-      "character": "",
+      "character": "淼渺",
       "ownership": "原创",
       "owner": "",
       "kind": "曲绘",
@@ -204,7 +194,7 @@
       "h": 900
     },
     "回响之殿__No.6_米虾Fomiki-Ventus-Murorum.webp": {
-      "character": "",
+      "character": "淼渺",
       "ownership": "原创",
       "owner": "",
       "kind": "曲绘",
@@ -214,7 +204,7 @@
       "h": 1131
     },
     "回响之殿__No.7_Dabbling-梅干茶漬け.webp": {
-      "character": "",
+      "character": "飒岚",
       "ownership": "原创",
       "owner": "",
       "kind": "曲绘",
@@ -223,20 +213,10 @@
       "w": 600,
       "h": 450
     },
-    "回响之殿__OC世界观音乐企划No.7_梅干茶漬け-Dabbling-封面.webp": {
-      "character": "",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "曲绘",
-      "title": "",
-      "source": "回响之殿（音乐作品）/pv/[OC世界观音乐企划#7]梅干茶漬け-Dabbling-封面.webp",
-      "w": 800,
-      "h": 600
-    },
     "平行时空__浅水的六岁生日合照图.webp": {
-      "character": "",
+      "character": "浅水",
       "ownership": "联动",
-      "owner": "",
+      "owner": "浅水",
       "kind": "同人",
       "title": "",
       "source": "平行时空（同人&群友创作）/浅水的六岁生日合照图.webp",
@@ -1673,18 +1653,8 @@
       "w": 853,
       "h": 1600
     },
-    "讯息__【参考文献】キャラクター画像.webp": {
-      "character": "",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "资料",
-      "title": "",
-      "source": "讯息（重要的和通信邮件记录）/和Halv先生的合作/【参考文献】キャラクター画像.webp",
-      "w": 1200,
-      "h": 1600
-    },
     "讯息__131-魔药双人.webp": {
-      "character": "",
+      "character": "淼渺",
       "ownership": "原创",
       "owner": "",
       "kind": "资料",
@@ -1694,7 +1664,7 @@
       "h": 900
     },
     "讯息__和RT的合作提供的资料-墨白1.webp": {
-      "character": "",
+      "character": "墨白",
       "ownership": "联动",
       "owner": "",
       "kind": "资料",
@@ -1704,7 +1674,7 @@
       "h": 863
     },
     "讯息__和RT的合作提供的资料-墨白2.webp": {
-      "character": "",
+      "character": "墨白",
       "ownership": "联动",
       "owner": "",
       "kind": "资料",
@@ -1712,26 +1682,6 @@
       "source": "讯息（重要的和通信邮件记录）/和RT的合作提供的资料/墨白2.webp",
       "w": 913,
       "h": 1600
-    },
-    "讯息__插画-Halv合作曲绘.webp": {
-      "character": "",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "资料",
-      "title": "",
-      "source": "讯息（重要的和通信邮件记录）/和RT的合作提供的资料/插画-Halv合作曲绘.webp",
-      "w": 1600,
-      "h": 914
-    },
-    "讯息__插画-魔法药剂师.webp": {
-      "character": "",
-      "ownership": "原创",
-      "owner": "",
-      "kind": "资料",
-      "title": "",
-      "source": "讯息（重要的和通信邮件记录）/和RT的合作提供的资料/插画-魔法药剂师.webp",
-      "w": 1600,
-      "h": 1131
     }
   }
 }

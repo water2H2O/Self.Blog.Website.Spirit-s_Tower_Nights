@@ -25,27 +25,44 @@ sys.stdout.reconfigure(encoding="utf-8")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META = os.path.join(ROOT, "src", "data", "gallery-meta.json")
 
-# 与 build-gallery-review-sheet.py 的 PROPOSALS 同一份口径
-# 值：(character, owner 或 None 表示不改)
+"""
+核对后的归属表（作者 2026-10-14 逐行确认）。
+值：(归属角色, 画面里的所有人, 设主或 None, 处理方式)
+处理方式：
+    "keep"   保留
+    "delete" 删掉（与另一张内容完全相同）
+"""
 ASSIGN = {
-    # 曲绘：本来就不挂角色，给一个来源名，避免被当成「未标注」
-    "回响之殿__No.1_Lum1n0u2-Late-Glow-Twin-Trails.webp": ("回响之殿", None),
-    "回响之殿__No.2_ああああ-アドベンチャー・パレード.webp": ("回响之殿", None),
-    "回响之殿__No.3_Kyakii-OBLIVION.webp": ("回响之殿", None),
-    "回响之殿__No.4_Halv-Snowflower.webp": ("回响之殿", None),
-    "回响之殿__No.5_CS4W-Subjugator.webp": ("回响之殿", None),
-    "回响之殿__No.6_米虾Fomiki-Ventus-Murorum.webp": ("回响之殿", None),
-    "回响之殿__No.7_Dabbling-梅干茶漬け.webp": ("回响之殿", None),
-    "回响之殿__OC世界观音乐企划No.7_梅干茶漬け-Dabbling-封面.webp": ("回响之殿", None),
-    "水塔夜谈__世界观logo.webp": ("水塔夜谈", None),
-    # 同人 / 合作资料：有明确归属
-    "平行时空__浅水的六岁生日合照图.webp": ("浅水", "浅水"),
-    "讯息__131-魔药双人.webp": ("淼渺", None),
-    "讯息__【参考文献】キャラクター画像.webp": ("淼渺", None),
-    "讯息__和RT的合作提供的资料-墨白1.webp": ("墨白", None),
-    "讯息__和RT的合作提供的资料-墨白2.webp": ("墨白", None),
-    "讯息__插画-Halv合作曲绘.webp": ("淼渺", None),
-    "讯息__插画-魔法药剂师.webp": ("淼渺", None),
+    # ---- 曲绘：作者逐张指认了画面里的人，所以挂到角色名下 ----
+    # No.1 / No.2 是淼渺 × 飒岚；No.6 是淼渺、白茶与祈
+    "回响之殿__No.1_Lum1n0u2-Late-Glow-Twin-Trails.webp": ("淼渺", ["淼渺", "飒岚"], None, "keep"),
+    "回响之殿__No.2_ああああ-アドベンチャー・パレード.webp": ("淼渺", ["淼渺", "飒岚"], None, "keep"),
+    "回响之殿__No.3_Kyakii-OBLIVION.webp": ("风汐铃月", ["风汐铃月"], None, "keep"),
+    "回响之殿__No.5_CS4W-Subjugator.webp": ("淼渺", ["淼渺"], None, "keep"),
+    "回响之殿__No.6_米虾Fomiki-Ventus-Murorum.webp": ("淼渺", ["淼渺", "白茶", "应祈"], None, "keep"),
+    "回响之殿__No.7_Dabbling-梅干茶漬け.webp": ("飒岚", ["飒岚"], None, "keep"),
+    # ---- 同人 / 资料 ----
+    "平行时空__浅水的六岁生日合照图.webp": ("浅水", ["浅水"], "浅水", "keep"),
+    "水塔夜谈__世界观logo.webp": ("水塔夜谈", [], None, "keep"),
+    "讯息__131-魔药双人.webp": ("淼渺", ["淼渺"], None, "keep"),
+    "讯息__和RT的合作提供的资料-墨白1.webp": ("墨白", ["墨白"], None, "keep"),
+    "讯息__和RT的合作提供的资料-墨白2.webp": ("墨白", ["墨白"], None, "keep"),
+}
+
+"""
+真正内容重复、只留一份的（按 SHA-256 核对过）。
+每条写清「删哪张、留哪张、为什么」——留的那张带角色归属，删的是同一文件的多余副本。
+"""
+DUPLICATES = {
+    # 与「淼渺__插画-Halv合作曲绘.webp」同一文件（三份，留带归属的那份）
+    "回响之殿__No.4_Halv-Snowflower.webp": "淼渺__插画-Halv合作曲绘.webp",
+    "讯息__插画-Halv合作曲绘.webp": "淼渺__插画-Halv合作曲绘.webp",
+    # 与「淼渺__实习药剂师.webp」同一文件
+    "讯息__【参考文献】キャラクター画像.webp": "淼渺__实习药剂师.webp",
+    # 与「淼渺__插画-魔法药剂师.webp」同一文件
+    "讯息__插画-魔法药剂师.webp": "淼渺__插画-魔法药剂师.webp",
+    # 作者口径：「8 可以删了」——同一画面的 PV 封面版（800×600），保留 600×450 的正图
+    "回响之殿__OC世界观音乐企划No.7_梅干茶漬け-Dabbling-封面.webp": "回响之殿__No.7_Dabbling-梅干茶漬け.webp",
 }
 
 
@@ -60,29 +77,55 @@ def main() -> int:
 
     changed = 0
     skipped = 0
+    deleted = 0
     missing = []
-    for name, (character, owner) in ASSIGN.items():
+    for name, (character, characters, owner, action) in ASSIGN.items():
         if name not in items:
             missing.append(name)
             continue
         item = items[name]
-        if (item.get("character") or "") == character and (owner is None or item.get("owner") == owner):
+
+        want = {
+            "character": character,
+            "characters": characters,
+        }
+        if owner:
+            want["owner"] = owner
+        if all(item.get(k) == v for k, v in want.items()):
             skipped += 1
             continue
-        old = item.get("character") or "（未标注）"
-        print(f"  {name[:52]:<52} {old} → {character}" + (f"（设主 {owner}）" if owner else ""))
+        print(
+            f"  {name[:52]:<52} {item.get('character') or '（未标注）'} → {character or '（不挂主角色）'}"
+            + (f"  画面: {'、'.join(characters)}" if characters else "")
+        )
         if not args.dry_run:
             item["character"] = character
+            item["characters"] = characters
             if owner:
                 item["owner"] = owner
         changed += 1
+
+    # 删掉内容重复的多余副本（只删文件与清单条目，不动保留的那张）
+    for name, keeper in DUPLICATES.items():
+        if name not in items:
+            continue
+        print(f"  删除 {name[:52]:<52} （与「{keeper}」是同一文件）")
+        deleted += 1
+        if not args.dry_run:
+            path = os.path.join(ROOT, "public", "gallery", name)
+            if os.path.exists(path):
+                os.remove(path)
+            del items[name]
 
     if missing:
         print("\n清单里找不到这些文件名（跳过）：")
         for name in missing:
             print(f"  · {name}")
 
-    print(f"\n{'将改' if args.dry_run else '已改'} {changed} 条，已是目标值 {skipped} 条")
+    print(
+        f"\n{'将改' if args.dry_run else '已改'} {changed} 条，"
+        f"{'将删' if args.dry_run else '已删'} {deleted} 张，已是目标值 {skipped} 条"
+    )
 
     if args.dry_run:
         print("（dry-run，没有写文件）")

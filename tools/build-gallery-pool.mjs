@@ -29,8 +29,9 @@ const dryRun = process.argv.includes('--dry-run');
 const CHARACTERS = {
 	淼渺: { ownership: '原创' },
 	飒岚: { ownership: '原创' },
-	戴薇娜: { ownership: '原创' },
 	蔚蓝: { ownership: '原创' },
+	// 目录名是她的真名「戴薇娜」，图池里统一归到角色「薇奥拉」名下
+	戴薇娜: { ownership: '原创', as: '薇奥拉' },
 	墨白: { ownership: '联动', owner: '' },
 	应祈: { ownership: '联动', owner: '' },
 	白茶: { ownership: '联动', owner: '' },
@@ -39,16 +40,22 @@ const CHARACTERS = {
 	'Aurelith PrismWing': { ownership: '联动', owner: '' },
 	// 朋友的角色，只进签筒与图池，不进世界观档案；角色名与设主同名
 	天涯: { ownership: '联动', owner: '天涯' },
+	// 源图名与角色名不一致的：芳基胺那张企划图的原名是「苯胺」。
+	// `as` 表示「文件名里叫这个，但条目要归到那个角色」，不写的话会冒出一个站上不存在的名字。
+	苯胺: { ownership: '联动', owner: '芳基胺', as: '芳基胺' },
 };
 
 /**
- * staging 目录名 → 图池里的角色名。
+ * staging 目录名 → 图池里的角色名与归属。
  *
- * `[醉酒的星辰]戴薇娜` 这个目录装的是**薇奥拉**（戴薇娜是她的真名），
- * 图池里另外 8 张就是这么归的。目录名不改，但条目要落到同一个角色上。
+ * `[醉酒的星辰]戴薇娜` 这个目录装的是**薇奥拉**（戴薇娜是她的真名）。
+ * 目录名不改，但两件事要分开：
+ *   · `as` 是**归属**：这 7 张图算在角色「薇奥拉」名下（图池里另外几张也是这么归的）
+ *   · 文件名前缀仍用目录名「戴薇娜__…」，与既有文件名保持一致（否则整批文件会改名、
+ *     自检会报一堆「磁盘上有、清单里没有」）
  */
 const CHARACTER_ALIASES = {
-	戴薇娜: '薇奥拉',
+	戴薇娜: { as: '薇奥拉', ownership: '原创' },
 };
 
 /** 非角色目录 → 分类 */
@@ -65,8 +72,25 @@ const CATEGORIES = {
 const PROJECT_DIR = '【企划】水塔OC补完计划';
 const PROJECT_OWNERSHIP = '企划';
 
-/** 明确不放进图池的文件（文件名片段） */
-const EXCLUDE = ['淼渺_女仆'];
+/**
+ * 明确不放进图池的文件（按路径片段匹配）。
+ *
+ * 第二组是 2026-10-14 核对出来的**内容重复副本**：同一个文件被放在多个来源目录里，
+ * 图池里会变成一张图挂好几个名字。每个都保留了带角色归属的那一份（写在注释里），
+ * 只排除其余副本 —— 不排除的话，每次重建图池它们都会再冒出来。
+ */
+const EXCLUDE = [
+	'淼渺_女仆',
+	// 与「[元素精灵]淼渺/插画-Halv合作曲绘.webp」同一文件
+	'回响之殿（音乐作品）/[#4]Halv - Snowflower.webp',
+	'讯息（重要的和通信邮件记录）/和RT的合作提供的资料/插画-Halv合作曲绘.webp',
+	// 与「[元素精灵]淼渺/实习药剂师.webp」同一文件
+	'讯息（重要的和通信邮件记录）/和Halv先生的合作/【参考文献】キャラクター画像.webp',
+	// 与「[元素精灵]淼渺/插画-魔法药剂师.webp」同一文件
+	'讯息（重要的和通信邮件记录）/和RT的合作提供的资料/插画-魔法药剂师.webp',
+	// 作者口径「8 可以删了」：同一画面的 PV 封面版，保留 [回响之殿]/[#7] 的正图
+	'回响之殿（音乐作品）/pv/[OC世界观音乐企划#7]梅干茶漬け-Dabbling-封面.webp',
+];
 
 /** 从路径推断角色与分类 */
 function classify(relPath) {
@@ -81,9 +105,10 @@ function classify(relPath) {
 		const name = base.split(/[_-]/)[0].trim();
 		const hit = Object.keys(CHARACTERS).find((key) => name.includes(key) || key.includes(name));
 		return {
-			character: hit ?? name,
+			// `as` 优先：源图名与角色名不一致时用条目里的名字（苯胺 → 芳基胺）
+			character: hit ? (CHARACTERS[hit].as ?? hit) : name,
 			kind: '设定',
-			ownership: PROJECT_OWNERSHIP,
+			ownership: hit ? (CHARACTERS[hit].ownership ?? PROJECT_OWNERSHIP) : PROJECT_OWNERSHIP,
 			owner: hit ? (CHARACTERS[hit].owner ?? '') : '',
 		};
 	}
@@ -95,15 +120,23 @@ function classify(relPath) {
 		const hit = Object.keys(CHARACTERS).find((key) => raw.includes(key));
 		// 目录名与角色名不同的（戴薇娜 → 薇奥拉），按别名表归到同一个角色
 		const alias = Object.entries(CHARACTER_ALIASES).find(([dir]) => raw.includes(dir));
-		const name = hit ?? (alias ? alias[1] : raw);
-		const info = hit ? CHARACTERS[hit] : alias ? CHARACTERS[alias[1]] ?? {} : { ownership: '其他' };
+		const info = hit ? CHARACTERS[hit] : alias ? alias[1] : { ownership: '其他' };
 		const rest = parts.slice(2).join('/');
 		let kind = '设定';
 		if (/表情包/.test(relPath)) kind = '表情包';
 		else if (/指针/.test(relPath)) kind = '指针';
 		else if (/插画|多人插|贴贴|赠送立绘/.test(rest)) kind = '插画';
 		else if (/曲绘|专辑封面/.test(rest)) kind = '曲绘';
-		return { character: name, kind, ownership: info.ownership ?? '其他', owner: info.owner ?? '' };
+		return {
+			// 归属名：优先 `as`（戴薇娜 → 薇奥拉），否则用命中的键
+			character: hit ? (CHARACTERS[hit].as ?? hit) : alias ? alias[1].as : raw,
+			// 文件名前缀：仍用命中的那个名字，保持既有文件名不变
+			// （用归属名当前缀会让「戴薇娜__img_3955」整批改名，自检会报一堆孤儿）
+			prefix: hit ?? (alias ? alias[0] : raw),
+			kind,
+			ownership: info.ownership ?? '其他',
+			owner: info.owner ?? '',
+		};
 	}
 
 	const cat = CATEGORIES[top] ?? { kind: '其他', ownership: '其他' };
@@ -161,12 +194,18 @@ let skipped = 0;
 if (!dryRun) fs.mkdirSync(OUT, { recursive: true });
 
 for (const rel of files) {
-	if (EXCLUDE.some((needle) => rel.includes(needle))) {
-		console.log(`  （跳过，已在排除名单里）${rel}`);
+	// path.relative 在 Windows 上给的是反斜杠，而排名单按仓库习惯写成正斜杠，
+	// 统一成正斜杠再比对（否则排除静默失效，副本会一批批重建出来）
+	const relPosix = rel.split(path.sep).join('/');
+	if (EXCLUDE.some((needle) => relPosix.includes(needle))) {
+		console.log(`  （跳过，已在排除名单里）${relPosix}`);
+		skipped += 1;
 		continue;
 	}
 	const info = classify(rel);
-	let name = makeName(rel, info.character);
+	// 文件名前缀用 info.prefix（没有就退回归属名）：戴薇娜目录的图归到薇奥拉名下，
+	// 但文件名仍叫「戴薇娜__…」，与既有文件保持一致
+	let name = makeName(rel, info.prefix ?? info.character);
 	const seen = used.get(name) ?? 0;
 	used.set(name, seen + 1);
 	if (seen > 0) name = `${name}-${seen + 1}`;
