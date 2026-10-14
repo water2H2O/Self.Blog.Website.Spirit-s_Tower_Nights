@@ -6,25 +6,23 @@ import { EMAIL } from '../../../consts';
 import { drawPool } from '../../../lib/draw';
 
 /**
- * 签筒：抽签用的全部条目，按设主 A-Z 排。
+ * 签筒：抽签用的全部条目，按设主名的**字母 / 字符顺序**排。
  *
  * 来源有两处（见 src/lib/draw.ts）：
  *   1. 正式入档、且标了 drawable 的角色 —— 点进去是 /worldview/characters/
  *   2. src/content/draw/ 目录里的条目 —— 只在这个区域出现，点进去是 /draw/entry/
  *
- * 拉丁字母的名字在前（Aurelith、Ink_Bai），中文名按拼音跟在后面
- * （白茶 bái → 风汐铃月 fēng → 淼渺 miǎo → 浅羽 qiǎn → 应祈 yìng）。
+ * 排序口径：拉丁字母的名字在前（Aurelith、Ink_Bai、water2H2O），
+ * 中文名按字符码位跟在后面（浅羽 → 天涯 → 应祈 → 白茶 → 芳基胺 → 风汐铃月 → 缪伊伊 → 檐下汐）。
+ * 以前用 localeCompare('zh') 按拼音排，中文会被打散插进拉丁名之间，改用默认比较。
  */
 
 const entries = await drawPool();
 
 const owners = [...new Set(entries.map((item) => item.owner))]
-	.sort((a, b) => {
-		const aLatin = /^[A-Za-z]/.test(a);
-		const bLatin = /^[A-Za-z]/.test(b);
-		if (aLatin !== bLatin) return aLatin ? -1 : 1;
-		return a.localeCompare(b, 'zh');
-	})
+	// 默认的字符串比较就是按字符码位：大写字母 < 小写字母 < 中日韩汉字。
+	// 注意别再传 'zh' 之类的 locale —— 那会按拼音重排，中文名会跑到前面去。
+	.sort()
 	.map((owner) => ({
 		owner,
 		url: entries.find((item) => item.owner === owner)?.ownerUrl ?? '',
@@ -37,7 +35,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 	<head>
 		<BaseHead
 			title="签筒"
-			description={`签筒里全部 ${entries.length} 位与他们的 ${owners.length} 位设主，按设主名 A-Z 排列。`}
+			description={`签筒里全部 ${entries.length} 位与他们的 ${owners.length} 位设主，按设主名排列。`}
 		/>
 		<style>
 			main {
@@ -202,7 +200,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 				>，把<strong>立绘与设定文件一起带上</strong>就行。
 			</p>
 			<p class="lead">
-				{entries.length} 位，来自 {owners.length} 位设主，按设主名 A-Z 排列。想摇一支玩，回<a
+				{entries.length} 位，来自 {owners.length} 位设主，按设主名排列。想摇一支玩，回<a
 					href="/draw/">抽签</a
 				>。
 			</p>

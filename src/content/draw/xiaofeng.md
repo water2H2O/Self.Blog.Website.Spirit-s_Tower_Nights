@@ -7,6 +7,9 @@ themeColor: '#E5C08A'
 pronouns: 女
 aliases: ['鸟姐姐']
 canon: draft
+# draft: true = 先不放进签筒（也不生成她的条目页）。
+# 作者口径：「这个先别放进来」—— 设主信息还没补，等补齐了把 draft 去掉即可。
+draft: true
 order: 50
 ---
 
