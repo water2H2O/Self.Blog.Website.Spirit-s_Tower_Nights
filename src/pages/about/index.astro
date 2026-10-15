@@ -1,6 +1,7 @@
 ---
 import AboutHeroImage from '../../assets/oc/about-hero.webp';
 import Layout from '../../layouts/BlogPost.astro';
+import { FRIENDS, FRIENDS_INLINE_COUNT } from '../../data/friends';
 import {
 	BILIBILI_NAME,
 	BILIBILI_URL,
@@ -73,6 +74,28 @@ const more = [
 		</li>
 	</ul>
 
+	<h2>友情链接</h2>
+	<p class="friends-lead">
+		朋友们的站点，以及我在参与的项目。完整名单在<a href="/about/friends/">友情链接</a>页。
+	</p>
+	<ul class="friends">
+		{
+			FRIENDS.slice(0, FRIENDS_INLINE_COUNT).map((item) => (
+				<li>
+					<a href={item.href} target="_blank" rel="noreferrer">
+						{item.who}
+					</a>
+					{item.note && <span class="desc">{item.note}</span>}
+				</li>
+			))
+		}
+		{FRIENDS.length > FRIENDS_INLINE_COUNT && (
+			<li class="more-link">
+				<a href="/about/friends/">还有 {FRIENDS.length - FRIENDS_INLINE_COUNT} 条 →</a>
+			</li>
+		)}
+	</ul>
+
 	<h2>还有这些</h2>
 	<ul class="more">
 		{
@@ -100,6 +123,35 @@ const more = [
 			display: block;
 			font-size: 0.86em;
 			color: rgb(var(--gray));
+		}
+		/* 友情链接：关于页里内嵌一块，完整名单另开一页 */
+		.friends-lead {
+			margin: 0 0 0.9em;
+			font-size: 0.9em;
+			color: rgb(var(--gray));
+		}
+		.friends-lead a {
+			color: var(--accent);
+		}
+		.friends {
+			list-style: none;
+			padding: 0;
+		}
+		.friends li {
+			margin-bottom: 0.75em;
+			line-height: 1.7;
+		}
+		.friends a {
+			font-weight: 700;
+		}
+		.friends .desc {
+			display: block;
+			font-size: 0.86em;
+			color: rgb(var(--gray));
+		}
+		.friends .more-link a {
+			font-weight: 400;
+			color: var(--accent);
 		}
 	</style>
 </Layout>

@@ -1,39 +1,15 @@
 ---
 import Layout from '../../layouts/BlogPost.astro';
+import { FRIENDS } from '../../data/friends';
 
 /**
- * 友情链接。
+ * 友情链接（完整页）。
  *
+ * 名单在 src/data/friends.ts —— 关于页里内嵌的那一块用的是同一份，
+ * 加人只改那一处。
  * 链接文字用完整网址，说明只写归属（不写「某某的设主」这类）。
- * 名单顺序：先朋友，再我在参与的项目，最后是站点本身用到的技术支持。
  */
-const friends = [
-	{
-		href: 'https://profile.aurelith.top/',
-		who: 'Aurelith',
-		note: '',
-	},
-	{
-		href: 'https://inkbai.fun/',
-		who: 'Ink_Bai（墨白）',
-		note: '',
-	},
-	{
-		href: 'https://tulpa.host/',
-		who: 'Huawatered 的小窝',
-		note: '可以去这个上面视奸她',
-	},
-	{
-		href: 'https://blophy.cn/',
-		who: '青柠工作室（Lime Studio）',
-		note: '非商业音乐游戏《Blophy 方菱律动》，我在其中担任主催与外交',
-	},
-	{
-		href: 'https://deepseek.com/harness/',
-		who: 'DeepSeek Harness',
-		note: '本站技术支持，就是吃的有点多',
-	},
-];
+const friends = FRIENDS;
 ---
 
 <Layout
@@ -62,7 +38,7 @@ const friends = [
 
 	<p class="note">
 		这些设主与伙伴们的 OC 都寄放在本站，可以在<a href="/draw/">卡池</a>里随机抽一位，
-		或者去<a href="/draw/pool/">签筒</a>按设主 A-Z 看全部。
+		或者去<a href="/draw/pool/">签筒</a>按设主名看全部。
 	</p>
 
 	<style>
