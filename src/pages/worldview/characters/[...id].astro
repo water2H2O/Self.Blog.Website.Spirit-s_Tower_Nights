@@ -322,8 +322,13 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 	}
 	.res-list {
 		display: grid;
-		/* 单张卡片时不要拉满整行，右边留一大片空白很难看 */
-		grid-template-columns: repeat(auto-fill, minmax(320px, 480px));
+		/*
+		 * 卡片宽度贴着内容走。
+		 * 之前上限放到 480px，而内容（92 缩略图 + 文字）只占 ~420px，
+		 * 于是内容偏在框的左侧、右边空一大片，看起来像「没落在框里」。
+		 * 收到 420px 之后，圆角框正好包住缩略图与文字，左右留白也对称。
+		 */
+		grid-template-columns: repeat(auto-fill, minmax(320px, 420px));
 		gap: 1em;
 		margin-top: 0.8em;
 	}
@@ -332,7 +337,12 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 		grid-template-columns: 92px minmax(0, 1fr);
 		align-items: center;
 		gap: 1em;
-		padding: 0.9em 1.1em;
+		/*
+		 * 左右两侧给足内缩：这个框是个圆角胶囊，内容只内缩 1.1em 时会紧贴左内缘，
+		 * 看上去像压在弧线上。加到 1.9em，缩略图与文字就完整落在圆角以内了。
+		 * 上下保持 0.9em —— 框高由内容决定，不需要额外留白。
+		 */
+		padding: 0.9em 1.9em;
 		border-radius: 14px;
 		text-decoration: none;
 		color: inherit;
