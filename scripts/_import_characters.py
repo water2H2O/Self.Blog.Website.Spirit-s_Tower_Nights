@@ -13,10 +13,10 @@
 import os
 import re
 
-SRC_ROOT = r"D:\vibe coding\.dsh-cache\oc\docs-text\characters"
-OUT_ROOT = r"D:\vibe coding\Spirits-Tower-Nights\src\content\characters"
+SRC_ROOT = r"D:\vibe_coding\.dsh-cache\oc\docs-text\characters"
+OUT_ROOT = r"D:\vibe_coding\Spirits-Tower-Nights\src\content\characters"
 # 中间产物放内容目录之外，否则会被 glob loader 当成正式条目加载
-TMP_ROOT = r"D:\vibe coding\.dsh-cache\oc\tmp\characters-import"
+TMP_ROOT = r"D:\vibe_coding\.dsh-cache\oc\tmp\characters-import"
 
 
 def read_lines(path):

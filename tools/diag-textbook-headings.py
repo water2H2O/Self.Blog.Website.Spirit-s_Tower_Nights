@@ -24,7 +24,7 @@ from pypdf import PdfReader
 
 WS = r"C:\Users\water2H2O\Desktop\oc相关\【原创&本家】水塔夜谈"
 SKEL = os.path.join(WS, "_build", "skeleton.docx")
-TMP = r"D:\vibe coding\.dsh-cache\t6exp"
+TMP = r"D:\vibe_coding\.dsh-cache\t6exp"
 NODE = r"C:\Users\water2H2O\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe"
 CLI = (
     r"C:\Users\water2H2O\AppData\Local\Programs\DeepSeek Harness\resources"

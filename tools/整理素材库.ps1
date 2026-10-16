@@ -8,14 +8,14 @@
 #     pwsh -File tools\整理素材库.ps1
 #
 # 做四件事：
-#   1. 删掉 _上传 里两份已经处理完的稿子（它们已归档到 D:\vibe coding\.dsh-cache\oc\上传归档\）
+#   1. 删掉 _上传 里两份已经处理完的稿子（它们已归档到 D:\vibe_coding\.dsh-cache\oc\上传归档\）
 #   2. 清掉 Word 没正常关闭留下的 ~$*.docx 锁文件
 #   3. 「地理」文件夹改名为「地域」（站上分类已统一成「地域」）
 #   4. 列出几个可选手工项
 
 $ErrorActionPreference = 'Continue'
 $ws = "C:\Users\water2H2O\Desktop\oc相关\【原创&本家】水塔夜谈"
-$archive = "D:\vibe coding\.dsh-cache\oc\上传归档"
+$archive = "D:\vibe_coding\.dsh-cache\oc\上传归档"
 
 if (-not (Test-Path -LiteralPath $ws)) {
 	Write-Host "找不到工作目录：$ws" -ForegroundColor Red

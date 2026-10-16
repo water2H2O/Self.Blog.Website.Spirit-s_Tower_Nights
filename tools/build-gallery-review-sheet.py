@@ -9,7 +9,7 @@
 
 用法：
     python tools/build-gallery-review-sheet.py
-输出：D:\\vibe coding\\.dsh-cache\\gallery-review\\review.png
+输出：D:\\vibe_coding\\.dsh-cache\\gallery-review\\review.png
 """
 import json
 import os
@@ -22,7 +22,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META = os.path.join(ROOT, "src", "data", "gallery-meta.json")
 GAL = os.path.join(ROOT, "public", "gallery")
-OUT_DIR = r"D:\vibe coding\.dsh-cache\gallery-review"
+OUT_DIR = r"D:\vibe_coding\.dsh-cache\gallery-review"
 OUT = os.path.join(OUT_DIR, "review.png")
 
 FONT_BD = r"C:\Windows\Fonts\msyhbd.ttc"
