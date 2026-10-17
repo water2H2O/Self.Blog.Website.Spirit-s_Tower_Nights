@@ -1,47 +1,66 @@
 ---
 /**
- * 「水塔夜谈」Minecraft 模组 · 简介页。
+ * 「水塔夜谈 · 元素之诗」（Elemental Verse）· 简介页。
  *
- * 完整策划案是一份长设计文档，留在本地、不上站 —— 这里只放能看的简介：
- * 定位、三条主系统、红线与当前进度。
+ * 模组本体在另一个仓库：https://github.com/water2H2O/Spirit-s_Tower_Nights-Elemental_Verse
+ * 完整策划案与路线图留在那个仓库的 docs/ 里，站上只放简介与当前进度。
  */
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
 import Header from '../../../components/Header.astro';
 import LicenseBadge from '../../../components/LicenseBadge.astro';
 
-/** 三条主系统按上线顺序压上来，这是整套设计的骨架 */
+const REPO = 'https://github.com/water2H2O/Spirit-s_Tower_Nights-Elemental_Verse';
+
+/** 三条主系统按登场顺序压上来，这是整套设计的骨架 */
 const systems = [
 	{
 		stage: '前期',
 		name: '衰变',
 		feel: '我存的东西在坏',
 		detail:
-			'元素采到手就开始「过期」：稳定元素 → 衍生元素 → 彻底惰性的死寂物质，不可逆。容器决定衰变快慢，于是仓储本身长成了基础设施。',
+			'元素采到手就开始「过期」：稳定元素 → 衍生元素 → 死寂物质，不可逆。容器决定衰变快慢，于是仓储本身长成了基础设施。',
 	},
 	{
 		stage: '中期',
 		name: '瘴素',
 		feel: '我住的地方在变脏',
+		detail: '衰变堆积出来的产物，按浓度分阶 —— 前面的阶段只是难受、不致命，越往后才越麻烦。可以压、可以净化，也可以谈。',
+	},
+	{
+		stage: '中期后半',
+		name: '晶裔',
+		feel: '有邻居搬来了',
 		detail:
-			'衰变堆积出来的产物，按浓度分三阶 —— 前两阶只是难受、不致命，第三阶才开始真的麻烦。可以压、可以净化，也可以谈。',
+			'瘴素浓度够高就会迁入。这里没有「怪物阵营」：它是一个沿晶脉缓慢扩张、会观察你、也会记住你怎么施法的邻居 —— 它不打你，但它会占你的地。',
 	},
 	{
 		stage: '后期',
-		name: '晶裔',
-		feel: '有东西来了',
-		detail:
-			'瘴素浓度够高就会迁入。这里没有「怪物阵营」：它是一个沿晶脉缓慢扩张、会观察你、也会记住你怎么施法的邻居 —— 能沟通，也能打，打的代价最大。',
+		name: '神器 · 征服',
+		feel: '我攒够了',
+		detail: '一路忍下来的那条线开始反打 —— 从「忍」翻成「赢」。',
 	},
 ];
+
+/** 施工进度：与模组仓库 docs/开发路线图.md 对齐 */
+const progress = [
+	{ mark: 'done', label: '阶段 01–02', text: '项目地基、衰变系统、特殊容器与仓储分级' },
+	{ mark: 'done', label: '阶段 03', text: '采集系统（矿物取地、火源、营火取烬、冰与木的储量、光暗判定、行为音效）' },
+	{ mark: 'doing', label: '阶段 04', text: '基础仪式台 + 申明板 + 第一版施法 —— 正在施工' },
+	{ mark: 'todo', label: '阶段 05–06', text: '申明板深化（形态 / 附属 / 时序 / 跑偏）、瘴素三阶与方碑' },
+	{ mark: 'todo', label: '阶段 07–09', text: '群系与生态、晶裔、神器四件' },
+	{ mark: 'todo', label: '阶段 10', text: '平衡、本地化、发布' },
+];
+
+const MARK = { done: '✅', doing: '🚧', todo: '⬜' } as const;
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead
-			title="水塔夜谈 · Minecraft 模组"
-			description="把《水塔夜谈》做成一个 Minecraft 模组：不做人物与剧情，只用物品、方块、生物群系和生态来写这个世界。"
+			title="水塔夜谈 · 元素之诗"
+			description="《水塔夜谈》的 Minecraft 模组 Elemental Verse：衰变、瘴素、晶裔 —— 你用的每一分魔法，都在让世界变脏。"
 		/>
 		<style>
 			main {
@@ -56,16 +75,43 @@ const systems = [
 				color: var(--glow);
 			}
 			h1 {
-				margin: 0.7em 0 0.3em;
+				margin: 0.7em 0 0.1em;
+			}
+			.en {
+				margin: 0 0 0.4em;
+				font-size: 0.9em;
+				letter-spacing: 0.08em;
+				color: var(--accent);
+			}
+			.spec {
+				margin: 0 0 2em;
+				padding: 0.9em 1.1em;
+				border-radius: 12px;
+				font-size: 0.82em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.spec b {
+				color: var(--glow);
+				font-weight: 600;
+			}
+			.spec a {
+				color: var(--accent);
 			}
 			.lead {
-				margin: 0 0 2em;
-				color: rgb(var(--gray));
+				margin: 0 0 1.4em;
 				font-size: 0.94em;
 				line-height: 1.95;
 			}
-			.lead strong {
+			.tagline {
+				margin: 1.6em 0;
+				padding: 0.2em 0 0.2em 1.1em;
+				border-left: 3px solid rgba(175, 255, 255, 45%);
 				color: var(--glow);
+				font-size: 0.98em;
+				line-height: 1.9;
 			}
 			h2 {
 				margin: 2.4em 0 0.8em;
@@ -86,7 +132,7 @@ const systems = [
 				border-bottom: 1px solid rgb(var(--gray-light));
 			}
 			th {
-				width: 5.5em;
+				width: 6.5em;
 				font-weight: 600;
 				color: rgb(var(--gray));
 				white-space: nowrap;
@@ -107,14 +153,6 @@ const systems = [
 			td .detail {
 				line-height: 1.85;
 			}
-			blockquote {
-				margin: 1.6em 0;
-				padding: 0.2em 0 0.2em 1.1em;
-				border-left: 3px solid rgba(175, 255, 255, 45%);
-				color: var(--glow);
-				font-size: 0.96em;
-				line-height: 1.9;
-			}
 			p {
 				line-height: 1.95;
 				font-size: 0.92em;
@@ -125,18 +163,57 @@ const systems = [
 				font-size: 0.9em;
 				color: rgb(var(--gray));
 			}
-			.status {
-				margin-top: 1.2em;
-				padding: 1em 1.2em;
-				border-radius: 12px;
+			/* 进度清单：勾 / 施工中 / 待做 */
+			.progress {
+				margin: 0.6em 0 0;
+				padding: 0;
+				list-style: none;
 				font-size: 0.88em;
-				line-height: 1.95;
-				color: rgb(var(--gray));
-				background: var(--surface);
-				border: 1px solid rgb(var(--gray-light));
 			}
-			.status strong {
+			.progress li {
+				display: grid;
+				grid-template-columns: 1.6em 7em 1fr;
+				gap: 0.4em;
+				padding: 0.55em 0;
+				line-height: 1.85;
+				border-bottom: 1px dashed rgb(var(--gray-light));
+			}
+			.progress .mark {
+				font-size: 0.95em;
+			}
+			.progress .label {
 				color: var(--glow);
+				white-space: nowrap;
+			}
+			.progress .text {
+				color: rgb(var(--gray));
+			}
+			.progress li[data-mark='doing'] .label {
+				color: #ffd68a;
+			}
+			.progress li[data-mark='todo'] {
+				opacity: 0.72;
+			}
+			.links {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.6em;
+				margin: 1.6em 0 0;
+			}
+			.links a {
+				padding: 0.42em 1.1em;
+				border-radius: 999px;
+				font-size: 0.84em;
+				text-decoration: none;
+				color: var(--accent);
+				background: rgba(175, 255, 255, 6%);
+				border: 1px solid rgba(175, 255, 255, 22%);
+				transition: 0.15s ease;
+			}
+			.links a:hover {
+				color: #06121a;
+				background: var(--glow);
+				border-color: var(--glow);
 			}
 		</style>
 	</head>
@@ -145,13 +222,26 @@ const systems = [
 		<main>
 			<a class="crumb" href="/project/">← 企划</a>
 
-			<h1>水塔夜谈 · Minecraft 模组</h1>
-			<p class="lead">
-				把《水塔夜谈》做成一个能玩的东西。<strong>不做人物、不做剧情</strong> —— 没有 NPC
-				阵营、没有对话、没有任务线，世界只由物品、方块、生物群系和生态构成。
-			</p>
+			<h1>水塔夜谈 · 元素之诗</h1>
+			<p class="en">ELEMENTAL VERSE</p>
 
-			<h2>三条主系统，按顺序压上来</h2>
+			<div class="spec">
+				<b>Minecraft</b> 1.21.1 · <b>NeoForge</b> 21.1.262 · <b>Java</b> 21<br />
+				<b>模组 ID</b> elemental_verse · <b>版本</b> 0.1.0 · <b>状态</b> 开发中（阶段 04 施工中）<br />
+				<b>源码</b> <a href={REPO} target="_blank" rel="noreferrer">GitHub · Spirit-s_Tower_Nights-Elemental_Verse</a>
+			</div>
+
+			<p class="lead">
+				土会干成砂，水会凝成冰，光会在你睡着的时候悄悄熄灭。不是被谁偷走 ——
+				是它们本来就留不住。
+			</p>
+			<p class="lead">
+				元素会衰变，而且<strong>不可逆</strong>：稳定元素 → 衍生元素 → 死寂物质。亮 → 暗 → 灰。
+				于是你第一次开始算计：这一箱该现在用掉，还是塞进密封仓里再放几天。
+			</p>
+			<p class="tagline">你的箱子里，正安静地发生一场灾难。<br />你的节奏，就是你的仓库。</p>
+
+			<h2>四条线，按顺序压上来</h2>
 			<table>
 				<tbody>
 					{
@@ -169,33 +259,38 @@ const systems = [
 				</tbody>
 			</table>
 			<p>
-				三者是一条因果链，不是一个数值条：<strong>衰变产物堆积 → 滋生瘴素 → 瘴素浓度够高 → 晶裔迁入</strong>。
+				它们是一条因果链，不是一个数值条：<strong>衰变产物堆积 → 滋生瘴素 → 瘴素浓度够高 → 晶裔迁入</strong>。
+				而施法会<strong>加速</strong>这条链 —— 每次施法都在当地留下一点「衰变余热」，
+				于是净化从支线变成了主线的一部分：玩家会亲眼看着自己的家慢慢变成污染源，起因只是「多搓两下应该没事」。
 			</p>
 
-			<blockquote>
-				你用的每一分魔法，都在让世界变脏；而脏到一定程度，世界就不再属于你了。
-			</blockquote>
-
+			<h2>做到哪了</h2>
+			<ul class="progress">
+				{
+					progress.map((item) => (
+						<li data-mark={item.mark}>
+							<span class="mark">{MARK[item.mark]}</span>
+							<span class="label">{item.label}</span>
+							<span class="text">{item.text}</span>
+						</li>
+					))
+				}
+			</ul>
 			<p>
-				所以施法会<strong>加速</strong>这条链 —— 每次施法都在当地留下一点「衰变余热」，
-				让那一带衰变得更快，瘴素更容易在那里扎根。于是净化从支线变成了主线的一部分，
-				玩家会亲眼看着自己的家慢慢变成污染源，起因只是「多搓两下应该没事」。
+				现在已经能实际玩到的是<strong>仓储与节奏</strong>：元素放久了会坏，密封仓能让它坏得慢一点，
+				耐久条的位置直接显示衰变进度。施法、污染与晶裔还在路上。
 			</p>
 
 			<h2>不做什么</h2>
 			<ul>
-				<li>人物、势力、任务与对话树（说好了这模组只讲环境）</li>
-				<li>七层分级合成表 —— 升级靠拿到知识，不靠堆材料</li>
-				<li>「入侵式」的感染机制：前两阶污染只让人难受，不致命</li>
-				<li>精灵维度与七大神器，都留作远期，不在这份策划里</li>
+				<li>人物、势力、任务与对话树 —— 模组只讲环境</li>
+				<li>七层分级合成表：升级靠拿到知识，不靠堆材料</li>
+				<li>「入侵式」的感染机制：污染早期的阶段只让人难受，不致命</li>
 			</ul>
 
-			<h2>进度</h2>
-			<div class="status">
-				<strong>策划中。</strong>
-				第一步只做「元素物品 + 衰变 + 容器 + 仪式台 + 申明板」，这一版做完就能玩，
-				核心乐趣是<strong>仓储与节奏</strong>。加载器与 MC
-				版本还没定（Forge / NeoForge / Fabric 三选一），要等系统跑通再定。
+			<div class="links">
+				<a href={REPO} target="_blank" rel="noreferrer">源码仓库</a>
+				<a href="/project/">← 回到企划</a>
 			</div>
 
 			<LicenseBadge kind="cc-by" />
