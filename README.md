@@ -522,6 +522,8 @@ tools/
 | 配置 | 原因 |
 | --- | --- |
 | `pnpm-workspace.yaml` 的 `nodeLinker: hoisted` | 沙箱会把符号链接/junction 呈现成普通目录，pnpm 默认 isolated 布局会导致依赖解析失败 |
+| `.npmrc` 的 `node-linker=hoisted` | Cloudflare 构建用的 **pnpm 9 不读** `pnpm-workspace.yaml` 里的 `nodeLinker`，只认 `.npmrc`；两处都写才能让本地与 CI 用同一种扁平布局 |
+| `pnpm-workspace.yaml` 的 `packages` 字段 | pnpm 9 只要看到这个文件就要求它，缺了直接中止构建（详见「部署」一节的 pnpm 版本坑） |
 | `astro.config.mjs` 的 `vite.resolve.preserveSymlinks: true` | Vite 在 Windows 上执行 `net use` 挑选 realpath 实现，沙箱禁止带管道的子进程（spawn EPERM），异常被静默吞掉后所有依赖解析返回空 → 纯 CommonJS 包报 `require is not defined` |
 | `ASTRO_TELEMETRY_DISABLED=1`（见 `dev.cmd`） | Astro 遥测要写 `%APPDATA%\astro`，沙箱外不可写 |
 
@@ -672,6 +674,68 @@ pnpm run github:build       # 抓完再跑一次构建
 - 截图分享（og:image）与 sitemap 都用 `site` 拼绝对地址，换域名只改那一处
 - 主机在境外，**不需要备案**；代价是用不了大陆 CDN
 - 单文件上限 25 MB：图片与 MP3 都没问题，**PV 视频别放进来**，继续走 B 站外链
+
+### 构建环境的 pnpm 版本：本地 11，Cloudflare 9
+
+**这是建站以来唯一一次「推上去了但站点不动」的故障，2026-10-17 记在这里。**
+
+本地（DSH 内置）是 pnpm **11.7.0**，Cloudflare 构建镜像默认是 pnpm **9.10.0**。
+构建日志里那行 `Detected the following tools from environment: nodejs@22.12.0, pnpm@9.10.0`
+就是它 —— nodejs 那半截来自 `.node-version`，pnpm 那半截是镜像的默认值。
+
+差异点：**pnpm 9 起，只要仓库里存在 `pnpm-workspace.yaml`，就要求里面有 `packages` 字段**。
+没有的话在「安装依赖」这一步直接中止，整个构建 16 秒结束，站点保持旧版本：
+
+```
+Detected the following tools from environment: nodejs@22.12.0, pnpm@9.10.0
+Installing project dependencies: pnpm install --frozen-lockfile
+ERROR  packages field missing or empty
+Failed: error occurred while installing tools or dependencies
+```
+
+pnpm 11 不要求这个字段，所以**本地永远构建正常、只有线上会挂** ——
+「本地构建通过」不能当作「CI 也会通过」的证据。
+
+故障时的表象（很容易误判成「Cloudflare 没触发部署」）：
+
+- GitHub 上提交都在，`main` 是最新的
+- 仓库页出现一条失败检查：`Workers Builds: <项目名>`
+- 线上内容停在旧构建：sitemap 页数比本地少、新文章 404
+
+**怎么确认线上到底跑没跑过**：比线上与本地的页面清单。sitemap 是构建产物，
+不受 CDN 缓存影响，差集就是没上线的页面：
+
+```powershell
+node -e "const fs=require('fs');const locs=s=>s.split('<loc>').slice(1).map(x=>x.split('</loc>')[0]);(async()=>{const L=locs(await (await fetch('https://water2h2o.com/sitemap-0.xml')).text());const M=locs(fs.readFileSync('dist/sitemap-0.xml','utf8'));console.log('线上 '+L.length+' 页 / 本地 '+M.length+' 页');M.filter(u=>!new Set(L).has(u)).forEach(u=>console.log('  未上线: '+u))})()"
+```
+
+**改 pnpm 相关配置（`pnpm-workspace.yaml` / `.npmrc` / 锁文件）时必须按 pnpm 9 校验一遍**，
+别只信本地 pnpm 11。不必装依赖、也不写 `node_modules`，拿一个只含
+`package.json` / `pnpm-lock.yaml` / `pnpm-workspace.yaml` / `.npmrc` 的临时目录即可：
+
+```powershell
+node <pnpm9>/bin/pnpm.cjs install --frozen-lockfile --lockfile-only
+```
+
+兜底手段：如果哪天 pnpm 9 又因为别的设置不认，可以在 `package.json` 里加
+`"packageManager": "pnpm@<版本>"` —— Cloudflare 的版本检测读的就是这个字段
+（和 `.node-version` 同一套机制），会据此装指定版本的 pnpm。
+
+## 每次改完的提交流程（DSH 会自动走一遍）
+
+这个仓库是 **push 即部署**，没提交等于没改。改动落地后不要停在「本地通过」，顺序固定：
+
+1. **自检**：`dev.cmd build` 退出码 0；改了内容类文件再跑一遍 `node tools/site-health.mjs`
+2. **看工作区**：`git status --short` 确认没有夹带临时文件、探测文件、`dist/`、`assets-staging/`
+3. **提交**：`git add -A` → 提交信息用中文写清「改了什么 + 为什么」，**一条提交只说一件事**；
+   历史上大多是直接的中文动宾句（如「修正脚本与工具里工作区路径写法…」），需要时加
+   `fix:` / `feat:` / `chore:` 前缀
+4. **先同步再推**：`git pull --rebase` → `git push`
+   （远端常被每日热力图那条自动提交抢先，rebase 后再推）
+5. **验证上线**：等 1~2 分钟，用上面那条命令比线上 sitemap 与本地构建的页面数，新页面应能 200；
+   构建失败就去 Cloudflare 项目页看日志，**先怀疑 pnpm 版本差异**
+
+> 收尾时工作区必须是干净的：`git status` 只剩 nothing to commit 才算这次改动完成。
 
 ## 许可
 
