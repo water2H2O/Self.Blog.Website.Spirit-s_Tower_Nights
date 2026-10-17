@@ -1,3 +1,10 @@
+# pnpm 9 起，只要这个文件存在就要求有 packages 字段；缺了会直接报
+# "packages field missing or empty" 并在安装阶段中止 —— Cloudflare 构建
+# 镜像默认用的就是 pnpm 9，所以这一条不能省。单包仓库指到根目录即可，
+# pnpm 11 同样接受这种写法。
+packages:
+  - '.'
+
 # pnpm 11 在此项目使用的配置（pnpm 专属设置已从 .npmrc 迁移到这里）。
 #
 # nodeLinker: hoisted —— pnpm 默认的 isolated 布局依赖符号链接/junction，
