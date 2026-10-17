@@ -1,0 +1,205 @@
+---
+/**
+ * 「水塔夜谈」Minecraft 模组 · 简介页。
+ *
+ * 完整策划案是一份长设计文档，留在本地、不上站 —— 这里只放能看的简介：
+ * 定位、三条主系统、红线与当前进度。
+ */
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import Header from '../../../components/Header.astro';
+import LicenseBadge from '../../../components/LicenseBadge.astro';
+
+/** 三条主系统按上线顺序压上来，这是整套设计的骨架 */
+const systems = [
+	{
+		stage: '前期',
+		name: '衰变',
+		feel: '我存的东西在坏',
+		detail:
+			'元素采到手就开始「过期」：稳定元素 → 衍生元素 → 彻底惰性的死寂物质，不可逆。容器决定衰变快慢，于是仓储本身长成了基础设施。',
+	},
+	{
+		stage: '中期',
+		name: '瘴素',
+		feel: '我住的地方在变脏',
+		detail:
+			'衰变堆积出来的产物，按浓度分三阶 —— 前两阶只是难受、不致命，第三阶才开始真的麻烦。可以压、可以净化，也可以谈。',
+	},
+	{
+		stage: '后期',
+		name: '晶裔',
+		feel: '有东西来了',
+		detail:
+			'瘴素浓度够高就会迁入。这里没有「怪物阵营」：它是一个沿晶脉缓慢扩张、会观察你、也会记住你怎么施法的邻居 —— 能沟通，也能打，打的代价最大。',
+	},
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="水塔夜谈 · Minecraft 模组"
+			description="把《水塔夜谈》做成一个 Minecraft 模组：不做人物与剧情，只用物品、方块、生物群系和生态来写这个世界。"
+		/>
+		<style>
+			main {
+				width: 780px;
+			}
+			.crumb {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+				text-decoration: none;
+			}
+			.crumb:hover {
+				color: var(--glow);
+			}
+			h1 {
+				margin: 0.7em 0 0.3em;
+			}
+			.lead {
+				margin: 0 0 2em;
+				color: rgb(var(--gray));
+				font-size: 0.94em;
+				line-height: 1.95;
+			}
+			.lead strong {
+				color: var(--glow);
+			}
+			h2 {
+				margin: 2.4em 0 0.8em;
+				font-size: 1.12em;
+				color: var(--glow);
+				letter-spacing: 0.02em;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 0.88em;
+			}
+			th,
+			td {
+				padding: 0.7em 0.6em;
+				text-align: left;
+				vertical-align: top;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			th {
+				width: 5.5em;
+				font-weight: 600;
+				color: rgb(var(--gray));
+				white-space: nowrap;
+			}
+			td .name {
+				display: block;
+				margin-bottom: 0.15em;
+				font-size: 1.1em;
+				font-weight: 600;
+				color: var(--accent);
+			}
+			td .feel {
+				display: block;
+				margin-bottom: 0.45em;
+				font-size: 0.92em;
+				color: rgb(var(--gray));
+			}
+			td .detail {
+				line-height: 1.85;
+			}
+			blockquote {
+				margin: 1.6em 0;
+				padding: 0.2em 0 0.2em 1.1em;
+				border-left: 3px solid rgba(175, 255, 255, 45%);
+				color: var(--glow);
+				font-size: 0.96em;
+				line-height: 1.9;
+			}
+			p {
+				line-height: 1.95;
+				font-size: 0.92em;
+			}
+			ul {
+				padding-left: 1.2em;
+				line-height: 2;
+				font-size: 0.9em;
+				color: rgb(var(--gray));
+			}
+			.status {
+				margin-top: 1.2em;
+				padding: 1em 1.2em;
+				border-radius: 12px;
+				font-size: 0.88em;
+				line-height: 1.95;
+				color: rgb(var(--gray));
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.status strong {
+				color: var(--glow);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<a class="crumb" href="/project/">← 企划</a>
+
+			<h1>水塔夜谈 · Minecraft 模组</h1>
+			<p class="lead">
+				把《水塔夜谈》做成一个能玩的东西。<strong>不做人物、不做剧情</strong> —— 没有 NPC
+				阵营、没有对话、没有任务线，世界只由物品、方块、生物群系和生态构成。
+			</p>
+
+			<h2>三条主系统，按顺序压上来</h2>
+			<table>
+				<tbody>
+					{
+						systems.map((item) => (
+							<tr>
+								<th>{item.stage}</th>
+								<td>
+									<span class="name">{item.name}</span>
+									<span class="feel">{item.feel}</span>
+									<span class="detail">{item.detail}</span>
+								</td>
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+			<p>
+				三者是一条因果链，不是一个数值条：<strong>衰变产物堆积 → 滋生瘴素 → 瘴素浓度够高 → 晶裔迁入</strong>。
+			</p>
+
+			<blockquote>
+				你用的每一分魔法，都在让世界变脏；而脏到一定程度，世界就不再属于你了。
+			</blockquote>
+
+			<p>
+				所以施法会<strong>加速</strong>这条链 —— 每次施法都在当地留下一点「衰变余热」，
+				让那一带衰变得更快，瘴素更容易在那里扎根。于是净化从支线变成了主线的一部分，
+				玩家会亲眼看着自己的家慢慢变成污染源，起因只是「多搓两下应该没事」。
+			</p>
+
+			<h2>不做什么</h2>
+			<ul>
+				<li>人物、势力、任务与对话树（说好了这模组只讲环境）</li>
+				<li>七层分级合成表 —— 升级靠拿到知识，不靠堆材料</li>
+				<li>「入侵式」的感染机制：前两阶污染只让人难受，不致命</li>
+				<li>精灵维度与七大神器，都留作远期，不在这份策划里</li>
+			</ul>
+
+			<h2>进度</h2>
+			<div class="status">
+				<strong>策划中。</strong>
+				第一步只做「元素物品 + 衰变 + 容器 + 仪式台 + 申明板」，这一版做完就能玩，
+				核心乐趣是<strong>仓储与节奏</strong>。加载器与 MC
+				版本还没定（Forge / NeoForge / Fabric 三选一），要等系统跑通再定。
+			</div>
+
+			<LicenseBadge kind="cc-by" />
+		</main>
+		<Footer />
+	</body>
+</html>
