@@ -11,28 +11,34 @@ import {
 } from '../lib/lore';
 import { HANDBOOK_BASE, HANDBOOK_VOLUMES } from '../lib/handbook';
 
-/** 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下 */
+/**
+ * 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下。
+ *
+ * 结尾一律带 `/` —— 站上的页面都是「目录 + index.html」，
+ * 少一个斜杠就会先吃一次 307 跳转（`/worldview` → `/worldview/`），
+ * 每次点导航都多一个来回。`isActive` 会把斜杠去掉再比，所以照样能高亮。
+ */
 const mainLinks = [
 	{ href: '/', label: '首页' },
-	{ href: WORLDVIEW_BASE, label: '世界观' },
-	{ href: '/draw', label: '抽签' },
-	{ href: '/project', label: '企划' },
-	{ href: '/blog', label: '随笔' },
-	{ href: '/about', label: '关于' },
+	{ href: `${WORLDVIEW_BASE}/`, label: '世界观' },
+	{ href: '/draw/', label: '抽签' },
+	{ href: '/project/', label: '企划' },
+	{ href: '/blog/', label: '随笔' },
+	{ href: '/about/', label: '关于' },
 ];
 
 /**
  * 世界观企划内部的二级导航，只在 /worldview/ 下显示。
- * 侧栏会展开当前所在那一栏的条目（见下面的 subItems）。
+ * 侧栏会展开当前所在那一栏的条目（见下面的 subItems）。同样带尾斜杠。
  */
 const worldviewLinks = [
-	{ href: `${WORLDVIEW_BASE}`, label: '总览' },
-	{ href: `${WORLDVIEW_BASE}/races`, label: '种族' },
-	{ href: `${WORLDVIEW_BASE}/characters`, label: '角色' },
-	{ href: `${WORLDVIEW_BASE}/lore`, label: '设定' },
-	{ href: `${WORLDVIEW_BASE}/stories`, label: '故事' },
-	{ href: `${WORLDVIEW_BASE}/gallery`, label: '画廊' },
-	{ href: `${WORLDVIEW_BASE}/music`, label: '回响之殿' },
+	{ href: `${WORLDVIEW_BASE}/`, label: '总览' },
+	{ href: `${WORLDVIEW_BASE}/races/`, label: '种族' },
+	{ href: `${WORLDVIEW_BASE}/characters/`, label: '角色' },
+	{ href: `${WORLDVIEW_BASE}/lore/`, label: '设定' },
+	{ href: `${WORLDVIEW_BASE}/stories/`, label: '故事' },
+	{ href: `${WORLDVIEW_BASE}/gallery/`, label: '画廊' },
+	{ href: `${WORLDVIEW_BASE}/music/`, label: '回响之殿' },
 ];
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
@@ -140,7 +146,7 @@ if (inWorldview) {
 			);
 			subItems = HANDBOOK_VOLUMES.flatMap((volume) => [
 				{
-					href: HANDBOOK_BASE,
+					href: `${HANDBOOK_BASE}/`,
 					label: volume.no > 0 && volume.no <= 5
 						? `第${'一二三四五'[volume.no - 1]}卷　${volume.title}`
 						: volume.title,
@@ -181,7 +187,11 @@ if (inWorldview) {
 		<div class="internal-links">
 			{
 				mainLinks.map((link) => (
-					<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
+					<a
+						href={link.href}
+						class:list={[{ active: isActive(link.href) }]}
+						aria-current={isActive(link.href) ? 'page' : null}
+					>
 						{link.label}
 					</a>
 				))
@@ -222,7 +232,11 @@ if (inWorldview) {
 				<ul>
 					{worldviewLinks.map((link) => (
 						<li>
-							<a href={link.href} class:list={[{ active: isActive(link.href) }]}>
+							<a
+								href={link.href}
+								class:list={[{ active: isActive(link.href) }]}
+								aria-current={isActive(link.href) ? 'true' : null}
+							>
 								{link.label}
 							</a>
 							{/* 二级目录：只在当前这一栏下展开 */}

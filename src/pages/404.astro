@@ -1,0 +1,100 @@
+---
+/**
+ * 404 页。
+ *
+ * 为什么必须有：`wrangler.jsonc` 里写的是 `not_found_handling: "404-page"`，
+ * Cloudflare Workers 会把 `dist/404.html` 当作兜底 —— 没有这个文件，访客输错
+ * 地址看到的是一张没有样式、也没有导航的默认错误页。
+ *
+ * Astro 只有在 `src/pages/404.astro` 存在时才会产出 `dist/404.html`，
+ * 所以这个文件本身就是那个开关，别删。
+ */
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+
+/** 给几条最可能想去的路，省得退回去再点一遍 */
+const exits = [
+	{ href: '/', label: '首页' },
+	{ href: '/worldview/', label: '世界观' },
+	{ href: '/worldview/stories/', label: '故事' },
+	{ href: '/worldview/gallery/', label: '画廊' },
+	{ href: '/draw/', label: '抽签' },
+	{ href: '/blog/', label: '随笔' },
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title="这条路通向塔外 · 404" description="页面不存在 —— 地址可能写错了，也可能是我把它挪走了。" />
+		<meta name="robots" content="noindex" />
+		<style>
+			main {
+				width: 640px;
+			}
+			.wrap {
+				padding: 3.5em 0 1em;
+				text-align: center;
+			}
+			.code {
+				margin: 0;
+				font-size: 4.2em;
+				font-weight: 700;
+				line-height: 1;
+				letter-spacing: 0.08em;
+				color: var(--glow);
+				text-shadow: var(--glow-shadow);
+				opacity: 0.9;
+			}
+			h1 {
+				margin: 0.6em 0 0.5em;
+				font-size: 1.35em;
+			}
+			p {
+				line-height: 1.95;
+				color: rgb(var(--gray));
+				font-size: 0.92em;
+			}
+			.exits {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.6em;
+				margin: 2em 0 0;
+			}
+			.exits a {
+				padding: 0.42em 1.1em;
+				border-radius: 999px;
+				font-size: 0.86em;
+				text-decoration: none;
+				color: var(--accent);
+				background: rgba(175, 255, 255, 6%);
+				border: 1px solid rgba(175, 255, 255, 22%);
+				transition: 0.15s ease;
+			}
+			.exits a:hover {
+				color: #06121a;
+				background: var(--glow);
+				border-color: var(--glow);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="wrap">
+				<p class="code">404</p>
+				<h1>这条路通向塔外</h1>
+				<p>
+					你要找的页面不在这座水塔里 —— 可能是地址写错了，也可能是我把它挪走了。<br />
+					下面是几扇还开着的门。
+				</p>
+				<div class="exits">
+					{exits.map((item) => <a href={item.href}>{item.label}</a>)}
+				</div>
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>

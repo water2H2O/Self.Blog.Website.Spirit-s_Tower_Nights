@@ -50,6 +50,15 @@ function refExists(href) {
 	return false;
 }
 
+/** 站内引用 → 那一页真正的 html 文件（目录则取 index.html） */
+function targetFile(href) {
+	const target = resolveRef(href);
+	if (!target) return null;
+	if (fs.existsSync(target) && fs.statSync(target).isFile()) return target;
+	const indexed = path.join(target, 'index.html');
+	return fs.existsSync(indexed) ? indexed : null;
+}
+
 // ---------------------------------------------------------------- 1) 死链
 const deadLinks = new Map();
 const missingAssets = new Map();
@@ -65,7 +74,62 @@ for (const page of pages) {
 	}
 }
 
-// ---------------------------------------------------------------- 2) 内容缺口
+// ------------------------------------------- 2) 页面结构：404 / 标题 / 锚点 / canonical
+const structural = [];
+
+/** dist/404.html 是 wrangler.jsonc 里 not_found_handling 的兜底页，缺了访客只会看到默认错误页 */
+if (!fs.existsSync(path.join(DIST, '404.html'))) {
+	structural.push('缺 dist/404.html —— wrangler.jsonc 的 not_found_handling 会退化成默认错误页');
+}
+
+/** 读一页并收齐它的 id（查锚点用）；同一页只读一次 */
+const pageCache = new Map();
+const readPage = (file) => {
+	if (!pageCache.has(file)) {
+		const html = fs.readFileSync(file, 'utf8');
+		pageCache.set(file, {
+			html,
+			ids: new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1])),
+		});
+	}
+	return pageCache.get(file);
+};
+
+const pageUrl = (file) => '/' + rel(file).replace(/^dist\//, '').replace(/index\.html$/, '');
+const seenTitles = new Map();
+
+for (const page of pages) {
+	// 404.html 是兜底页，地址与 canonical 都不是「一页」的概念，跳过
+	if (rel(page).endsWith('404.html')) continue;
+
+	const { html } = readPage(page);
+	const url = pageUrl(page);
+	const where = url.replace(/\/$/, '') || '/';
+
+	const title = (html.match(/<title>([\s\S]*?)<\/title>/) ?? [])[1]?.trim() ?? '';
+	if (!seenTitles.has(title)) seenTitles.set(title, []);
+	seenTitles.get(title).push(where);
+
+	const canonical = (html.match(/<link rel="canonical" href="([^"]+)"/) ?? [])[1];
+	const expected = `https://water2h2o.com${where === '/' ? '/' : `${where}/`}`;
+	if (!canonical) structural.push(`${where}: 没有 canonical`);
+	else if (canonical !== expected) structural.push(`${where}: canonical 指向 ${canonical}，应为 ${expected}`);
+
+	// 页内锚点：href="/x/#y" 里的 y 必须在目标页里真的存在（死链由上一段负责）
+	for (const m of html.matchAll(/href="(\/[^"#]*)#([^"]+)"/g)) {
+		const [, href, anchor] = m;
+		const file = targetFile(href);
+		if (!file) continue;
+		if (!readPage(file).ids.has(anchor)) structural.push(`${where}: 锚点指空 → ${href}#${anchor}`);
+	}
+}
+
+for (const [title, where] of seenTitles) {
+	if (!title || where.length < 2) continue;
+	structural.push(`标题重复：「${title}」→ ${where.join('、')}`);
+}
+
+// ---------------------------------------------------------------- 3) 内容缺口
 let contentReport = '';
 if (WITH_CONTENT) {
 	const readFront = (file) => {
@@ -141,8 +205,12 @@ console.log('\n页面引用但产物里没有的资源：');
 if (missingAssets.size === 0) console.log('  ✓ 没有');
 else for (const [ref, from] of missingAssets) console.log(`  ✗ ${ref}\n      被引用于：${[...new Set(from)].slice(0, 3).join('、')}`);
 
+console.log('\n页面结构（404 / 标题 / 锚点 / canonical）：');
+if (structural.length === 0) console.log('  ✓ 没有');
+else for (const item of structural) console.log(`  ✗ ${item}`);
+
 if (contentReport) console.log(contentReport);
 
-const failed = deadLinks.size > 0 || missingAssets.size > 0;
-console.log(failed ? '\n✗ 有问题（见上）' : '\n✓ 链接与资源都没有问题');
+const failed = deadLinks.size > 0 || missingAssets.size > 0 || structural.length > 0;
+console.log(failed ? '\n✗ 有问题（见上）' : '\n✓ 链接、资源与页面结构都没有问题');
 process.exit(failed ? 1 : 0);

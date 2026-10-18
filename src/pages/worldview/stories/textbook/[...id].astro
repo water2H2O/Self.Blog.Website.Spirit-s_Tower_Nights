@@ -49,7 +49,11 @@ const bookLabel = `${HANDBOOK.title}${chapterNo ? ` · ${chapterNo}` : ''}`;
 <html lang="zh-CN">
 	<head>
 		<BaseHead
-			title={`${chapterName} · ${HANDBOOK.title}`}
+			/*
+			 * 标题带上章号：这本册子里有几章同名（都叫「这门课教什么」），
+			 * 只写章名会让它们的 <title> 撞在一起，搜索与分享都分不清是哪一章。
+			 */
+			title={`${entry.data.title} · ${HANDBOOK.title}`}
 			description={entry.data.summary ?? `${HANDBOOK.subtitle}：${entry.data.title}`}
 		/>
 		<style>
@@ -345,7 +349,7 @@ const bookLabel = `${HANDBOOK.title}${chapterNo ? ` · ${chapterNo}` : ''}`;
 
 			<header class="chapter-head">
 				<p class="book">
-					<a href={HANDBOOK_BASE}>{bookLabel}</a>
+					<a href={`${HANDBOOK_BASE}/`}>{bookLabel}</a>
 					· 第 {chapterIndex} / {all.length} 篇
 				</p>
 				<h1>
