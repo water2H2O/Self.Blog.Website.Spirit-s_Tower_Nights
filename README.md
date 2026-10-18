@@ -596,7 +596,9 @@ node tools/build-gallery-pool.mjs --dry-run  # 只看会做什么
   画廊页与角色页用的是同一套（随机抽样、随机大小、水印、灯箱），后者不显示筛选按钮、
   也不排除任何分类（表情包与指针素材在角色页会一并铺开）
 
-> 排查用的两支小工具：`node tools/site-health.mjs --content` 查全站死链、缺失资源与内容缺口；
+> 排查用的两支小工具：`node tools/site-health.mjs --content` 查全站问题 ——
+> **死链、缺资源、404 页有没有产出、`<title>` 有没有重复、站内锚点有没有指空、
+> canonical 是否与实际地址一致**，再加 `--content` 会连内容缺口一起报；
 > `python tools/tag-multi-character.py` 列出「文件名里出现多个角色」的图并补 `characters`。
 
 ### 站点图标与分享图
@@ -674,6 +676,11 @@ pnpm run github:build       # 抓完再跑一次构建
 - 截图分享（og:image）与 sitemap 都用 `site` 拼绝对地址，换域名只改那一处
 - 主机在境外，**不需要备案**；代价是用不了大陆 CDN
 - 单文件上限 25 MB：图片与 MP3 都没问题，**PV 视频别放进来**，继续走 B 站外链
+- **404 页由 `src/pages/404.astro` 产出**：`wrangler.jsonc` 的 `not_found_handling: "404-page"`
+  就是靠 `dist/404.html` 兜底，删了那个文件访客输错地址只会看到 Cloudflare 的默认错误页
+  （`node tools/site-health.mjs` 会检查它还在不在）
+- 站内链接**一律带尾斜杠**（`/worldview/`）：页面都是「目录 + index.html」，
+  少写一个斜杠就会先吃一次 307，每次点导航多一个来回
 
 ### 构建环境的 pnpm 版本：本地 11，Cloudflare 9
 
