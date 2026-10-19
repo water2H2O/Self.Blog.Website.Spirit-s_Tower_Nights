@@ -86,17 +86,116 @@ weeks.forEach((_, index) => {
 				width: 1000px;
 			}
 			/* 开头这一段：不再是一行干巴巴的自我介绍 */
+			/*
+			 * 首页的视觉骨架：
+			 *   左边是文字（.intro-text），右边是「夜色里的水塔」剪影（.hero-art，纯 SVG）。
+			 *   文字压在上层，剪影与两团色差光在下面当背景 —— 这是整页唯一的「剪影 + 色差」。
+			 */
+			.intro {
+				position: relative;
+				isolation: isolate;
+				padding-top: 0.4em;
+			}
+			/* 两团柔光：青压在剪影那一侧，紫压在标题后面。
+			   只在垂直方向外扩 —— 左右外扩会把窄屏顶出横向滚动条 */
+			.intro::before {
+				content: '';
+				position: absolute;
+				inset: -8% 0 4% 0;
+				z-index: -1;
+				pointer-events: none;
+				background:
+					radial-gradient(42% 56% at 76% 32%, rgba(127, 233, 240, 18%), transparent 70%),
+					radial-gradient(40% 52% at 8% 2%, rgba(124, 108, 240, 16%), transparent 72%);
+			}
+			/* 地平线：一条从左亮到右隐的细线，把 hero 和下面的卡片分开 */
+			.intro::after {
+				content: '';
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: -1.4em;
+				height: 1px;
+				background: linear-gradient(
+					90deg,
+					rgba(175, 255, 255, 32%),
+					rgba(175, 255, 255, 6%) 62%,
+					transparent
+				);
+			}
+			.intro-text {
+				position: relative;
+				z-index: 1;
+				max-width: 42em;
+			}
+			.hero-art {
+				position: absolute;
+				right: -1.5em;
+				top: 0.4em;
+				width: min(44%, 440px);
+				height: auto;
+				z-index: 0;
+				pointer-events: none;
+			}
+			/* 剪影里那几点浮尘，慢慢上下飘 */
+			.hero-art .speck {
+				animation: hero-float 9s ease-in-out infinite;
+			}
+			@keyframes hero-float {
+				0%,
+				100% {
+					transform: translateY(0);
+					opacity: 0.3;
+				}
+				50% {
+					transform: translateY(-11px);
+					opacity: 0.75;
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				.hero-art .speck {
+					animation: none;
+				}
+			}
+			/* 窄屏：水塔不再压在文字后面，而是排到自我介绍下面 */
+			@media (max-width: 900px) {
+				.hero-art {
+					position: relative;
+					right: auto;
+					top: auto;
+					width: 100%;
+					max-width: 400px;
+					margin: 1.6em auto 0;
+					opacity: 0.9;
+				}
+			}
 			.intro h1 {
 				margin: 0 0 0.15em;
-				font-size: 2.6em;
-				color: var(--glow);
-				text-shadow: 0 0 24px rgba(175, 255, 255, 22%);
+				font-size: 2.7em;
+				letter-spacing: 0.01em;
+				/* 渐变字：亮到青，靠 drop-shadow 做辉光（text-shadow 对透明文字不生效） */
+				background: linear-gradient(178deg, #f4ffff 6%, #b6f6fb 44%, #63d7e6 100%);
+				-webkit-background-clip: text;
+				background-clip: text;
+				color: transparent;
+				filter: drop-shadow(0 0 22px rgba(175, 255, 255, 26%));
 			}
 			.intro .aka {
+				display: flex;
+				align-items: center;
+				gap: 0.75em;
 				margin: 0 0 1.4em;
 				font-size: 0.84em;
 				letter-spacing: 0.1em;
 				color: rgb(var(--gray));
+			}
+			/* 名字前面一小截青色短线，让这一行不是孤零零一句话 */
+			.intro .aka::before {
+				content: '';
+				flex: none;
+				width: 2.4em;
+				height: 1px;
+				background: linear-gradient(90deg, var(--accent), rgba(127, 233, 240, 0%));
 			}
 			.intro .bio {
 				max-width: 40em;
@@ -158,12 +257,36 @@ weeks.forEach((_, index) => {
 				color: rgb(var(--gray));
 				border: 1px dashed rgb(var(--gray-light));
 			}
+			/* 小节标题：一枚青色菱形 + 一条渐隐的细线，给页面分出层次 */
 			.section-title {
-				margin: 3em 0 0;
+				display: flex;
+				align-items: center;
+				gap: 0.85em;
+				margin: 3.2em 0 0;
 				font-size: 0.84em;
 				font-weight: 400;
 				letter-spacing: 0.22em;
 				color: rgb(var(--gray));
+			}
+			.section-title::before {
+				content: '';
+				flex: none;
+				width: 7px;
+				height: 7px;
+				background: var(--accent);
+				transform: rotate(45deg);
+				box-shadow: 0 0 12px rgba(175, 255, 255, 75%);
+			}
+			.section-title::after {
+				content: '';
+				flex: 1;
+				height: 1px;
+				background: linear-gradient(
+					90deg,
+					rgba(175, 255, 255, 30%),
+					rgba(175, 255, 255, 4%) 55%,
+					transparent
+				);
 			}
 			.cards {
 				display: grid;
@@ -172,20 +295,39 @@ weeks.forEach((_, index) => {
 				margin-top: 1.2em;
 			}
 			.card {
+				position: relative;
 				display: flex;
 				flex-direction: column;
 				padding: 1.4em 1.5em 1.6em;
 				border-radius: 16px;
-				background: var(--surface);
+				/* 右上角一抹青色微光，让整块卡片不是一块死平的色 */
+				background:
+					radial-gradient(120% 90% at 100% 0%, rgba(127, 233, 240, 9%), transparent 58%),
+					var(--surface);
 				border: 1px solid rgb(var(--gray-light));
+				/* 顶边压一道极细的高光，像被上方的光擦到 */
+				box-shadow: inset 0 1px 0 rgba(216, 255, 255, 10%);
 				text-decoration: none;
 				color: inherit;
-				transition: 0.2s ease;
+				transition:
+					transform 0.22s ease,
+					box-shadow 0.22s ease,
+					border-color 0.22s ease;
 			}
 			.card:hover {
-				transform: translateY(-3px);
-				box-shadow: var(--glow-shadow);
+				transform: translateY(-4px);
 				border-color: rgba(175, 255, 255, 45%);
+				box-shadow:
+					inset 0 1px 0 rgba(216, 255, 255, 24%),
+					0 18px 42px -18px rgba(2, 10, 16, 90%),
+					0 0 0 1px rgba(175, 255, 255, 22%),
+					0 6px 24px rgba(175, 255, 255, 14%);
+			}
+			.card:hover h2 {
+				color: var(--glow);
+			}
+			.card h2 {
+				transition: color 0.2s ease;
 			}
 			.card h2 {
 				margin: 0;
@@ -224,9 +366,19 @@ weeks.forEach((_, index) => {
 				border-color: rgba(175, 255, 255, 28%);
 			}
 			.card.featured .thumb {
+				position: relative;
 				flex: none;
 				/* logo 是 3.56:1 的横版字标，窄了会看不清 */
 				width: 230px;
+			}
+			/* 字标背后垫一团青光，像被水塔的灯照亮 */
+			.card.featured .thumb::before {
+				content: '';
+				position: absolute;
+				inset: -22% -10%;
+				z-index: -1;
+				background: radial-gradient(58% 62% at 50% 52%, rgba(127, 233, 240, 20%), transparent 72%);
+				filter: blur(3px);
 			}
 			.card.featured .thumb :global(img) {
 				width: 100%;
@@ -516,28 +668,146 @@ weeks.forEach((_, index) => {
 			</script>
 
 			<section class="intro">
-				<h1>水水</h1>
-				<p class="aka">淼渺_Water2H2O · 一只狐狸（？）</p>
+				<div class="intro-text">
+					<h1>水水</h1>
+					<p class="aka">淼渺_Water2H2O · 一只狐狸（？）</p>
 
-				<p class="bio">
-					在香港读计算机的苦逼大学生。啥都喜欢弄一点 —— 写故事、画 OC、给它们做曲子，
-					顺便运营一个音游企划。养 OC 是为了开心。
-				</p>
-				<p class="langs">
-					会说 <b>普通话</b>、<b>English</b>，还有 <b>Python</b>、<b>Java</b>、<b>C</b>、<b>C++</b>……
-					急了会说一大堆小狐话……
-				</p>
-				<p class="note">
-					留学生 + 音乐企划运营的双重 buff，常年低精力；漏回消息和评论真的抱歉，不是不尊重。
-					想睡的时候我会自称「囦囦」（yuán）—— 总之，想睡，别叫我。
-				</p>
+					<p class="bio">
+						在香港读计算机的苦逼大学生。啥都喜欢弄一点 —— 写故事、画 OC、给它们做曲子，
+						顺便运营一个音游企划。养 OC 是为了开心。
+					</p>
+					<p class="langs">
+						会说 <b>普通话</b>、<b>English</b>，还有 <b>Python</b>、<b>Java</b>、<b>C</b>、<b>C++</b>……
+						急了会说一大堆小狐话……
+					</p>
+					<p class="note">
+						留学生 + 音乐企划运营的双重 buff，常年低精力；漏回消息和评论真的抱歉，不是不尊重。
+						想睡的时候我会自称「囦囦」（yuán）—— 总之，想睡，别叫我。
+					</p>
 
-				<ul class="platforms">
-					<li><a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">QQ 群 {QQ_GROUP}</a></li>
-					<li><a href={BILIBILI_URL} target="_blank" rel="noreferrer">B 站</a></li>
-					<li><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></li>
-					<li><a href={`mailto:${EMAIL}`}>邮箱</a></li>
-				</ul>
+					<ul class="platforms">
+						<li><a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">QQ 群 {QQ_GROUP}</a></li>
+						<li><a href={BILIBILI_URL} target="_blank" rel="noreferrer">B 站</a></li>
+						<li><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></li>
+						<li><a href={`mailto:${EMAIL}`}>邮箱</a></li>
+					</ul>
+				</div>
+
+				{/*
+					夜色里的水塔：纯 SVG 剪影，没有额外图片。
+					两层远山 + 一座水塔 + 塔脚芦苇，整块用径向遮罩淡出边缘，
+					所以它不会在页面上留下一个方形色块；只有塔身左缘有一道月光。
+				*/}
+				<svg class="hero-art" viewBox="78 26 406 336" aria-hidden="true" focusable="false">
+					<defs>
+						<radialGradient id="ha-mist" cx="52%" cy="42%" r="50%">
+							<stop offset="0%" stop-color="#afffff" stop-opacity="0.17" />
+							<stop offset="58%" stop-color="#7fe9f0" stop-opacity="0.06" />
+							<stop offset="100%" stop-color="#7fe9f0" stop-opacity="0" />
+						</radialGradient>
+						<linearGradient id="ha-rim" x1="0" y1="0" x2="0" y2="1">
+							<stop offset="0%" stop-color="#e8ffff" stop-opacity="0.85" />
+							<stop offset="100%" stop-color="#7fe9f0" stop-opacity="0" />
+						</linearGradient>
+						<linearGradient id="ha-tank" x1="0" y1="0" x2="1" y2="0">
+							<stop offset="0%" stop-color="#102431" />
+							<stop offset="55%" stop-color="#0a151d" />
+							<stop offset="100%" stop-color="#142c3a" />
+						</linearGradient>
+						<radialGradient id="ha-fade-g" cx="50%" cy="54%" r="60%">
+							<stop offset="0%" stop-color="#fff" stop-opacity="1" />
+							<stop offset="45%" stop-color="#fff" stop-opacity="1" />
+							<stop offset="88%" stop-color="#fff" stop-opacity="0" />
+						</radialGradient>
+						<mask id="ha-fade"><rect width="520" height="400" fill="url(#ha-fade-g)" /></mask>
+						<linearGradient id="ha-horizon" x1="0" y1="0" x2="1" y2="0">
+							<stop offset="0%" stop-color="#afffff" stop-opacity="0" />
+							<stop offset="52%" stop-color="#afffff" stop-opacity="0.38" />
+							<stop offset="100%" stop-color="#afffff" stop-opacity="0" />
+						</linearGradient>
+						<radialGradient id="ha-spill" cx="50%" cy="50%" r="50%">
+							<stop offset="0%" stop-color="#afffff" stop-opacity="0.22" />
+							<stop offset="100%" stop-color="#afffff" stop-opacity="0" />
+						</radialGradient>
+					</defs>
+
+					<ellipse cx="300" cy="188" rx="215" ry="152" fill="url(#ha-mist)" />
+
+					{/* 星点：只在上半部分，密度低一点免得像噪点 */}
+					<g fill="#dffcff">
+						<circle cx="86" cy="72" r="1.2" opacity="0.5" />
+						<circle cx="148" cy="42" r="1" opacity="0.32" />
+						<circle cx="196" cy="98" r="1.4" opacity="0.42" />
+						<circle cx="418" cy="58" r="1.1" opacity="0.38" />
+						<circle cx="470" cy="148" r="1" opacity="0.28" />
+					</g>
+
+					{/* 两层远山，靠遮罩淡出两端；都很淡，只用来托住剪影的底边 */}
+					<g mask="url(#ha-fade)">
+						<path d="M0 262 Q 92 230 172 254 T 342 248 T 520 268 V400 H0 Z" fill="#0b1a24" opacity="0.4" />
+						<path d="M0 298 Q 120 276 212 290 T 402 284 T 520 298 V400 H0 Z" fill="#0a1720" opacity="0.62" />
+					</g>
+
+					{/* 水塔：支架 + 罐体 + 出檐锥顶，只有左缘一道月光 */}
+					<g>
+						<path
+							d="M258 306 L274 212 M342 306 L326 212"
+							stroke="#0a1720"
+							stroke-width="5.5"
+							stroke-linecap="round"
+						/>
+						<path d="M262 296 L338 262 M338 296 L262 262" stroke="#0a1720" stroke-width="2.4" opacity="0.72" />
+						<path d="M266 274 H334" stroke="#0a1720" stroke-width="2.4" opacity="0.5" />
+						<path d="M322 212 V306" stroke="#0a1720" stroke-width="1.6" opacity="0.5" />
+						<path
+							d="M234 210 H366 V152 Q 366 134 348 134 H252 Q 234 134 234 152 Z"
+							fill="url(#ha-tank)"
+						/>
+						<path d="M222 136 L300 76 L378 136 Z" fill="#0a1720" />
+						<path d="M220 136 H380" stroke="#0a1720" stroke-width="5" stroke-linecap="round" />
+						<path d="M300 78 V52" stroke="#0a1720" stroke-width="3.6" stroke-linecap="round" />
+						<circle cx="300" cy="49" r="3" fill="#0a1720" />
+						<path d="M234 178 H366" stroke="#afffff" stroke-opacity="0.07" stroke-width="1.4" />
+						<path d="M238 206 V154" stroke="url(#ha-rim)" stroke-width="2.2" stroke-linecap="round" />
+						<path d="M226 135 L300 78" stroke="#d8ffff" stroke-opacity="0.2" stroke-width="1.3" />
+						<circle cx="300" cy="186" r="8" fill="#afffff" opacity="0.12" />
+						<circle cx="300" cy="186" r="2.4" fill="#e8ffff" opacity="0.55" />
+					</g>
+
+					{/* 远处一间小屋，给剪影一点纵深 */}
+					<g mask="url(#ha-fade)" fill="#0a1720" opacity="0.75">
+						<path d="M96 300 V281 H138 V300 Z" />
+						<path d="M88 283 L117 264 L146 283 Z" />
+					</g>
+
+					{/* 塔窗漏下来的一小片光，落在地上 */}
+					<ellipse cx="300" cy="306" rx="56" ry="15" fill="url(#ha-spill)" />
+
+					{/* 山脊上的一道月光边缘 —— 剪影靠这一条才「立」得起来 */}
+					<path
+						d="M0 298 Q 120 276 212 290 T 402 284 T 520 298"
+						fill="none"
+						stroke="url(#ha-horizon)"
+						stroke-width="1.4"
+						mask="url(#ha-fade)"
+					/>
+
+					{/* 塔脚芦苇 */}
+					<g mask="url(#ha-fade)" fill="none" stroke="#0a1720" stroke-width="2.4" stroke-linecap="round">
+						<path d="M392 302 q 8 -40 2 -68" />
+						<path d="M412 302 q 12 -46 4 -80" />
+						<path d="M434 302 q -6 -34 2 -60" />
+						<path d="M456 302 q 10 -30 3 -52" />
+						<path d="M478 302 q -7 -26 1 -44" />
+					</g>
+
+					{/* 浮尘 */}
+					<g fill="#afffff">
+						<circle class="speck" cx="150" cy="150" r="1.8" opacity="0.45" style="animation-delay:0s" />
+						<circle class="speck" cx="420" cy="228" r="2.4" opacity="0.4" style="animation-delay:-3s" />
+						<circle class="speck" cx="466" cy="116" r="1.5" opacity="0.45" style="animation-delay:-6s" />
+					</g>
+				</svg>
 			</section>
 
 			<h2 class="section-title">这座塔里有什么</h2>
