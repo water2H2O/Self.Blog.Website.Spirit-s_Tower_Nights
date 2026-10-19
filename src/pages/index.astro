@@ -27,6 +27,13 @@ const stories = (await getCollection('stories', ({ data }) => data.status === 'p
 const eden = (await getCollection('eden', ({ data }) => !data.draft));
 
 /**
+ * 生日贺图：只在每年 10 月 20 日（北京时间）在首页露一天。
+ * 图本身早就在图池里了，横幅只是「今天多摆一下」——
+ * 日期判断写在下面那段 inline 脚本里，所以不用等那天重新构建。
+ */
+const BIRTHDAY_ART = `/gallery/${encodeURIComponent('淼渺__贺图-生日快乐.webp')}`;
+
+/**
  * GitHub 动态：数据由 tools/fetch-github.mjs 抓好缓存在 src/data/github.json，
  * 构建本身不联网 —— 想更新就跑一次那个脚本。
  */
@@ -405,11 +412,109 @@ weeks.forEach((_, index) => {
 					align-items: flex-start;
 				}
 			}
+			/* ---------- 生日贺图横幅（10 月 20 日才出现） ---------- */
+			.birthday {
+				margin: 0 0 2.6em;
+			}
+			/* 没到日子时是 <section hidden>；这里再挡一道，免得别的 display 规则把它顶出来 */
+			.birthday[hidden] {
+				display: none;
+			}
+			.bd-card {
+				display: flex;
+				gap: 1.6em;
+				align-items: center;
+				padding: 1.2em 1.6em 1.2em 1.2em;
+				border-radius: 16px;
+				background:
+					radial-gradient(120% 140% at 0% 0%, rgba(175, 255, 255, 12%), transparent 62%),
+					var(--surface);
+				border: 1px solid rgba(175, 255, 255, 22%);
+				box-shadow: var(--glow-shadow);
+			}
+			.bd-pic {
+				display: block;
+				flex: 0 0 auto;
+			}
+			.bd-pic img {
+				display: block;
+				width: 190px;
+				height: auto;
+				border-radius: 12px;
+				box-shadow: var(--box-shadow);
+				transition: 0.2s ease;
+			}
+			.bd-pic:hover img {
+				transform: translateY(-2px);
+			}
+			.bd-k {
+				margin: 0;
+				font-size: 0.78em;
+				letter-spacing: 0.18em;
+				color: var(--accent);
+			}
+			.bd-t {
+				margin: 0.25em 0 0.6em;
+				font-size: 1.55em;
+				color: var(--glow);
+			}
+			.bd-s {
+				margin: 0;
+				font-size: 0.86em;
+				line-height: 1.85;
+				color: rgb(var(--gray));
+			}
+			@media (max-width: 720px) {
+				.bd-card {
+					flex-direction: column;
+					align-items: flex-start;
+					padding: 1.1em;
+				}
+				.bd-pic img {
+					width: 100%;
+					max-width: 240px;
+				}
+			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
+			{/*
+				生日贺图：一年只露一天（10 月 20 日，北京时间）。
+				默认 hidden，由下面的脚本按日期打开 —— 所以过了这天它会自己消失，
+				不需要再提交一次把横幅删掉；图仍然留在图池里。
+			*/}
+			<section class="birthday" id="birthday" hidden>
+				<div class="bd-card">
+					<a class="bd-pic" href={BIRTHDAY_ART} target="_blank" rel="noreferrer">
+						<img
+							src={BIRTHDAY_ART}
+							alt="生日贺图：淼渺抱着猫猫玩偶，桌上摆着一块插了三根蜡烛的蛋糕"
+							width="1034"
+							height="1600"
+							loading="lazy"
+						/>
+					</a>
+					<div class="bd-text">
+						<p class="bd-k">10 月 20 日</p>
+						<p class="bd-t">生日快乐</p>
+						<p class="bd-s">
+							这张贺图只在今天摆在这儿，明天它就回<a href="/worldview/gallery/">画廊</a>里当普通的一张。
+						</p>
+					</div>
+				</div>
+			</section>
+			<script is:inline>
+				(() => {
+					const box = document.getElementById('birthday');
+					if (!box) return;
+					// 北京时间 = UTC+8：先加 8 小时再按 UTC 取日期，访客在哪个时区看到的结果都一样
+					const bj = new Date(Date.now() + 8 * 3600 * 1000);
+					if (bj.getUTCMonth() === 9 && bj.getUTCDate() === 20) box.hidden = false;
+				})();
+			</script>
+
 			<section class="intro">
 				<h1>水水</h1>
 				<p class="aka">淼渺_Water2H2O · 一只狐狸（？）</p>
