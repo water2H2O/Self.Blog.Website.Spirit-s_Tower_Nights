@@ -40,19 +40,24 @@ BASE_BOTTOM = (9, 17, 26)
 与站上的青色主调都能搭上。
 """
 RACES = [
-    ("elemental-spirit", "元素精灵", "#AFFFFF", "旧时代的遗民", "droplet"),
-    ("winged", "天翼种", "#8FD8FF", "未来过去的光影", "wing"),
-    ("crystal-kin", "晶裔", "#9BE7E0", "信息的闪光", "prism"),
+    # 「元素」用原子（核 + 两条轨道）—— 比一滴水更能说明这一族是什么
+    ("elemental-spirit", "元素精灵", "#AFFFFF", "旧时代的遗民", "atom"),
+    # 翅膀换成纸飞机：既是飞行，也顺着「风」的方向
+    ("winged", "天翼种", "#8FD8FF", "未来过去的光影", "plane"),
+    # 棱柱换成多面体：宝石的切面比单薄的菱形更像「晶体」
+    ("crystal-kin", "晶裔", "#9BE7E0", "信息的闪光", "polyhedron"),
     ("human", "人类", "#FFD68A", "新世界的火种", "flame"),
     ("elf", "精灵族", "#8FDC9B", "名为信仰的诅咒", "leaf"),
     ("snowfox", "雪狐一族", "#D8ECFF", "冰雪中的晶花", "snowflake"),
-    ("vampire", "血族", "#E06A7A", "染上血色的蔷薇", "rose"),
+    # 蔷薇换成血滴：这是血族，不是花店
+    ("vampire", "血族", "#E06A7A", "染上血色的蔷薇", "droplet"),
     ("dragon", "龙族", "#E8B45C", "天下无敌（物理）", "scale"),
     ("angel", "天使", "#F4E7A8", "秩序的维护者", "halo"),
     ("divine-envoy", "神界使", "#C9A8FF", "眼中再无星辰", "star"),
     ("demon", "恶魔", "#C0605F", "混乱的可能性", "horn"),
     ("evil-god", "邪神", "#A66BE0", "千分之一的可能", "eye"),
-    ("demi-human", "亚人", "#B9C6A8", "存在于新旧秩序的夹缝中", "duality"),
+    # 猫猫头：亚人先认这一支最直白的样子
+    ("demi-human", "亚人", "#B9C6A8", "存在于新旧秩序的夹缝中", "cat"),
 ]
 
 
@@ -95,57 +100,167 @@ def draw_glyph(draw, name, cx, cy, s, color):
     注意：PIL 的 polygon / arc 只吃整数坐标，这里统一把点取整 ——
     否则浮点会抛 TypeError（踩过）。
     """
+    cx, cy, s = round(cx), round(cy), s
+    line = max(3, round(s / 26))
+    fine = max(2, line - 1)
+    faint = mix(color, (10, 20, 30), 0.55)
+
     def P(pts):
         return [(round(x), round(y)) for x, y in pts]
 
     def box(x0, y0, x1, y1):
         return [round(x0), round(y0), round(x1), round(y1)]
 
-    cx, cy, s = round(cx), round(cy), s
-    line = max(3, round(s / 26))
-    faint = mix(color, (10, 20, 30), 0.55)
+    def stroke(pts, tone=None, width=None):
+        """折线：joint='curve' 让拐点不出现缺口（PIL 默认会在转角处断开）"""
+        draw.line(P(pts), fill=tone or color, width=width or line, joint="curve")
 
-    if name == "droplet":
-        # 用「圆 + 尖顶」拼水滴，比方块状的多边形顺眼
-        r = s * 0.46
-        draw.ellipse(box(cx - r, cy - r * 0.5, cx + r, cy + r * 1.5), outline=color, width=line)
-        draw.polygon(P([(cx, cy - s * 1.05), (cx + r * 0.98, cy + r * 0.52), (cx - r * 0.98, cy + r * 0.52)]), outline=color, width=line)
-        draw.ellipse(box(cx - s * 0.16, cy + s * 0.24, cx + s * 0.16, cy + s * 0.56), outline=faint, width=line)
-    elif name == "wing":
+    def ellipse_ring(rx, ry, rot=0.0, steps=120):
+        """可旋转的椭圆点列 —— PIL 只能画正的椭圆，斜的轨道得自己算"""
+        pts = []
+        for i in range(steps + 1):
+            t = 2 * math.pi * i / steps
+            ex, ey = math.cos(t) * rx, math.sin(t) * ry
+            pts.append(
+                (
+                    cx + ex * math.cos(rot) - ey * math.sin(rot),
+                    cy + ex * math.sin(rot) + ey * math.cos(rot),
+                )
+            )
+        return pts
+
+    if name == "atom":
+        # 「元素」最直白的写法：原子核 + 两条交叉轨道 + 两颗电子
+        r = s * 0.16
+        draw.ellipse(box(cx - r, cy - r, cx + r, cy + r), outline=color, width=line)
+        for rot in (math.radians(34), math.radians(-34)):
+            stroke(ellipse_ring(s * 0.94, s * 0.38, rot))
+        for rot, t in ((math.radians(34), 0.0), (math.radians(-34), math.pi)):
+            ex, ey = math.cos(t) * s * 0.94, math.sin(t) * s * 0.38
+            px = cx + ex * math.cos(rot) - ey * math.sin(rot)
+            py = cy + ex * math.sin(rot) + ey * math.cos(rot)
+            rr = s * 0.07
+            draw.ellipse(box(px - rr, py - rr, px + rr, py + rr), fill=faint)
+    elif name == "plane":
+        # 纸飞机：两块翼面沿中缝折起，尾巴留一个 V 口
+        nose = (cx + s * 0.98, cy - s * 0.52)
+        up_tip = (cx - s * 0.95, cy - s * 0.34)
+        fold = (cx - s * 0.08, cy - s * 0.02)
+        low_tip = (cx - s * 0.52, cy + s * 0.86)
+        draw.polygon(P([nose, up_tip, fold]), outline=color, width=line)
+        draw.polygon(P([nose, fold, low_tip]), outline=color, width=line)
+        stroke([nose, fold], faint, fine)
+    elif name == "polyhedron":
+        # 多面体：一颗切好的宝石 —— 冠部（顶边收到腰线）+ 腰线 + 亭部收成谷底
+        hw = s * 0.68
+        top = cy - s * 0.86
+        waist = cy - s * 0.22
+        bot = cy + s * 0.92
+        outline = [
+            (cx - hw * 0.58, top),
+            (cx + hw * 0.58, top),
+            (cx + hw, waist),
+            (cx, bot),
+            (cx - hw, waist),
+        ]
+        draw.polygon(P(outline), outline=color, width=line)
+        # 冠部：顶边两道斜面收到腰线
+        stroke(
+            [
+                (cx - hw * 0.58, top),
+                (cx - hw * 0.26, waist),
+                (cx + hw * 0.26, waist),
+                (cx + hw * 0.58, top),
+            ],
+            faint,
+            fine,
+        )
+        # 亭部：从腰线收到谷底
         for side in (-1, 1):
-            pts = [(cx, cy + s * 0.45)]
-            for i in range(4):
-                pts.append((cx + side * s * (0.42 + 0.34 * i), cy + s * (0.22 - 0.3 * i)))
-            pts.append((cx, cy - s * 0.15))
-            draw.polygon(P(pts), outline=color, width=line)
-        draw.ellipse(box(cx - s * 0.34, cy - s * 0.3, cx + s * 0.34, cy + s * 0.38), outline=faint, width=line)
-    elif name == "prism":
-        draw.polygon(P([(cx, cy - s * 0.9), (cx + s * 0.8, cy), (cx, cy + s * 0.9), (cx - s * 0.8, cy)]), outline=color, width=line)
-        for dx in (-0.45, 0, 0.45):
-            draw.line(P([(cx + s * dx, cy - s * 0.9 + abs(dx) * s), (cx + s * dx, cy + s * 0.9 - abs(dx) * s)]), fill=faint, width=max(2, line - 1))
+            stroke([(cx + side * hw, waist), (cx, bot)], faint, fine)
     elif name == "flame":
-        draw.polygon(P([(cx, cy - s), (cx + s * 0.55, cy + s * 0.1), (cx + s * 0.22, cy + s * 0.8), (cx - s * 0.22, cy + s * 0.8), (cx - s * 0.55, cy + s * 0.1)]), outline=color, width=line)
-        draw.polygon(P([(cx, cy - s * 0.1), (cx + s * 0.2, cy + s * 0.55), (cx - s * 0.2, cy + s * 0.55)]), outline=faint, width=line)
+        draw.polygon(
+            P(
+                [
+                    (cx, cy - s),
+                    (cx + s * 0.55, cy + s * 0.1),
+                    (cx + s * 0.22, cy + s * 0.8),
+                    (cx - s * 0.22, cy + s * 0.8),
+                    (cx - s * 0.55, cy + s * 0.1),
+                ]
+            ),
+            outline=color,
+            width=line,
+        )
+        draw.polygon(
+            P([(cx, cy - s * 0.1), (cx + s * 0.2, cy + s * 0.55), (cx - s * 0.2, cy + s * 0.55)]),
+            outline=faint,
+            width=line,
+        )
     elif name == "leaf":
-        draw.polygon(P([(cx, cy - s * 0.95), (cx + s * 0.62, cy), (cx, cy + s * 0.95), (cx - s * 0.62, cy)]), outline=color, width=line)
-        draw.line(P([(cx, cy - s * 0.9), (cx, cy + s * 0.9)]), fill=faint, width=max(2, line - 1))
-        for k in (-0.45, 0, 0.45):
-            draw.line(P([(cx, cy + s * k), (cx + s * 0.5, cy + s * k - s * 0.34)]), fill=faint, width=max(2, line - 1))
-            draw.line(P([(cx, cy + s * k), (cx - s * 0.5, cy + s * k - s * 0.34)]), fill=faint, width=max(2, line - 1))
+        # 叶：两条对称的弧拼出叶形（菱形太硬），中脉 + 三对朝叶尖弯的侧脉
+        tip_y, base_y = cy - s * 0.98, cy + s * 0.88
+        for side in (-1, 1):
+            pts = []
+            for i in range(41):
+                t = i / 40
+                half = s * 0.60 * (math.sin(math.pi * t) ** 0.8)
+                pts.append((cx + side * half, base_y + (tip_y - base_y) * t))
+            stroke(pts)
+        stroke([(cx, tip_y), (cx, base_y)], faint, fine)
+        for f in (0.28, 0.48, 0.68):
+            y0 = base_y + (tip_y - base_y) * f
+            half = s * 0.60 * (math.sin(math.pi * f) ** 0.8)
+            for side in (-1, 1):
+                stroke([(cx, y0), (cx + side * half * 0.78, y0 - s * 0.20)], faint, fine)
     elif name == "snowflake":
+        # 雪花：六道主臂 + 短侧枝 + 中心小六边形。
+        # 侧枝原来又长又朝外，看着像六支箭；现在压短、压低角度。
         for i in range(6):
             a = math.radians(60 * i - 90)
-            x2, y2 = cx + math.cos(a) * s, cy + math.sin(a) * s
-            draw.line(P([(cx, cy), (x2, y2)]), fill=color, width=line)
-            for f in (0.55, 0.78):
-                bx, by = cx + math.cos(a) * s * f, cy + math.sin(a) * s * f
-                for da in (-0.6, 0.6):
-                    draw.line(P([(bx, by), (bx + math.cos(a + da) * s * 0.26, by + math.sin(a + da) * s * 0.26)]), fill=faint, width=max(2, line - 1))
-    elif name == "rose":
-        draw.ellipse(box(cx - s * 0.62, cy - s * 0.95, cx + s * 0.62, cy + s * 0.29), outline=color, width=line)
-        draw.ellipse(box(cx - s * 0.34, cy - s * 0.64, cx + s * 0.34, cy - s * 0.02), outline=faint, width=line)
-        draw.line(P([(cx, cy + s * 0.29), (cx, cy + s * 0.98)]), fill=color, width=line)
-        draw.line(P([(cx, cy + s * 0.62), (cx + s * 0.46, cy + s * 0.34)]), fill=faint, width=line)
+            stroke([(cx, cy), (cx + math.cos(a) * s * 0.98, cy + math.sin(a) * s * 0.98)])
+            for f in (0.38, 0.64):
+                bx = cx + math.cos(a) * s * f
+                by = cy + math.sin(a) * s * f
+                # 侧枝压到 60°、长度只有主臂的 1/6 —— 再长就成箭头了
+                for da in (-1.05, 1.05):
+                    stroke(
+                        [
+                            (bx, by),
+                            (bx + math.cos(a + da) * s * 0.16, by + math.sin(a + da) * s * 0.16),
+                        ],
+                        faint,
+                        fine,
+                    )
+        r0 = s * 0.15
+        draw.polygon(
+            P(
+                [
+                    (cx + math.cos(math.radians(60 * k - 90)) * r0, cy + math.sin(math.radians(60 * k - 90)) * r0)
+                    for k in range(6)
+                ]
+            ),
+            outline=color,
+            width=fine,
+        )
+    elif name == "droplet":
+        # 血滴：一笔闭合的轮廓（尖顶 + 圆底），中间不留横线
+        r = s * 0.50
+        cy_c = cy + s * 0.50
+        pts = [(cx, cy - s * 1.05)]
+        for k in range(61):
+            a = math.pi * (1 - k / 60)
+            pts.append((cx + math.cos(a) * r, cy_c + math.sin(a) * r))
+        pts.append((cx, cy - s * 1.05))
+        draw.polygon(P(pts), outline=color, width=line)
+        # 左上角一点高光，斜着的短弧，比画一个圆圈干净
+        draw.arc(
+            box(cx - s * 0.36, cy + s * 0.10, cx - s * 0.02, cy + s * 0.44),
+            120,
+            250,
+            fill=faint,
+            width=fine,
+        )
     elif name == "scale":
         r = s * 0.34
         for row, y in enumerate((cy - s * 0.6, cy - s * 0.12, cy + s * 0.36)):
@@ -160,7 +275,16 @@ def draw_glyph(draw, name, cx, cy, s, color):
         draw.ellipse(box(cx - s * 0.86, cy - s * 1.06, cx + s * 0.86, cy - s * 0.62), outline=faint, width=line)
         for i in range(8):
             a = math.radians(45 * i)
-            draw.line(P([(cx + math.cos(a) * s * 0.74, cy + math.sin(a) * s * 0.74), (cx + math.cos(a) * s * 0.96, cy + math.sin(a) * s * 0.96)]), fill=faint, width=max(2, line - 1))
+            draw.line(
+                P(
+                    [
+                        (cx + math.cos(a) * s * 0.74, cy + math.sin(a) * s * 0.74),
+                        (cx + math.cos(a) * s * 0.96, cy + math.sin(a) * s * 0.96),
+                    ]
+                ),
+                fill=faint,
+                width=max(2, line - 1),
+            )
     elif name == "star":
         pts = []
         for i in range(10):
@@ -170,19 +294,63 @@ def draw_glyph(draw, name, cx, cy, s, color):
         draw.polygon(P(pts), outline=color, width=line)
         draw.ellipse(box(cx - s * 0.16, cy - s * 0.16, cx + s * 0.16, cy + s * 0.16), fill=faint)
     elif name == "horn":
+        # 恶魔：左右各一道角 + 中间一个三角。
+        # 原来右边那道弧用了 260→40，左边是 200→340 —— 角度没做镜像，看着就是歪的。
+        # 现在两边都用 200→340，靠左右翻过来的圆框得到天然对称。
         for side in (-1, 1):
-            draw.arc(box(cx + side * s * 0.95 - s * 0.95, cy - s * 0.95, cx + side * s * 0.95 + s * 0.95, cy + s * 0.95),
-                     200 if side < 0 else 260, 340 if side < 0 else 40, fill=color, width=line)
-        draw.polygon(P([(cx - s * 0.5, cy + s * 0.85), (cx, cy - s * 0.15), (cx + s * 0.5, cy + s * 0.85)]), outline=faint, width=line)
+            ox = cx + side * s * 0.95
+            draw.arc(
+                box(ox - s * 0.95, cy - s * 0.95, ox + s * 0.95, cy + s * 0.95),
+                200,
+                340,
+                fill=color,
+                width=line,
+            )
+        draw.polygon(
+            P([(cx - s * 0.5, cy + s * 0.85), (cx, cy - s * 0.15), (cx + s * 0.5, cy + s * 0.85)]),
+            outline=faint,
+            width=line,
+        )
     elif name == "eye":
         draw.arc(box(cx - s, cy - s * 0.72, cx + s, cy + s * 0.72), 200, 340, fill=color, width=line)
         draw.arc(box(cx - s, cy - s * 0.72, cx + s, cy + s * 0.72), 20, 160, fill=color, width=line)
         draw.ellipse(box(cx - s * 0.22, cy - s * 0.22, cx + s * 0.22, cy + s * 0.22), outline=faint, width=line)
         draw.ellipse(box(cx - s * 0.06, cy - s * 0.16, cx + s * 0.06, cy + s * 0.16), fill=faint)
-    elif name == "duality":
-        draw.polygon(P([(cx - s * 0.16, cy - s * 0.9), (cx + s * 0.16, cy - s * 0.9), (cx + s * 0.16, cy + s * 0.9), (cx - s * 0.16, cy + s * 0.9)]), fill=faint)
-        draw.polygon(P([(cx - s * 0.92, cy - s * 0.6), (cx - s * 0.15, cy - s * 0.6), (cx - s * 0.15, cy + s * 0.6), (cx - s * 0.92, cy + s * 0.6)]), outline=color, width=line)
-        draw.polygon(P([(cx + s * 0.15, cy - s * 0.6), (cx + s * 0.92, cy - s * 0.6), (cx + s * 0.92, cy + s * 0.6), (cx + s * 0.15, cy + s * 0.6)]), outline=color, width=line)
+    elif name == "cat":
+        # 猫猫头：圆脸 + 两只三角耳 + 两点眼 + 一个小鼻子
+        head = s * 0.74
+        draw.ellipse(
+            box(cx - head, cy - head * 0.80, cx + head, cy + head * 1.04), outline=color, width=line
+        )
+        for side in (-1, 1):
+            ex = cx + side * head * 0.56
+            draw.polygon(
+                P(
+                    [
+                        (ex - side * head * 0.22, cy - head * 0.62),
+                        (ex + side * head * 0.18, cy - head * 1.32),
+                        (ex + side * head * 0.54, cy - head * 0.36),
+                    ]
+                ),
+                outline=color,
+                width=line,
+            )
+        for side in (-1, 1):
+            exx = cx + side * head * 0.34
+            eyy = cy - head * 0.08
+            draw.ellipse(
+                box(exx - s * 0.055, eyy - s * 0.075, exx + s * 0.055, eyy + s * 0.075), fill=faint
+            )
+        draw.polygon(
+            P(
+                [
+                    (cx - s * 0.08, cy + head * 0.18),
+                    (cx + s * 0.08, cy + head * 0.18),
+                    (cx, cy + head * 0.32),
+                ]
+            ),
+            fill=faint,
+        )
 
 
 def letter_spaced(draw, xy, text, font, fill, spacing=0):
