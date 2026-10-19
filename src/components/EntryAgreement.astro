@@ -118,6 +118,8 @@ const ARTICLES = [
 	}
 	.actions {
 		display: flex;
+		/* 窄屏放不下时让整颗按钮换行 —— 别把按钮里的字挤成两行 */
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 1em;
 		/* 高度留够：「同意」会被放大，别顶到上面的条款 */
@@ -125,9 +127,12 @@ const ARTICLES = [
 		padding: 0.4em 0;
 	}
 	.actions button {
+		flex: 0 0 auto;
 		padding: 0.7em 2.2em;
 		border-radius: 999px;
 		font-size: 0.95em;
+		/* 药丸按钮里的文字一律不折行（「拒绝，喝一口！」在窄屏上会断成两行） */
+		white-space: nowrap;
 		cursor: pointer;
 		transition:
 			transform 0.25s ease,
@@ -153,6 +158,26 @@ const ARTICLES = [
 	.actions .no.fleeing {
 		position: fixed;
 		z-index: 95;
+	}
+	/*
+	 * 窄屏：手机上一行放不下两颗药丸，内边距又大，字就被挤成两行了。
+	 * 这里同时收小外框与按钮的内边距 —— 收到之后仍然放不下才会换行（.actions 已允许 wrap）。
+	 */
+	@media (max-width: 560px) {
+		.gate {
+			padding: 3vh 4vw;
+		}
+		.gate-box {
+			padding: 1.4em 1.3em 1.6em;
+		}
+		.actions {
+			gap: 0.7em;
+			min-height: 4em;
+		}
+		.actions button {
+			padding: 0.68em 1.5em;
+			font-size: 0.9em;
+		}
 	}
 	.hint {
 		margin: 0.9em 0 0;
