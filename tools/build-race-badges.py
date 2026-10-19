@@ -56,8 +56,8 @@ RACES = [
     ("divine-envoy", "神界使", "#C9A8FF", "眼中再无星辰", "star"),
     ("demon", "恶魔", "#C0605F", "混乱的可能性", "horn"),
     ("evil-god", "邪神", "#A66BE0", "千分之一的可能", "eye"),
-    # 猫猫头：亚人先认这一支最直白的样子
-    ("demi-human", "亚人", "#B9C6A8", "存在于新旧秩序的夹缝中", "cat"),
+    # 方脸不画五官：亚人是兽人 / 哥布林 / 人马那一类，不该只给一张具体的「猫脸」
+    ("demi-human", "亚人", "#B9C6A8", "存在于新旧秩序的夹缝中", "demi-human"),
 ]
 
 
@@ -151,33 +151,17 @@ def draw_glyph(draw, name, cx, cy, s, color):
         draw.polygon(P([nose, fold, low_tip]), outline=color, width=line)
         stroke([nose, fold], faint, fine)
     elif name == "polyhedron":
-        # 多面体：一颗切好的宝石 —— 冠部（顶边收到腰线）+ 腰线 + 亭部收成谷底
-        hw = s * 0.68
-        top = cy - s * 0.86
-        waist = cy - s * 0.22
-        bot = cy + s * 0.92
-        outline = [
-            (cx - hw * 0.58, top),
-            (cx + hw * 0.58, top),
-            (cx + hw, waist),
-            (cx, bot),
-            (cx - hw, waist),
-        ]
-        draw.polygon(P(outline), outline=color, width=line)
-        # 冠部：顶边两道斜面收到腰线
-        stroke(
-            [
-                (cx - hw * 0.58, top),
-                (cx - hw * 0.26, waist),
-                (cx + hw * 0.26, waist),
-                (cx + hw * 0.58, top),
-            ],
-            faint,
-            fine,
-        )
-        # 亭部：从腰线收到谷底
-        for side in (-1, 1):
-            stroke([(cx + side * hw, waist), (cx, bot)], faint, fine)
+        # 八面体：上下两个四棱锥底对底，侧面看过去就是「菱形 + 一道中腰线」。
+        # （等轴投影的六边形 + Y 更像立方体，所以没用那种画法）
+        hw = s * 0.66
+        hh = s * 0.98
+        top = (cx, cy - hh)
+        bot = (cx, cy + hh)
+        left = (cx - hw, cy)
+        right = (cx + hw, cy)
+        draw.polygon(P([top, right, bot, left]), outline=color, width=line)
+        # 中腰线 = 那个正方形底座的可见边
+        stroke([left, right], faint, fine)
     elif name == "flame":
         draw.polygon(
             P(
@@ -316,41 +300,28 @@ def draw_glyph(draw, name, cx, cy, s, color):
         draw.arc(box(cx - s, cy - s * 0.72, cx + s, cy + s * 0.72), 20, 160, fill=color, width=line)
         draw.ellipse(box(cx - s * 0.22, cy - s * 0.22, cx + s * 0.22, cy + s * 0.22), outline=faint, width=line)
         draw.ellipse(box(cx - s * 0.06, cy - s * 0.16, cx + s * 0.06, cy + s * 0.16), fill=faint)
-    elif name == "cat":
-        # 猫猫头：圆脸 + 两只三角耳 + 两点眼 + 一个小鼻子
-        head = s * 0.74
-        draw.ellipse(
-            box(cx - head, cy - head * 0.80, cx + head, cy + head * 1.04), outline=color, width=line
+    elif name == "demi-human":
+        # 亚人：方脸 + 一对耳，**不画五官**。
+        # 这一族是兽人 / 哥布林 / 人马那一类，不该只给一张具体的「猫脸」。
+        w = s * 0.66
+        h = s * 0.60
+        top_y = cy - h + s * 0.08
+        bot_y = cy + h + s * 0.08
+        draw.rounded_rectangle(
+            box(cx - w, top_y, cx + w, bot_y),
+            radius=round(s * 0.16),
+            outline=color,
+            width=line,
         )
         for side in (-1, 1):
-            ex = cx + side * head * 0.56
-            draw.polygon(
-                P(
-                    [
-                        (ex - side * head * 0.22, cy - head * 0.62),
-                        (ex + side * head * 0.18, cy - head * 1.32),
-                        (ex + side * head * 0.54, cy - head * 0.36),
-                    ]
-                ),
-                outline=color,
-                width=line,
-            )
-        for side in (-1, 1):
-            exx = cx + side * head * 0.34
-            eyy = cy - head * 0.08
-            draw.ellipse(
-                box(exx - s * 0.055, eyy - s * 0.075, exx + s * 0.055, eyy + s * 0.075), fill=faint
-            )
-        draw.polygon(
-            P(
-                [
-                    (cx - s * 0.08, cy + head * 0.18),
-                    (cx + s * 0.08, cy + head * 0.18),
-                    (cx, cy + head * 0.32),
-                ]
-            ),
-            fill=faint,
-        )
+            # 耳朵只画成「Λ」两条边，底边压在脸的顶线上 ——
+            # 画成闭合三角形会多出一条横线，看着像插了两面小旗。
+            # 比例收窄一点（宽 0.38w、高 0.34s），才像耳朵不像旗子。
+            outer = (cx + side * w * 0.78, top_y)
+            tip = (cx + side * w * 0.60, top_y - s * 0.34)
+            inner = (cx + side * w * 0.40, top_y)
+            stroke([outer, tip], color, line)
+            stroke([tip, inner], color, line)
 
 
 def letter_spaced(draw, xy, text, font, fill, spacing=0):
