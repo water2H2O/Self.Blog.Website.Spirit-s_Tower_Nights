@@ -29,6 +29,10 @@ export const GITHUB_NAME = 'water2H2O';
 export const BILIBILI_URL = 'https://space.bilibili.com/433383827';
 export const BILIBILI_NAME = '淼渺_Water2H2O';
 
+/** X（原 Twitter）：碎碎念与转发 */
+export const X_URL = 'https://x.com/l34Regte9Q37Oqh';
+export const X_NAME = '@l34Regte9Q37Oqh';
+
 /** 联系邮箱（授权、转载、合作） */
 export const EMAIL = 'ss.water2h2o@gmail.com';
 

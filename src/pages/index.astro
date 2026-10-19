@@ -18,6 +18,7 @@ import {
 	QQ_GROUP_URL,
 	SITE_AUTHOR,
 	SITE_DESCRIPTION,
+	X_URL,
 } from '../consts';
 
 const isPublic = (entry: { data: { draft?: boolean } }) => !entry.data.draft;
@@ -688,6 +689,7 @@ weeks.forEach((_, index) => {
 					<ul class="platforms">
 						<li><a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">QQ 群 {QQ_GROUP}</a></li>
 						<li><a href={BILIBILI_URL} target="_blank" rel="noreferrer">B 站</a></li>
+						<li><a href={X_URL} target="_blank" rel="noreferrer">X</a></li>
 						<li><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></li>
 						<li><a href={`mailto:${EMAIL}`}>邮箱</a></li>
 					</ul>

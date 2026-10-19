@@ -8,6 +8,8 @@ import {
 	QQ_GROUP,
 	QQ_GROUP_URL,
 	SITE_AUTHOR,
+	X_NAME,
+	X_URL,
 } from '../consts';
 
 const today = new Date();
@@ -17,6 +19,7 @@ const CC_URL = 'https://creativecommons.org/licenses/by/4.0/deed.zh';
 const links = [
 	{ href: `mailto:${EMAIL}`, label: `邮箱 ${EMAIL}`, name: '邮箱' },
 	{ href: BILIBILI_URL, label: `B 站 ${BILIBILI_NAME}`, name: 'B 站' },
+	{ href: X_URL, label: `X ${X_NAME}`, name: 'X' },
 	{ href: GITHUB_URL, label: `GitHub ${SITE_AUTHOR}`, name: 'GitHub' },
 	{ href: QQ_GROUP_URL, label: `QQ 群 ${QQ_GROUP}（点这里加群）`, name: 'QQ 群' },
 ];
@@ -49,6 +52,14 @@ const links = [
 							/>
 							<circle cx="9.1" cy="12.2" r="1.35" fill="currentColor" />
 							<circle cx="14.9" cy="12.2" r="1.35" fill="currentColor" />
+						</svg>
+					)}
+					{link.name === 'X' && (
+						<svg viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+							<path
+								fill="currentColor"
+								d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+							/>
 						</svg>
 					)}
 					{link.name === 'GitHub' && (
