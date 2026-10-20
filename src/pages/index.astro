@@ -431,6 +431,14 @@ weeks.forEach((_, index) => {
 			.heat-scroll {
 				overflow-x: auto;
 				padding-bottom: 0.3em;
+				/* 手机上 53 周放不下，横向滑动；右缘渐隐当作「还有」的提示 */
+				scrollbar-width: none;
+				-webkit-overflow-scrolling: touch;
+				-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+				mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+			}
+			.heat-scroll::-webkit-scrollbar {
+				display: none;
 			}
 			.heat-months {
 				display: grid;
@@ -623,9 +631,15 @@ weeks.forEach((_, index) => {
 					align-items: flex-start;
 					padding: 1.1em;
 				}
+				/* 手机竖屏里贺图撑满一屏，把「生日快乐」挤到下面；按屏高收一收并居中 */
+				.bd-pic {
+					align-self: center;
+				}
 				.bd-pic img {
-					width: 100%;
-					max-width: 240px;
+					width: auto;
+					max-width: min(240px, 100%);
+					max-height: 42vh;
+					max-height: 42dvh;
 				}
 			}
 		</style>

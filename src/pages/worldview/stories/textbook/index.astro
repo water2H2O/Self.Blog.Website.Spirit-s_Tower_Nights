@@ -188,7 +188,14 @@ const splitTitle = (title: string) => {
 					margin-top: 0.5em;
 				}
 				.pieces li {
+					position: relative;
 					gap: 0.5em;
+				}
+				/* 标题只有一行 24px 高；用一层透明覆盖把整行都变成点击区 */
+				.pieces a::after {
+					content: '';
+					position: absolute;
+					inset: 0;
 				}
 				.pieces .no {
 					width: 4.4em;

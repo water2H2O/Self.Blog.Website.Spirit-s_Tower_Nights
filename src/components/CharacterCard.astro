@@ -120,4 +120,16 @@ const aliasText = aliases.filter(Boolean).join(' / ');
 		line-height: 1.6;
 		color: rgb(var(--gray-dark));
 	}
+	/* 手机上一列铺满，正方形立绘会占掉大半屏；压成 4:3，脸还是完整的 */
+	@media (max-width: 720px) {
+		.thumb {
+			aspect-ratio: 4 / 3;
+		}
+		.body {
+			padding: 0.9em 1.1em 1em;
+		}
+		.summary {
+			font-size: 0.9em;
+		}
+	}
 </style>

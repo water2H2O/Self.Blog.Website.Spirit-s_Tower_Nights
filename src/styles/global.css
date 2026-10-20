@@ -265,6 +265,20 @@ hr {
 	body {
 		overflow-wrap: break-word;
 	}
+	/*
+	 * 返回 / 面包屑链接：桌面下是一行小字，手机上一行只有 20px 高，不好点。
+	 * 给足 44px 的点击高度，视觉上仍然是一行字。
+	 */
+	a.back,
+	a.crumb,
+	p.back a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		margin-left: -0.5em;
+		padding: 0 0.5em;
+		border-radius: 8px;
+	}
 }
 
 .sr-only {

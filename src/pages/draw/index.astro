@@ -295,15 +295,19 @@ const first = pool[0];
 				border-top: 1px solid rgb(var(--gray-light));
 				font-size: 0.84em;
 			}
-			.detail dt {
+			/*
+			 * 这些 dt/dd 是脚本里 createElement 出来的，拿不到 Astro 的 scoped 属性，
+			 * 写普通后代选择器不会命中 —— 必须 :global，否则字段会变成上下堆的两行。
+			 */
+			.detail :global(dt) {
 				color: rgb(var(--gray));
 				white-space: nowrap;
 			}
-			.detail dd {
+			.detail :global(dd) {
 				margin: 0;
 				color: rgb(var(--gray-dark));
 			}
-			.detail dd a {
+			.detail :global(dd a) {
 				color: #ffd68a;
 			}
 			.detail .d-fallback {
@@ -362,6 +366,10 @@ const first = pool[0];
 				margin: -0.6em 0 0;
 				font-size: 0.78em;
 				color: rgb(var(--gray));
+			}
+			/* 手机上没有空格 / 回车，换成触屏说法 */
+			.key-hint .touch-hint {
+				display: none;
 			}
 			.key-hint kbd {
 				padding: 0.1em 0.45em;
@@ -474,7 +482,11 @@ const first = pool[0];
 				flex-wrap: wrap;
 				gap: 0.4em;
 			}
-			.history-list a {
+			/*
+			 * 小头像整组都是脚本生成的，同样需要 :global ——
+			 * 否则 a/img 拿不到 scoped 属性，会按原图尺寸铺满整页。
+			 */
+			.history-list :global(a) {
 				display: block;
 				width: 34px;
 				height: 34px;
@@ -484,11 +496,11 @@ const first = pool[0];
 				background: var(--surface);
 				transition: 0.15s ease;
 			}
-			.history-list a:hover {
+			.history-list :global(a:hover) {
 				transform: translateY(-2px);
 				border-color: rgba(175, 255, 255, 45%);
 			}
-			.history-list img {
+			.history-list :global(img) {
 				width: 100%;
 				height: 100%;
 				object-fit: cover;
@@ -519,14 +531,33 @@ const first = pool[0];
 			@media (max-width: 860px) {
 				main {
 					padding-top: 1.6em;
-					/* 给吸底的按钮条留出位置，免得挡住页脚 */
-					padding-bottom: 5.5em;
 				}
+				/*
+				 * 手机上把 .pair 拆开（display: contents），让卡牌、签纸、档案
+				 * 都直接排进 .stage 的一列里：抽完先看到运势，再看档案。
+				 * 桌面端仍然是「左牌右档」的两栏，不受影响。
+				 */
 				.pair {
-					flex-direction: column;
-					align-items: center;
-					min-height: 0;
-					gap: 1.2em;
+					display: contents;
+				}
+				.card3d {
+					order: 0;
+				}
+				/* 抽完的顺序：卡 → 签纸（运势）→ 再摇一支 → 提示 → 档案 */
+				.slip {
+					order: 1;
+				}
+				.actions {
+					order: 2;
+				}
+				.key-hint {
+					order: 3;
+				}
+				.detail {
+					order: 4;
+				}
+				.history {
+					order: 5;
 				}
 				.pair:not(.drawn) .card3d {
 					transform: none;
@@ -544,13 +575,31 @@ const first = pool[0];
 				.slip {
 					width: min(calc(100% - 2.8em), 420px);
 				}
+				/*
+				 * 还没摇的时候，右侧档案在桌面是「占位不出声」的；
+				 * 手机上它会竖着叠在卡片下面，变成一大块看不见却占高度的空白，
+				 * 把按钮和运势都推到一屏之外。这里直接不占位，摇完再出现。
+				 */
+				.pair:not(.drawn) .detail {
+					display: none;
+				}
+				/* 初始那点 22px 的右移在窄屏会把页面顶出横向滚动，去掉 */
+				.detail {
+					transform: none;
+				}
+				/* 还没摇时的「？」灰盒子在手机上像加载失败，先收起来，出结果再淡入 */
+				.slip.pending {
+					display: none;
+				}
 
 				/* 卡面：固定高度，立绘弹性收缩，名字留在卡内 */
 				.card3d {
 					display: flex;
 					flex-direction: column;
 					width: 290px;
-					height: 400px;
+					/* 短屏（683/667 的 SE、安卓小屏）按视口高度收一收，别把「摇一支签」推到屏外 */
+					height: clamp(300px, 46vh, 400px);
+					height: clamp(300px, 46dvh, 400px);
 				}
 				.card-inner {
 					flex: 1;
@@ -582,18 +631,9 @@ const first = pool[0];
 					flex-direction: column;
 					width: min(100%, 420px);
 					max-width: none;
-				}
-				/* 吸底：摇完往下看档案时，不用翻回页首也能再摇一支 */
-				.actions {
-					position: sticky;
-					bottom: 0;
-					z-index: 5;
 					gap: 0.7em;
 					margin-top: -0.3em;
-					padding: 0.8em 0 0.9em;
-					background: rgba(14, 27, 38, 92%);
-					backdrop-filter: blur(10px);
-					border-top: 1px solid rgb(var(--gray-light));
+					padding: 0.6em 0 0.7em;
 				}
 
 				/* 页首那几段在手机上占掉小半屏，收一收 */
@@ -623,7 +663,13 @@ const first = pool[0];
 				}
 				/* 空格/回车是桌面习惯，手机上写明是点按钮 */
 				.key-hint {
-					font-size: 0.72em;
+					font-size: 0.78em;
+				}
+				.key-hint .kb-hint {
+					display: none;
+				}
+				.key-hint .touch-hint {
+					display: inline;
 				}
 				.slip {
 					padding: 1.1em 1.2em 1.2em;
@@ -631,9 +677,30 @@ const first = pool[0];
 				.slip-tier {
 					font-size: 2.1em;
 				}
-				.history-list a {
+				.history-list :global(a) {
 					width: 40px;
 					height: 40px;
+				}
+			}
+
+			/*
+			 * 特别矮的屏（iPhone SE 一类 667/568）：页首两段说明 + 大卡会把
+			 * 「摇一支签」推到第一屏之外。这里把投稿提示收起、卡片再压一档，
+			 * 保证不滚动也能按下主按钮。
+			 */
+			@media (max-width: 860px) and (max-height: 620px) {
+				.join {
+					display: none;
+				}
+				.lead {
+					margin-bottom: 0.4em;
+				}
+				.stage {
+					margin-top: 0.6em;
+				}
+				.card3d {
+					height: clamp(240px, 46vh, 320px);
+					height: clamp(240px, 46dvh, 320px);
 				}
 			}
 		</style>
@@ -655,7 +722,7 @@ const first = pool[0];
 				>
 			</p>
 			<p class="lead">
-				摇一支签，会遇见一位角色，右边是 TA 的档案，下面还写着今天的运势。签筒里现有 <a
+				摇一支签，会遇见一位角色，还有 TA 的档案与今天的运势。签筒里现有 <a
 					href="/draw/pool/">{pool.length} 位</a
 				>。
 			</p>
@@ -701,7 +768,10 @@ const first = pool[0];
 					</aside>
 				</div>
 
-				<p class="key-hint">也可以按 <kbd>空格</kbd> 或 <kbd>回车</kbd> 再摇一支</p>
+				<p class="key-hint">
+					<span class="kb-hint">也可以按 <kbd>空格</kbd> 或 <kbd>回车</kbd> 再摇一支</span
+					><span class="touch-hint">点上面的按钮，可以接着摇</span>
+				</p>
 
 				<div class="actions">
 					<button type="button" id="draw">摇一支签</button>

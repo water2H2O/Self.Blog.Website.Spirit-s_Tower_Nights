@@ -102,6 +102,34 @@ const acts = groupByArc(episodes);
 			.empty {
 				color: rgb(var(--gray));
 			}
+			/*
+			 * 手机上话数很多，标题本身只有一行 24px 高，手指很难点准。
+			 * 把「话」的链接撑成整行可点，行高过 44px。
+			 */
+			@media (max-width: 720px) {
+				.arc {
+					padding-left: 0.8em;
+				}
+				.arc li {
+					gap: 0.7em;
+					padding: 0;
+				}
+				.arc li .entry {
+					flex: 1;
+					min-width: 0;
+				}
+				.arc a {
+					display: block;
+					padding: 0.65em 0 0.15em;
+				}
+				.code {
+					padding-top: 0.8em;
+				}
+				.summary {
+					margin-top: 0;
+					padding-bottom: 0.65em;
+				}
+			}
 		</style>
 	</head>
 	<body>

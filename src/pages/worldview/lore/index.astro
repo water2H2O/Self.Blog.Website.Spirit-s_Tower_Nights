@@ -214,6 +214,15 @@ const groups = LORE_CATEGORIES.map((category) => ({
 					position: static;
 					overflow-x: auto;
 					padding-bottom: 0.3em;
+					/* 六类在手机上放不下：右边渐隐，让人看得出还能往右滑 */
+					padding-right: 2.2em;
+					scrollbar-width: none;
+					-webkit-overflow-scrolling: touch;
+					-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 30px), transparent);
+					mask-image: linear-gradient(to right, #000 calc(100% - 30px), transparent);
+				}
+				.cats::-webkit-scrollbar {
+					display: none;
 				}
 				.cats-title {
 					display: none;

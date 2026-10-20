@@ -127,10 +127,16 @@ const ungrouped = characters.filter((character) => !known.has(character.id));
 			.group-wrap section {
 				margin: 0;
 			}
-			/* 分组内部的卡片网格收紧一点，一列能放两三张 */
+			/*
+			 * 分组内部的卡片网格。
+			 *
+			 * 下限从 170px 提到 250px：手机上 170px 一列时，摘要每行只剩七八个字，
+			 * 「淼渺」那种长一点的介绍会被挤成一根柱子。250px 保证一列最多两格，
+			 * 窄屏自然落到一列铺满。
+			 */
 			.grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+				grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 				gap: 1rem;
 			}
 			.empty {

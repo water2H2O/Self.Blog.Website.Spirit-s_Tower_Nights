@@ -154,15 +154,30 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 				filter: invert(92%) hue-rotate(160deg);
 			}
 			@media (max-width: 640px) {
+				/*
+				 * 手机上 210px 曲绘 + 文案只剩 ~120px：像「Late Glow, Twin Trails」
+				 * 这种标题会竖着断成四行，日文标题更挤。
+				 * 干脆改成上下叠：曲绘横过来占满整行，文案拿回全部宽度。
+				 */
 				.track {
-					grid-template-columns: 210px 1fr;
-					gap: 1em;
+					grid-template-columns: 1fr;
+					gap: 0.85em;
+					padding: 0.85em;
 				}
 				.cover {
-					min-height: 130px;
+					min-height: 0;
+					aspect-ratio: 16 / 10;
 				}
 				.info h2 {
-					font-size: 1.15em;
+					margin: 0.1em 0 0.35em;
+					font-size: 1.25em;
+				}
+				.artist {
+					margin-bottom: 0.6em;
+				}
+				.preview-btn {
+					min-height: 44px;
+					padding: 0.55em 1.15em;
 				}
 			}
 		</style>

@@ -133,7 +133,13 @@ const links = [
 			margin-top: 1.5em;
 		}
 		.social-links a {
-			padding: 0.5em;
+			/* 44×44 是手指点得准的最小尺寸 */
+			box-sizing: border-box;
+			width: 44px;
+			height: 44px;
+			padding: 0;
+			align-items: center;
+			justify-content: center;
 		}
 		.social-links a :global(svg) {
 			width: 26px;

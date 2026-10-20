@@ -184,7 +184,20 @@ if (inWorldview) {
 			{/* 首屏内容，别 lazyload，否则进页面会闪一下。logo 是 3.56:1 的横版字标 */}
 			<Image src={logo} alt={SITE_TITLE} width={128} loading="eager" />
 		</a>
-		<div class="internal-links">
+		{/*
+			窄屏导航开关：纯 CSS 的 checkbox，不依赖 JS。
+			桌面下这个开关和按钮都隐藏，导航照旧横排；
+			≤640px 时收成一条 56px 的顶栏 + 汉堡菜单，避免六个栏目在手机上折成两行、把吸顶页头顶到 107px。
+		*/}
+		<input
+			type="checkbox"
+			id="nav-toggle"
+			class="nav-toggle"
+			aria-label="展开站点导航菜单"
+			aria-controls="site-nav"
+		/>
+		<label for="nav-toggle" class="nav-btn"><span class="sr-only">站点导航</span></label>
+		<div class="internal-links" id="site-nav">
 			{
 				mainLinks.map((link) => (
 					<a
@@ -346,6 +359,11 @@ if (inWorldview) {
 	.social-links a {
 		display: flex;
 	}
+	/* 手机汉堡菜单的开关与按钮：桌面下不存在 */
+	.nav-toggle,
+	.nav-btn {
+		display: none;
+	}
 
 	/* ---------- 世界观侧栏（桌面）/ 目录（窄屏） ---------- */
 	.wv-nav-toggle {
@@ -478,6 +496,97 @@ if (inWorldview) {
 		}
 		.social-links {
 			display: none;
+		}
+	}
+
+	/**
+	 * 手机（≤640px）：六个栏目横排放不下，原来会折成两行 ——
+	 * 吸顶页头因此长到 107px，接近一屏的八分之一，长文和画廊里特别碍事。
+	 * 这里收成一条 56px 的顶栏：左边 logo，右边汉堡按钮，导航点开是两列浮层。
+	 * 纯 CSS（checkbox + label），没有脚本也能用。
+	 */
+	@media (max-width: 640px) {
+		header {
+			padding: 0 0.85em;
+		}
+		nav.main {
+			flex-wrap: nowrap;
+			gap: 0;
+			min-height: 56px;
+		}
+		.brand :global(img) {
+			width: 92px;
+		}
+		nav.main a.brand {
+			padding: 0.4em 0;
+		}
+		.nav-toggle {
+			display: block;
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			opacity: 0;
+			pointer-events: none;
+		}
+		.nav-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			margin-left: auto;
+			border: 1px solid rgb(var(--gray-light));
+			border-radius: 11px;
+			color: rgb(var(--gray-dark));
+			cursor: pointer;
+			user-select: none;
+			transition: 0.15s ease;
+		}
+		.nav-btn::before {
+			content: '☰';
+			font-size: 1.25em;
+			line-height: 1;
+		}
+		.nav-toggle:checked ~ .nav-btn {
+			color: var(--glow);
+			border-color: rgba(175, 255, 255, 45%);
+			background: rgba(175, 255, 255, 8%);
+		}
+		.nav-toggle:checked ~ .nav-btn::before {
+			content: '✕';
+		}
+		.nav-toggle:focus-visible ~ .nav-btn {
+			outline: 2px solid var(--glow);
+			outline-offset: 2px;
+		}
+		.internal-links {
+			display: none;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.25em;
+			padding: 0.6em 0.85em 0.85em;
+			/* 不透明：半透明时底下明亮的插画会透上来，菜单字就糊了 */
+			background: linear-gradient(180deg, #182d3b, #132431);
+			border-bottom: 1px solid rgb(var(--gray-light));
+			box-shadow: 0 18px 34px rgba(0, 0, 0, 42%);
+		}
+		.nav-toggle:checked ~ .internal-links {
+			display: grid;
+		}
+		nav.main .internal-links a {
+			padding: 0.85em 0.8em;
+			font-size: 0.95em;
+			border-bottom: none;
+			border-left: 2px solid transparent;
+			border-radius: 9px;
+		}
+		nav.main .internal-links a.active {
+			border-bottom: none;
+			border-left-color: var(--glow);
+			background: rgba(175, 255, 255, 10%);
 		}
 	}
 

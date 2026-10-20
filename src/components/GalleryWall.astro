@@ -262,7 +262,8 @@ const filters = showFilters
 		text-align: center;
 		line-height: 1.7;
 	}
-	.lightbox .caption b {
+	/* 灯箱说明是 innerHTML 注入的，<b> 没有 scoped 属性 */
+	.lightbox .caption :global(b) {
 		color: var(--glow);
 		font-weight: 400;
 	}
@@ -287,7 +288,8 @@ const filters = showFilters
 			margin: 1em 0 0.5em;
 		}
 		.filters button {
-			padding: 0.55em 1em;
+			min-height: 44px;
+			padding: 0.55em 1.1em;
 			font-size: 0.84em;
 		}
 		.tile {

@@ -168,14 +168,34 @@ const ARTICLES = [
 			padding: 3vh 4vw;
 		}
 		.gate-box {
+			/*
+			 * 手机地址栏伸缩时 100vh 会把面板底边顶出屏幕，dvh 跟着可视高度走；
+			 * max-height 算的是内容盒，还得再减掉面板自己的上下 padding（≈3em）与
+			 * 外层的 6vh，否则底边会被裁掉一截。
+			 */
+			max-height: calc(94vh - 3em);
+			max-height: calc(94dvh - 3em);
 			padding: 1.4em 1.3em 1.6em;
+			overscroll-behavior: contain;
+			-webkit-overflow-scrolling: touch;
 		}
+		/*
+		 * 十四条协议在手机上要滑好几屏，按钮放在最底下等于「先读完才能同意」。
+		 * 把按钮条吸在面板底部：一进来就看得到两个选择，内容照旧可以慢慢读。
+		 */
 		.actions {
+			position: sticky;
+			bottom: 0;
+			z-index: 1;
 			gap: 0.7em;
 			min-height: 4em;
+			margin: 0 -0.2em;
+			padding: 0.9em 0.2em 0.75em;
+			background: var(--surface);
+			box-shadow: 0 -12px 18px -10px rgba(0, 0, 0, 55%);
 		}
 		.actions button {
-			padding: 0.68em 1.5em;
+			padding: 0.72em 1.5em;
 			font-size: 0.9em;
 		}
 	}
