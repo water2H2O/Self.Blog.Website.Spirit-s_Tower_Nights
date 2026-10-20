@@ -33,3 +33,6 @@ __pycache__/
 # 子任务/工具留下的临时备份目录
 .dsh-old/
 .dsh-*/
+
+# DeepSeek usage token (local credential, never commit)
+tools/.deepseek-user-token

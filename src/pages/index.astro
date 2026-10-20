@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import githubData from '../data/github.json';
+import tokenUsage from '../data/token-usage.json';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
@@ -77,6 +78,115 @@ weeks.forEach((_, index) => {
 		lastMonth = month;
 	}
 });
+
+/**
+ * ★ token 用量 K 线图。
+ *
+ * 数据来自 `src/data/token-usage.json`，由 `tools/fetch-token-usage.mjs` 在本地抓取后提交 ——
+ * 平台侧的用量接口要登录态，静态站不能自己去请求，所以走「本地抓 → 提交 JSON → 构建时读」，
+ * 和上面 github.json 是同一套路。**数据为空时整段不渲染**，不会在站上留个空框。
+ */
+type TokenDay = { date: string; tokens: number; requests: number; cost: number };
+const tokenData = tokenUsage as {
+	fetchedAt?: string;
+	totals?: { tokens?: number; requests?: number; cost?: number };
+	models?: { model: string; tokens: number }[];
+	daily?: TokenDay[];
+};
+const tokenDaily: TokenDay[] = (tokenData.daily ?? []).filter((day) => day.tokens > 0);
+
+/** 千分位 + 中文单位，图表旁边的数字用 */
+const fmtTokens = (n: number) =>
+	n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(n);
+
+/** 按天 → 按周（周一为一周起点），一根蜡烛 = 一周 */
+const tokenCandles = (() => {
+	if (tokenDaily.length < 2) return [];
+	const byWeek = new Map<string, TokenDay[]>();
+	for (const day of tokenDaily) {
+		const d = new Date(`${day.date}T00:00:00Z`);
+		const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86400000);
+		const key = monday.toISOString().slice(0, 10);
+		if (!byWeek.has(key)) byWeek.set(key, []);
+		byWeek.get(key)!.push(day);
+	}
+	return [...byWeek.entries()]
+		.sort((a, b) => a[0].localeCompare(b[0]))
+		.slice(-10)
+		.map(([week, days]) => {
+			const values = days.map((day) => day.tokens);
+			return {
+				week,
+				open: values[0],
+				close: values[values.length - 1],
+				high: Math.max(...values),
+				low: Math.min(...values),
+				total: values.reduce((a, b) => a + b, 0),
+				days: days.length,
+			};
+		});
+})();
+
+/** 图上要写的几行数字：最近一天、最近 7 天、本月（按数据里最后一个月的口径） */
+const tokenStats = (() => {
+	if (tokenDaily.length === 0) return null;
+	const last = tokenDaily[tokenDaily.length - 1];
+	const monthKey = last.date.slice(0, 7);
+	const monthDays = tokenDaily.filter((day) => day.date.startsWith(monthKey));
+	const week7 = tokenDaily.slice(-7);
+	const sum = (rows: TokenDay[], key: 'tokens' | 'cost') =>
+		rows.reduce((acc, day) => acc + day[key], 0);
+	return {
+		lastDate: last.date,
+		lastTokens: last.tokens,
+		week7Tokens: sum(week7, 'tokens'),
+		monthTokens: sum(monthDays, 'tokens'),
+		monthCost: sum(monthDays, 'cost'),
+		monthLabel: `${Number(monthKey.slice(5, 7))} 月`,
+		fetchedAt: tokenData.fetchedAt ?? '',
+	};
+})();
+
+/** 蜡烛的 SVG 坐标（纯静态，不需要前端 JS） */
+const tokenChart = (() => {
+	if (tokenCandles.length === 0) return null;
+	const W = 720;
+	const H = 190;
+	const PL = 8;
+	const PR = 52; // 右侧留一条窄栏放数值刻度
+	const PT = 14;
+	const PB = 26;
+	const highs = tokenCandles.map((c) => c.high);
+	const lows = tokenCandles.map((c) => c.low);
+	const max = Math.max(...highs);
+	const min = Math.min(...lows);
+	const span = Math.max(1, max - min);
+	const plotW = W - PL - PR;
+	const plotH = H - PT - PB;
+	const y = (value: number) => PT + plotH - ((value - min) / span) * plotH;
+	const slot = plotW / tokenCandles.length;
+	const bodyW = Math.max(7, Math.min(26, slot * 0.5));
+	const candles = tokenCandles.map((candle, index) => {
+		const cx = PL + slot * index + slot / 2;
+		const yOpen = y(candle.open);
+		const yClose = y(candle.close);
+		return {
+			...candle,
+			cx,
+			bodyW,
+			bodyY: Math.min(yOpen, yClose),
+			bodyH: Math.max(2, Math.abs(yClose - yOpen)),
+			wickTop: y(candle.high),
+			wickBottom: y(candle.low),
+			up: candle.close >= candle.open,
+			label: index % 2 === 0 || index === tokenCandles.length - 1,
+			axisX: cx,
+			gridTop: PT,
+			gridBottom: PT + plotH,
+		};
+	});
+	return { W, H, PL, PR, PT, PB, plotW, plotH, max, min, candles, y };
+})();
 ---
 
 <!doctype html>
@@ -643,6 +753,88 @@ weeks.forEach((_, index) => {
 					max-height: 42dvh;
 				}
 			}
+
+			/* ---------- token 用量 K 线 ---------- */
+			.tokens {
+				margin-top: 1.2em;
+				padding: 1.3em 1.5em 1.1em;
+				border-radius: 16px;
+				background:
+					radial-gradient(120% 90% at 100% 0%, rgba(127, 233, 240, 7%), transparent 58%),
+					var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				box-shadow: inset 0 1px 0 rgba(216, 255, 255, 10%);
+			}
+			.tk-head {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				flex-wrap: wrap;
+				gap: 0.6em;
+				padding-bottom: 0.8em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			.tk-brand {
+				font-size: 0.74em;
+				letter-spacing: 0.18em;
+				color: rgb(var(--gray));
+			}
+			.tk-total {
+				font-size: 0.84em;
+				color: var(--accent);
+			}
+			.tk-chart {
+				display: block;
+				width: 100%;
+				height: auto;
+				margin: 0.9em 0 0.2em;
+				overflow: visible;
+			}
+			.tk-axis {
+				fill: rgb(var(--gray));
+				font-size: 11px;
+				letter-spacing: 0.04em;
+			}
+			.tk-stats {
+				display: grid;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				gap: 0.6em;
+				list-style: none;
+				margin: 0.9em 0 0;
+				padding: 0;
+			}
+			.tk-stats li {
+				display: flex;
+				flex-direction: column;
+				gap: 0.15em;
+				padding: 0.55em 0.7em;
+				border-radius: 10px;
+				background: rgba(175, 255, 255, 4%);
+				border: 1px solid rgba(175, 255, 255, 12%);
+			}
+			.tk-stats span {
+				font-size: 0.72em;
+				color: rgb(var(--gray));
+			}
+			.tk-stats b {
+				font-size: 1.02em;
+				color: var(--glow);
+				font-weight: 600;
+			}
+			.tk-note {
+				margin: 0.9em 0 0;
+				font-size: 0.76em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			@media (max-width: 640px) {
+				.tokens {
+					padding: 1.1em 1em 1em;
+				}
+				.tk-stats {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -931,6 +1123,91 @@ weeks.forEach((_, index) => {
 					<span class="gh-updated">热力图与仓库每天自动刷新一次</span>
 				</p>
 			</div>
+
+			{tokenChart && tokenStats && (
+				<>
+					<h2 class="section-title">最近在烧什么</h2>
+					<div class="tokens">
+						<div class="tk-head">
+							<span class="tk-brand">DEEPSEEK · TOKENS</span>
+							<span class="tk-total">
+								{tokenStats.monthLabel} {fmtTokens(tokenStats.monthTokens)} tokens · ¥{tokenStats.monthCost.toFixed(2)}
+							</span>
+						</div>
+						<svg
+							class="tk-chart"
+							viewBox={`0 0 ${tokenChart.W} ${tokenChart.H}`}
+							role="img"
+							aria-label={`按周的 token 用量，最近 ${tokenChart.candles.length} 周`}
+						>
+							{[0, 0.5, 1].map((ratio) => (
+								<line
+									x1={tokenChart.PL}
+									x2={tokenChart.W - tokenChart.PR}
+									y1={tokenChart.PT + tokenChart.plotH * ratio}
+									y2={tokenChart.PT + tokenChart.plotH * ratio}
+									stroke="rgba(175,255,255,0.10)"
+									stroke-dasharray="3 5"
+								/>
+							))}
+							{/* 纵轴刻度：只在最高 / 最低处标两个值，够看且不吵 */}
+							<text x={tokenChart.W - 6} y={tokenChart.PT + 4} text-anchor="end" class="tk-axis">
+								{fmtTokens(tokenChart.max)}
+							</text>
+							<text
+								x={tokenChart.W - 6}
+								y={tokenChart.PT + tokenChart.plotH}
+								text-anchor="end"
+								class="tk-axis"
+							>
+								{fmtTokens(tokenChart.min)}
+							</text>
+							{tokenChart.candles.map((candle) => (
+								<g>
+									<line
+										x1={candle.cx}
+										x2={candle.cx}
+										y1={candle.wickTop}
+										y2={candle.wickBottom}
+										stroke={candle.up ? '#7fe9f0' : '#e06a7a'}
+										stroke-width="1.4"
+										stroke-linecap="round"
+									/>
+									<rect
+										x={candle.cx - candle.bodyW / 2}
+										y={candle.bodyY}
+										width={candle.bodyW}
+										height={candle.bodyH}
+										rx="1.5"
+										fill={candle.up ? '#7fe9f0' : '#e06a7a'}
+										fill-opacity={candle.up ? '0.9' : '0.78'}
+									/>
+									{candle.label && (
+										<text
+											x={candle.cx}
+											y={tokenChart.H - 8}
+											text-anchor="middle"
+											class="tk-axis"
+										>
+											{candle.week.slice(5).replace('-', '/')}
+										</text>
+									)}
+								</g>
+							))}
+						</svg>
+						<ul class="tk-stats">
+							<li><span>最近一天</span><b>{fmtTokens(tokenStats.lastTokens)}</b></li>
+							<li><span>最近 7 天</span><b>{fmtTokens(tokenStats.week7Tokens)}</b></li>
+							<li><span>{tokenStats.monthLabel}合计</span><b>{fmtTokens(tokenStats.monthTokens)}</b></li>
+							<li><span>{tokenStats.monthLabel}花费</span><b>¥{tokenStats.monthCost.toFixed(2)}</b></li>
+						</ul>
+						<p class="tk-note">
+							每根蜡烛是<strong>一周</strong>：开 / 收取那一周首末两天的用量，影线是那周的最高与最低。
+							数据来自 DeepSeek 开放平台的用量页，手动更新，不是实时。
+						</p>
+					</div>
+				</>
+			)}
 		</main>
 		<Footer />
 	</body>

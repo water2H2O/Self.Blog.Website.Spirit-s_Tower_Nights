@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "",
+  "source": "platform.deepseek.com/api/v0/usage/export",
+  "months": [],
+  "totals": {
+    "tokens": 0,
+    "requests": 0,
+    "cost": 0
+  },
+  "models": [],
+  "daily": []
+}

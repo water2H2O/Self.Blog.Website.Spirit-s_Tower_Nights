@@ -670,6 +670,30 @@ pnpm run github:build       # 抓完再跑一次构建
 > 热力图右下角那行「数据截至 …」就是这份缓存的区间末端；GitHub 个人页上的格子
 > 如果显示得更多，等到下一次刷新就会对齐。
 
+## 主页的 token 用量 K 线（手动刷新）
+
+首页底部那块「最近在烧什么」是 **DeepSeek 开放平台的 token 用量**，画成按周的 K 线：
+一根蜡烛 = 一周，开 / 收取那一周首末两天的用量，影线是那周的最高与最低。
+
+**为什么必须手动跑**：平台侧的用量接口（`platform.deepseek.com/api/v0/usage/export`）
+是**登录态的私有接口**，要浏览器里的 `userToken`；公开 API 只有 `/user/balance`（余额）。
+静态站不能带着登录凭据去请求，所以走「本地抓 → 提交 JSON → 构建时读」——
+和上面 `github.json` 同一套路。数据放在 `src/data/token-usage.json`。
+
+```sh
+# 1) 浏览器登录 platform.deepseek.com，控制台执行 localStorage.getItem("userToken")
+#    把结果原样存进 tools/.deepseek-user-token（已 gitignore），或设 DEEPSEEK_USER_TOKEN
+# 2) 抓最近 3 个月（可 --months=6）
+node tools/fetch-token-usage.mjs
+# 3) 提交
+git add src/data/token-usage.json && git commit -m "chore: 刷新 token 用量" && git push
+```
+
+**安全**：token 只从上面两个地方读，永远不进仓库；导出的 CSV 第 5 列是明文 api_key，
+脚本按下标取列、不打印也不保存它；产物 JSON 里只有按天的 tokens / 请求数 / 花费。
+
+数据为空（`daily: []`）时**整块不渲染**，所以没抓过数据也不会在首页留个空框。
+
 ## 部署（Cloudflare Workers + 自定义域名）
 
 正式地址：**https://water2h2o.com**（域名在 Dynadot，DNS 托管在 Cloudflare）。
