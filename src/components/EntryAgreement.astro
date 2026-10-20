@@ -43,7 +43,8 @@ const ARTICLES = [
 		<p class="lead">
 			第一次来，麻烦看一眼。看完点<strong>同意</strong>就好 —— 想拒绝也行，如果你点得到的话。
 		</p>
-		<ol class="articles">
+		{/* tabindex 让键盘用户能聚焦到条款区，用 PageDown / 方向键翻看 */}
+		<ol class="articles" tabindex="0" aria-label="协议条款">
 			{ARTICLES.map((text) => <li>{text}</li>)}
 		</ol>
 		<div class="actions">
@@ -72,10 +73,20 @@ const ARTICLES = [
 	.gate[hidden] {
 		display: none;
 	}
+	/*
+	 * 面板是「固定头 + 可滚动条款 + 固定按钮」的竖向 flex。
+	 *
+	 * 之前整个面板一起滚，按钮跟着十四条条款沉到底部：桌面窗口矮一点、
+	 * 或者手机上，都得先滑到最后才点得到「同意」。现在只有 .articles 滚，
+	 * 按钮区永在可视范围内 —— 不依赖 position: sticky 在滚动容器里的表现。
+	 */
 	.gate-box {
+		box-sizing: border-box;
 		width: min(680px, 100%);
 		max-height: 92vh;
-		overflow: auto;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
 		padding: 1.8em 2em 2em;
 		border-radius: 18px;
 		background: var(--surface);
@@ -103,11 +114,22 @@ const ARTICLES = [
 		color: var(--accent);
 	}
 	.articles {
-		margin: 0 0 1.6em;
-		padding: 0 0 0 1.4em;
+		/* 只有这一段滚动；min-height:0 是 flex 子项能收缩的前提 */
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		margin: 0 0 1.2em;
+		padding: 0 0.35em 0 1.4em;
 		font-size: 0.86em;
 		line-height: 1.95;
 		color: rgb(var(--gray-dark));
+	}
+	.articles:focus-visible {
+		outline: 1px solid var(--accent);
+		outline-offset: 3px;
+		border-radius: 8px;
 	}
 	.articles li {
 		margin-bottom: 0.5em;
@@ -117,6 +139,8 @@ const ARTICLES = [
 		color: rgb(var(--gray));
 	}
 	.actions {
+		/* 固定区：不参与压缩，永远排在滚动条款的下方 */
+		flex: none;
 		display: flex;
 		/* 窄屏放不下时让整颗按钮换行 —— 别把按钮里的字挤成两行 */
 		flex-wrap: wrap;
@@ -124,7 +148,10 @@ const ARTICLES = [
 		gap: 1em;
 		/* 高度留够：「同意」会被放大，别顶到上面的条款 */
 		min-height: 4.6em;
-		padding: 0.4em 0;
+		margin-top: 0.2em;
+		padding: 0.9em 0 0.2em;
+		border-top: 1px solid rgb(var(--gray-light));
+		background: var(--surface);
 	}
 	.actions button {
 		flex: 0 0 auto;
@@ -168,37 +195,23 @@ const ARTICLES = [
 			padding: 3vh 4vw;
 		}
 		.gate-box {
-			/*
-			 * 手机地址栏伸缩时 100vh 会把面板底边顶出屏幕，dvh 跟着可视高度走；
-			 * max-height 算的是内容盒，还得再减掉面板自己的上下 padding（≈3em）与
-			 * 外层的 6vh，否则底边会被裁掉一截。
-			 */
-			max-height: calc(94vh - 3em);
-			max-height: calc(94dvh - 3em);
+			/* border-box 下 max-height 已含 padding；外层 gate 上下各留 3vh，
+			   手机地址栏伸缩时用 dvh 跟住可视高度 */
+			max-height: 92vh;
+			max-height: 92dvh;
 			padding: 1.4em 1.3em 1.6em;
-			overscroll-behavior: contain;
-			-webkit-overflow-scrolling: touch;
 		}
-		/*
-		 * 十四条协议在手机上要滑好几屏，按钮放在最底下等于「先读完才能同意」。
-		 * 把按钮条吸在面板底部：一进来就看得到两个选择，内容照旧可以慢慢读。
-		 */
 		.actions {
-			position: sticky;
-			bottom: 0;
-			z-index: 1;
 			gap: 0.7em;
 			min-height: 4em;
-			margin: 0 -0.2em;
-			padding: 0.9em 0.2em 0.75em;
-			background: var(--surface);
-			box-shadow: 0 -12px 18px -10px rgba(0, 0, 0, 55%);
+			padding: 0.85em 0 0.15em;
 		}
 		.actions button {
 			padding: 0.72em 1.5em;
 			font-size: 0.9em;
 		}
 	}
+
 	.hint {
 		margin: 0.9em 0 0;
 		min-height: 1.6em;
@@ -209,6 +222,42 @@ const ARTICLES = [
 		margin: 0.4em 0 0;
 		font-size: 0.74em;
 		color: rgb(var(--gray));
+	}
+
+	/*
+	 * 横屏手机 / 矮窗口：把标题以外的说明收掉，否则固定区会把条款滚动区挤没。
+	 * 按钮区仍然保留，只是更紧凑。放在最后，确保覆盖上面的基础间距。
+	 */
+	@media (max-height: 620px) {
+		.gate {
+			padding: 2vh 4vw;
+		}
+		.gate-box {
+			max-height: 94vh;
+			max-height: 94dvh;
+			padding: 1em 1.1em 1.1em;
+		}
+		.kicker,
+		.gate-box .lead,
+		.again {
+			display: none;
+		}
+		.gate-box h2 {
+			margin: 0 0 0.5em;
+			font-size: 1.25em;
+		}
+		.articles {
+			margin-bottom: 0.6em;
+		}
+		.actions {
+			min-height: 0;
+			margin-top: 0;
+			padding-top: 0.6em;
+		}
+		.hint {
+			min-height: 0;
+			margin-top: 0.4em;
+		}
 	}
 </style>
 
