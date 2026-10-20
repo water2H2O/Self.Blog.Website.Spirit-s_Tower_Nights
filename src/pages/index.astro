@@ -16,6 +16,7 @@ import {
 	PROJECT_TITLE,
 	QQ_GROUP,
 	QQ_GROUP_URL,
+	QQ_GROUP_VISIBLE,
 	SITE_AUTHOR,
 	SITE_DESCRIPTION,
 	X_URL,
@@ -701,7 +702,9 @@ weeks.forEach((_, index) => {
 					</p>
 
 					<ul class="platforms">
-						<li><a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">QQ 群 {QQ_GROUP}</a></li>
+						{QQ_GROUP_VISIBLE && (
+							<li><a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">QQ 群 {QQ_GROUP}</a></li>
+						)}
 						<li><a href={BILIBILI_URL} target="_blank" rel="noreferrer">B 站</a></li>
 						<li><a href={X_URL} target="_blank" rel="noreferrer">X</a></li>
 						<li><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></li>

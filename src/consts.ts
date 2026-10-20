@@ -43,3 +43,12 @@ export const EMAIL = 'ss.water2h2o@gmail.com';
  */
 export const QQ_GROUP = '1074706241';
 export const QQ_GROUP_URL = `https://qm.qq.com/cgi-bin/qm/qr?k=&groupcode=${QQ_GROUP}`;
+
+/**
+ * QQ 群的链接是否公开。
+ *
+ * 做成开关而不是删代码：临时关掉时改成 false，首页「出没的地方」、关于页「联系」、
+ * 页脚图标三处会一起消失；想恢复就改回 true，一个字都不用重打。
+ * 群号与链接本身仍然保留在上面两个常量里。
+ */
+export const QQ_GROUP_VISIBLE = false;

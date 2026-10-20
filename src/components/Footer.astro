@@ -7,6 +7,7 @@ import {
 	GITHUB_URL,
 	QQ_GROUP,
 	QQ_GROUP_URL,
+	QQ_GROUP_VISIBLE,
 	SITE_AUTHOR,
 	X_NAME,
 	X_URL,
@@ -21,7 +22,10 @@ const links = [
 	{ href: BILIBILI_URL, label: `B 站 ${BILIBILI_NAME}`, name: 'B 站' },
 	{ href: X_URL, label: `X ${X_NAME}`, name: 'X' },
 	{ href: GITHUB_URL, label: `GitHub ${SITE_AUTHOR}`, name: 'GitHub' },
-	{ href: QQ_GROUP_URL, label: `QQ 群 ${QQ_GROUP}（点这里加群）`, name: 'QQ 群' },
+	// QQ 群可以临时收起：开关在 consts.ts 的 QQ_GROUP_VISIBLE
+	...(QQ_GROUP_VISIBLE
+		? [{ href: QQ_GROUP_URL, label: `QQ 群 ${QQ_GROUP}（点这里加群）`, name: 'QQ 群' }]
+		: []),
 ];
 ---
 

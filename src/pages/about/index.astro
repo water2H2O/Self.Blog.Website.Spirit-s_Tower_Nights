@@ -11,6 +11,7 @@ import {
 	PROJECT_TITLE,
 	QQ_GROUP,
 	QQ_GROUP_URL,
+	QQ_GROUP_VISIBLE,
 	SITE_AUTHOR,
 	X_NAME,
 	X_URL,
@@ -73,10 +74,12 @@ const more = [
 		<li>
 			GitHub：<a href={GITHUB_URL} target="_blank" rel="noreferrer">{GITHUB_NAME}</a>
 		</li>
-		<li>
-			QQ 群：<a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">{QQ_GROUP}</a>
-			（点群号直接加群）
-		</li>
+		{QQ_GROUP_VISIBLE && (
+			<li>
+				QQ 群：<a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">{QQ_GROUP}</a>
+				（点群号直接加群）
+			</li>
+		)}
 	</ul>
 
 	<h2>友情链接</h2>
