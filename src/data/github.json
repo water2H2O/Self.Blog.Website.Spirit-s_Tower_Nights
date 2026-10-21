@@ -1,35 +1,46 @@
 {
-  "fetchedAt": "2026-10-20T01:04:38.671Z",
+  "fetchedAt": "2026-10-21T00:35:35.653Z",
   "user": {
     "login": "water2H2O",
     "name": "",
     "url": "https://github.com/water2H2O",
     "avatar": "https://avatars.githubusercontent.com/u/189988544?v=4",
-    "publicRepos": 5,
+    "publicRepos": 6,
     "followers": 1,
     "createdAt": "2024-11-28T12:20:28Z"
   },
   "repos": [
-    {
-      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
-      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
-      "language": "Astro",
-      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
-      "stars": 0,
-      "pushedAt": "2026-10-19T17:05:28Z",
-      "createdAt": "2026-10-09T07:50:22Z",
-      "sizeKb": 55543,
-      "empty": false
-    },
     {
       "name": "Spirit-s_Tower_Nights-Elemental_Verse",
       "description": "《水塔夜谈》世界观的 Minecraft 模组：水塔夜谈，元素之诗",
       "language": "Java",
       "url": "https://github.com/water2H2O/Spirit-s_Tower_Nights-Elemental_Verse",
       "stars": 0,
-      "pushedAt": "2026-10-19T15:56:01Z",
+      "pushedAt": "2026-10-20T18:24:04Z",
       "createdAt": "2026-10-16T21:39:13Z",
-      "sizeKb": 1858,
+      "sizeKb": 2564,
+      "empty": false
+    },
+    {
+      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
+      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
+      "language": "Astro",
+      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
+      "stars": 0,
+      "pushedAt": "2026-10-20T17:25:51Z",
+      "createdAt": "2026-10-09T07:50:22Z",
+      "sizeKb": 55707,
+      "empty": false
+    },
+    {
+      "name": "RecursionTrainingQuestion_ByDeepseek",
+      "description": "大肥鱼出的递归（recursion）训练题目",
+      "language": "Java",
+      "url": "https://github.com/water2H2O/RecursionTrainingQuestion_ByDeepseek",
+      "stars": 0,
+      "pushedAt": "2026-10-20T07:30:58Z",
+      "createdAt": "2026-10-20T05:47:51Z",
+      "sizeKb": 11,
       "empty": false
     },
     {
@@ -68,8 +79,8 @@
   ],
   "contributions": {
     "from": "2025-10-19",
-    "to": "2026-10-20",
-    "total": 308,
+    "to": "2026-10-21",
+    "total": 336,
     "weeks": [
       "0000010",
       "1100010",
@@ -123,7 +134,7 @@
       "0110010",
       "0110014",
       "2331114",
-      "3210000"
+      "3231000"
     ]
   }
 }
