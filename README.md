@@ -701,20 +701,23 @@ node tools/fetch-token-usage.mjs --dir="...\解压后的目录"
 node tools/fetch-token-usage.mjs --months=3
 ```
 
-**要合并中转站**（另一家网关的多模型用量），再加 `--relay=`：
+**要合并中转站**（另一家网关的多模型用量），加 `--relay=`，**可以给多份**（不同日期段的导出会重叠）：
 
 ```sh
 node tools/fetch-token-usage.mjs \
   --zip="C:\Users\你\Downloads\usage_data_2026-09-22_2026-10-21.zip" \
-  --relay="C:\Users\你\Downloads\usage_2026-10-09_to_2026-10-22.csv"
+  --relay="C:\Users\你\Downloads\usage_2026-10-09_to_2026-10-22.csv" \
+  --relay="C:\Users\你\Downloads\usage_2026-10-21_to_2026-10-22.csv"
 ```
 
 中转站表格只需要这几列（多出来的列忽略）：`Time`、`Model`、`Input Tokens`、`Output Tokens`、
 `Cache Read Tokens`、`Cache Creation Tokens`、`Billed Cost`。合并规则：
 
 - **直接相加** —— 中转站的量不在 DeepSeek 官方账单里，两边 token 口径一致（输入 + 输出 + 缓存）
+- **多份表按「时间戳 + 模型 + 各项 token」去重**，重叠的请求只算一次（日期段互相包含也不会翻倍）
 - 官方那几段加前缀 `官方 · `，中转站是 `中转站 · <模型名>`，图上按「来源 · 模型」堆叠
-- 花费 = 官方 ¥ + 中转站 Billed Cost（中转站按它自己的账单口径，币种未标注，默认当人民币）
+- 花费 = 官方 ¥ + 中转站 Billed Cost（中转站按它自己的账单口径，币种未标注，默认当人民币）；
+  每个系列的 `cost` 也单独记着，首页那句「Claude 花了我 xx 元」就是读它
 - 中转站表格随时可以重新导出，再跑一遍同一条命令即可覆盖更新
 
 **安全**：token 只从上面两个地方读，永远不进仓库。导出的 CSV 里有明文 api_key，

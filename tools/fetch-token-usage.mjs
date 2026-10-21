@@ -45,6 +45,13 @@ const argOf = (name) => {
 	return hit ? hit.slice(name.length + 3).replace(/^["']|["']$/g, '') : '';
 };
 
+/** 同一个参数可以给多次，按出现顺序全部收下 */
+const argAll = (name) =>
+	process.argv
+		.filter((a) => a.startsWith(`--${name}=`))
+		.map((a) => a.slice(name.length + 3).replace(/^["']|["']$/g, ''))
+		.filter(Boolean);
+
 /** 极简 CSV 行切分：处理双引号包裹与 "" 转义 */
 function splitCsvLine(line) {
 	const out = [];
@@ -133,6 +140,8 @@ let officialPrefix = '';
 const bySourceTotal = new Map();
 /** 「来源 · 模型」各自的账单，图上那句「Claude 花了我 xx 元」用它 */
 const costByLabel = new Map();
+/** 中转站可能给多份导出（日期段不同、有重叠），按 时间戳+模型 去重，避免同一笔算两次 */
+const relaySeen = new Set();
 
 function addCost(label, cost) {
 	if (!Number.isFinite(cost) || cost <= 0) return;
@@ -158,13 +167,17 @@ function ingestRelay(text) {
 		const date = time.slice(0, 10);
 		if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
 		const model = (row[header[iModel]] ?? '未知').trim();
-		const tokens =
-			(Number.parseInt(row[header[iIn]], 10) || 0) +
-			(Number.parseInt(row[header[iOut]], 10) || 0) +
-			(Number.parseInt(row[header[iCR]], 10) || 0) +
-			(Number.parseInt(row[header[iCC]], 10) || 0);
+		const inTok = Number.parseInt(row[header[iIn]], 10) || 0;
+		const outTok = Number.parseInt(row[header[iOut]], 10) || 0;
+		const crTok = Number.parseInt(row[header[iCR]], 10) || 0;
+		const ccTok = Number.parseInt(row[header[iCC]], 10) || 0;
+		const tokens = inTok + outTok + crTok + ccTok;
 		const cost = Number.parseFloat(row[header[iCost]]) || 0;
 		if (tokens <= 0) continue;
+		// 同一笔在多份导出里重复出现时只算一次
+		const dedupeKey = `${time}|${model}|${inTok}|${outTok}|${crTok}|${ccTok}`;
+		if (relaySeen.has(dedupeKey)) continue;
+		relaySeen.add(dedupeKey);
 		const label = `中转站 · ${model}`;
 		const day = dayOf(date);
 		day.tokens += tokens;
@@ -441,14 +454,17 @@ function writeOut(labels, source) {
 async function main() {
 	const zipPath = argOf('zip');
 	const dirPath = argOf('dir');
-	const relayPath = argOf('relay');
+	/** --relay 可以给多份（不同日期段的导出），重叠的行会按时间戳去重 */
+	const relayPaths = argAll('relay');
 
-	if (relayPath && !fs.existsSync(relayPath)) {
-		console.error(`找不到中转站表格：${relayPath}`);
-		process.exit(2);
+	for (const p of relayPaths) {
+		if (!fs.existsSync(p)) {
+			console.error(`找不到中转站表格：${p}`);
+			process.exit(2);
+		}
 	}
 	// 合并中转站时，官方那几段的标签加前缀，避免和图上模型名混淆
-	officialPrefix = relayPath ? '官方 · ' : '';
+	officialPrefix = relayPaths.length ? '官方 · ' : '';
 
 	let pairs;
 	let labels;
@@ -495,11 +511,11 @@ async function main() {
 	}
 
 	// 中转站的用量不在官方账单里，合并就是直接相加；两边的 token 口径一致（输入+输出+缓存）
-	if (relayPath) {
+	for (const relayPath of relayPaths) {
 		console.log(`合并中转站：${relayPath}`);
 		ingestRelay(fs.readFileSync(relayPath, 'utf8'));
-		source = `${source} + 中转站导出`;
 	}
+	if (relayPaths.length) source = `${source} + 中转站导出`;
 
 	writeOut(labels, source);
 }

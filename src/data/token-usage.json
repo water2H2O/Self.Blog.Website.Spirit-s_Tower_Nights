@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-21T20:01:53.489Z",
+  "fetchedAt": "2026-10-21T20:06:18.071Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -15,9 +15,9 @@
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 34144403,
-      "share": 1.1,
-      "cost": 1.5091
+      "tokens": 36098099,
+      "share": 1.2,
+      "cost": 1.554
     },
     {
       "label": "中转站 · claude-opus-5-5",
@@ -27,12 +27,12 @@
     }
   ],
   "totals": {
-    "tokens": 3133960250,
+    "tokens": 3135913946,
     "input": 27176945,
     "output": 8774342,
     "cacheRead": 3055128063,
-    "requests": 10639,
-    "cost": 147.6219
+    "requests": 10649,
+    "cost": 147.6669
   },
   "models": [
     {
@@ -419,20 +419,20 @@
     },
     {
       "date": "2026-10-22",
-      "tokens": 34107389,
+      "tokens": 36061085,
       "input": 0,
       "output": 0,
       "cacheRead": 0,
-      "requests": 468,
-      "cost": 1.504822,
+      "requests": 478,
+      "cost": 1.549773,
       "hours": 0,
       "parts": {
-        "中转站 · gpt-6.1-sol": 34107389
+        "中转站 · gpt-6.1-sol": 36061085
       },
       "open": 267747295,
-      "close": 34107389,
+      "close": 36061085,
       "high": 267747295,
-      "low": 34107389
+      "low": 36061085
     }
   ]
 }
