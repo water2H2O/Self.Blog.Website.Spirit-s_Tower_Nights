@@ -41,6 +41,11 @@ export const FRIENDS: FriendLink[] = [
 		note: '对方的另一域名 starlightsacredsanctuary.top 内容一致',
 	},
 	{
+		// 2026-10-21 作者给的地址；本人站点，签筒里的「天涯」就是她
+		href: 'https://tianya.martianya.cloud/',
+		who: '天涯',
+	},
+	{
 		href: 'https://blophy.cn/',
 		who: '青柠工作室（Lime Studio）',
 		note: '非商业音乐游戏《Blophy 方菱律动》，我在其中担任主催与外交',

@@ -9,6 +9,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import { getCollection } from 'astro:content';
+import githubData from '../../data/github.json';
 import { SITE_AUTHOR, SITE_TITLE } from '../../consts';
 
 const eden = await getCollection('eden', ({ data }) => !data.draft);
@@ -18,6 +19,35 @@ const OC_POOL = path.join(process.cwd(), 'public', 'gallery');
 const ocCount = fs
 	.readdirSync(OC_POOL)
 	.filter((file) => file.startsWith('企划-') && /\.webp$/i.test(file)).length;
+
+/**
+ * 仓库快照（src/data/github.json，由 tools/fetch-github.mjs 每天定时刷新）。
+ * 这里只读缓存、构建时不联网 —— 和首页「最近在写什么」用的是同一份数据。
+ */
+type Repo = {
+	name: string;
+	description: string;
+	language: string;
+	url: string;
+	stars: number;
+	pushedAt: string;
+	empty: boolean;
+};
+const repos = (githubData as { repos: Repo[] }).repos.filter((repo) => !repo.empty);
+const daysAgo = (iso: string) =>
+	Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86400000));
+const ago = (iso: string) => {
+	const days = daysAgo(iso);
+	if (days === 0) return '今天';
+	if (days === 1) return '昨天';
+	if (days < 30) return `${days} 天前`;
+	return `${Math.round(days / 30)} 个月前`;
+};
+/** 最近在动的几个仓库（按推送时间倒序） */
+const recentRepos = [...repos].sort((a, b) => b.pushedAt.localeCompare(a.pushedAt)).slice(0, 5);
+/** 「元素之诗」的仓库，用它的语言 / 星数 / 最近推送给卡片补一行 */
+const MOD_REPO_NAME = 'Spirit-s_Tower_Nights-Elemental_Verse';
+const modRepo = repos.find((repo) => repo.name === MOD_REPO_NAME) ?? null;
 ---
 
 <!doctype html>
@@ -129,6 +159,104 @@ const ocCount = fs
 			.home a {
 				color: var(--glow);
 			}
+			/* ---------- 仓库数据 ---------- */
+			.section-title {
+				display: flex;
+				align-items: center;
+				gap: 0.85em;
+				margin: 3.2em 0 0;
+				font-size: 0.84em;
+				font-weight: 400;
+				letter-spacing: 0.22em;
+				color: rgb(var(--gray));
+			}
+			.section-title::before {
+				content: '';
+				flex: none;
+				width: 7px;
+				height: 7px;
+				background: var(--accent);
+				transform: rotate(45deg);
+				box-shadow: 0 0 12px rgba(175, 255, 255, 75%);
+			}
+			.section-title::after {
+				content: '';
+				flex: 1;
+				height: 1px;
+				background: linear-gradient(
+					90deg,
+					rgba(175, 255, 255, 30%),
+					rgba(175, 255, 255, 4%) 55%,
+					transparent
+				);
+			}
+			/* 卡片底部那行仓库快照：单独占一行，别和「开发中 …」挤在一起 */
+			.repo-line {
+				display: block;
+				margin-top: 0.5em;
+				font-size: 0.78em;
+				letter-spacing: 0.04em;
+				color: var(--accent);
+			}
+			.repos {
+				list-style: none;
+				margin: 1.2em 0 0;
+				padding: 0;
+				display: grid;
+				gap: 0.7em;
+			}
+			.repos a {
+				display: grid;
+				grid-template-columns: 1fr auto;
+				gap: 0.2em 0.9em;
+				padding: 0.85em 1.1em;
+				border-radius: 12px;
+				text-decoration: none;
+				background: var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+				transition: 0.18s ease;
+			}
+			.repos a:hover {
+				transform: translateY(-1px);
+				border-color: rgba(175, 255, 255, 45%);
+				box-shadow: var(--glow-shadow);
+			}
+			.repo-name {
+				font-size: 0.92em;
+				color: rgb(var(--black));
+			}
+			.repo-meta {
+				display: flex;
+				align-items: center;
+				gap: 0.8em;
+				font-size: 0.76em;
+				color: rgb(var(--gray));
+			}
+			.repo-meta .lang {
+				padding: 0.05em 0.5em;
+				border-radius: 999px;
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.repo-desc {
+				grid-column: 1 / -1;
+				margin-top: 0.15em;
+				font-size: 0.8em;
+				line-height: 1.7;
+				color: rgb(var(--gray));
+			}
+			.repos-note {
+				margin: 0.9em 0 0;
+				font-size: 0.76em;
+				color: rgb(var(--gray));
+			}
+			@media (width<=640px) {
+				.repos a {
+					grid-template-columns: 1fr;
+				}
+				.repo-meta {
+					justify-content: flex-start;
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -187,6 +315,11 @@ const ocCount = fs
 				<span class="more">
 					开发中 · 阶段 03 已完成 →
 				</span>
+				{modRepo && (
+					<span class="repo-line">
+						{modRepo.language} · ★ {modRepo.stars} · {ago(modRepo.pushedAt)}更新
+					</span>
+				)}
 			</a>
 
 			<a class="card" href="/project/eden/">
@@ -201,6 +334,28 @@ const ocCount = fs
 					{eden.length} 篇稿件 →
 				</span>
 			</a>
+
+			<h2 class="section-title">最近在动的仓库</h2>
+			<ul class="repos">
+				{
+					recentRepos.map((repo) => (
+						<li>
+							<a href={repo.url} target="_blank" rel="noreferrer">
+								<span class="repo-name">{repo.name}</span>
+								<span class="repo-meta">
+									{repo.language && <span class="lang">{repo.language}</span>}
+									<span>★ {repo.stars}</span>
+									<span>{ago(repo.pushedAt)}</span>
+								</span>
+								{repo.description && <span class="repo-desc">{repo.description}</span>}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+			<p class="repos-note">
+				数据取自 GitHub，随站点每天定时刷新一次 —— 不是实时，点开就是最新的。
+			</p>
 		</main>
 		<Footer />
 	</body>
