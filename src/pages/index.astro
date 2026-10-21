@@ -259,6 +259,82 @@ const tokenChart = (() => {
 				z-index: 1;
 				max-width: 42em;
 			}
+			/* ---------- 免漏洞声明（玩笑） ---------- */
+			.notice {
+				position: relative;
+				margin: 2.4em 0 2.2em;
+				padding: 1.5em 1.6em 1.2em;
+				border-radius: 14px;
+				border: 1px dashed rgba(175, 255, 255, 30%);
+				background:
+					repeating-linear-gradient(
+						-45deg,
+						rgba(175, 255, 255, 3%) 0 10px,
+						transparent 10px 20px
+					),
+					var(--surface);
+			}
+			.notice-stamp {
+				position: absolute;
+				top: 13px;
+				right: 15px;
+				padding: 0.2em 0.5em;
+				border: 2px solid rgba(224, 106, 122, 70%);
+				border-radius: 4px;
+				color: rgba(224, 106, 122, 95%);
+				font-size: 0.72em;
+				letter-spacing: 0.14em;
+				transform: rotate(-7deg);
+			}
+			.notice-lead {
+				margin: 0 0 0.8em;
+				font-size: 0.74em;
+				letter-spacing: 0.34em;
+				color: rgb(var(--gray));
+			}
+			.notice-list {
+				margin: 0;
+				padding-left: 1.15em;
+				list-style: none;
+				line-height: 2.05;
+				font-size: 0.92em;
+			}
+			.notice-list li::before {
+				content: '—';
+				float: left;
+				margin-left: -1.15em;
+				color: var(--accent);
+			}
+			.notice-list strong {
+				color: var(--glow);
+			}
+			.notice-whisper {
+				margin: 0.85em 0 0;
+				font-size: 0.84em;
+				color: rgb(var(--gray));
+				opacity: 0.72;
+			}
+			.notice-foot {
+				margin: 1em 0 0;
+				padding-top: 0.85em;
+				border-top: 1px dashed rgba(175, 255, 255, 16%);
+				font-size: 0.78em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			.notice-foot strong {
+				color: var(--accent);
+			}
+			@media (max-width: 640px) {
+				.notice {
+					padding: 2.6em 1.1em 1.1em;
+				}
+				.notice-stamp {
+					top: 10px;
+					right: 10px;
+					font-size: 0.68em;
+				}
+			}
 			.hero-art {
 				position: absolute;
 				right: -1.5em;
@@ -1044,6 +1120,24 @@ const tokenChart = (() => {
 					</g>
 				</svg>
 			</section>
+
+			{/*
+				一句玩笑：既然外面 PHP 在爆洞，就顺手开个"免漏洞声明"。
+				底下那行白话是故意的 —— 万一真有人照做，玩笑就不好笑了。
+			*/}
+			<aside class="notice">
+				<span class="notice-stamp" aria-hidden="true">无 PHP</span>
+				<p class="notice-lead">郑 重 声 明</p>
+				<ul class="notice-list">
+					<li>本站<strong>无任何 PHP 内容</strong>，没有漏洞危害的可能 ——</li>
+					<li>所以你可以<strong>放心地把 API key 交给我</strong>；</li>
+					<li>顺便记得<strong>每周四</strong>都在里面充 <strong>50</strong> 块钱。</li>
+				</ul>
+				<p class="notice-whisper">（不过 node.js 别出问题……小声）</p>
+				<p class="notice-foot">
+					以上纯属玩梗。<strong>API key 请自己收好</strong> —— 谁问你要都别给，包括我。
+				</p>
+			</aside>
 
 			<h2 class="section-title">这座塔里有什么</h2>
 			<div class="cards">
