@@ -131,6 +131,13 @@ function dayOf(date) {
 let officialPrefix = '';
 /** 「来源 · 模型」的全局合计，合并时按它出 series */
 const bySourceTotal = new Map();
+/** 「来源 · 模型」各自的账单，图上那句「Claude 花了我 xx 元」用它 */
+const costByLabel = new Map();
+
+function addCost(label, cost) {
+	if (!Number.isFinite(cost) || cost <= 0) return;
+	costByLabel.set(label, (costByLabel.get(label) ?? 0) + cost);
+}
 
 /** 中转站那份导出：Time / Model / Input / Output / Cache Read / Cache Creation / Billed Cost */
 function ingestRelay(text) {
@@ -165,6 +172,7 @@ function ingestRelay(text) {
 		day.requests += 1;
 		day.bySource.set(label, (day.bySource.get(label) ?? 0) + tokens);
 		bySourceTotal.set(label, (bySourceTotal.get(label) ?? 0) + tokens);
+		addCost(label, cost);
 	}
 }
 
@@ -215,7 +223,11 @@ function ingestCost(text) {
 	for (const row of parseCsv(text).rows) {
 		const bucket = bucketOf(row);
 		if (!bucket) continue;
-		dayOf(bucket.date).cost += Number.parseFloat(row.cost ?? '0') || 0;
+		const cost = Number.parseFloat(row.cost ?? '0') || 0;
+		dayOf(bucket.date).cost += cost;
+		// 官方账单里也有 model 列，顺手记一份「官方 · 模型」的花费
+		const model = (row.model ?? '未知').trim();
+		addCost(`${officialPrefix}${model}`, cost);
 	}
 }
 
@@ -311,7 +323,11 @@ function writeOut(labels, source) {
 		.map(([label, tokens]) => ({ label, tokens }))
 		.sort((a, b) => b.tokens - a.tokens);
 	const totalSeries = series.reduce((a, s) => a + s.tokens, 0) || 1;
-	for (const s of series) s.share = Number(((s.tokens / totalSeries) * 100).toFixed(1));
+	for (const s of series) {
+		s.share = Number(((s.tokens / totalSeries) * 100).toFixed(1));
+		const cost = costByLabel.get(s.label);
+		if (cost) s.cost = Number(cost.toFixed(4));
+	}
 
 	/**
 	 * OHLC 的来源有两种：

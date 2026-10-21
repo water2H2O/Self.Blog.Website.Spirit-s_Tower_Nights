@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-21T19:54:43.085Z",
+  "fetchedAt": "2026-10-21T20:01:53.489Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -10,17 +10,20 @@
     {
       "label": "官方 · deepseek-flash",
       "tokens": 3091079350,
-      "share": 98.6
+      "share": 98.6,
+      "cost": 135.71
     },
     {
       "label": "中转站 · gpt-6.1-sol",
       "tokens": 34144403,
-      "share": 1.1
+      "share": 1.1,
+      "cost": 1.5091
     },
     {
       "label": "中转站 · claude-opus-5-5",
       "tokens": 8736497,
-      "share": 0.3
+      "share": 0.3,
+      "cost": 10.4028
     }
   ],
   "totals": {

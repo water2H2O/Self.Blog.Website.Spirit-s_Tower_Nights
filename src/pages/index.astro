@@ -216,9 +216,12 @@ const tokenChart = (() => {
  * 平台导出里还有一种「按 api_key 拆」，但那几个 key 往往是同一个客户端改名，
  * 堆起来等于把「改名」画成「换了个东西」，会误导 —— 所以那种情况仍用蜡烛图。
  */
-type TokenSeries = { label: string; tokens: number; share?: number };
+type TokenSeries = { label: string; tokens: number; share?: number; cost?: number };
 const tokenSeries: TokenSeries[] = (tokenData.series ?? []).filter((s) => s.tokens > 0);
 const stacked = tokenData.dimension === 'model' && tokenSeries.length >= 2;
+
+/** 那个又贵又小的 Claude —— 图注里要单独点它的账 */
+const claudeSeries = tokenSeries.find((s) => /claude/i.test(s.label) && s.cost) ?? null;
 
 /** 分段配色：青、紫、金、绿、红 —— 和站上其他图表同一套 */
 const SERIES_COLORS = ['#7fe9f0', '#c9a8ff', '#ffd68a', '#8fdc9b', '#e06a7a', '#9be7e0'];
@@ -1509,7 +1512,15 @@ const tokenStack = (() => {
 						<p class="tk-note">
 							{stacked ? '每根柱子是一天，按模型分成几段' : '每根蜡烛是一天'}，数字是当天烧掉的<strong
 								>全部</strong
-							> token（缓存命中也算）。一天上亿是常态 —— 看着唬人，其实大头是缓存，便宜得很。
+							> token（缓存命中也算），用起来上亿是常态
+							{claudeSeries && (
+								<>
+									<br
+									/>—— 以及，图中仅占比 <strong>{claudeSeries.share}%</strong> 的 Claude 花了我 <strong
+										>{claudeSeries.cost?.toFixed(2)}</strong
+									> 元！
+								</>
+							)}
 							<span class="tk-src">{tokenStats.sourceLabel}</span>
 						</p>
 					</div>
