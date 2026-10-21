@@ -694,22 +694,35 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 它便宜得多，混进去会让图完全看不出真实工作量。另外这只统计**这台机器上经 DSH 产生的用量**，
 不等于账号在平台上的全部用量（别的客户端算不到）。
 
-### 二、平台用量导出（有花费数据，但要登录态）
+### 二、平台用量导出（有花费金额，且有其他客户端的用量）
 
-平台侧的用量接口（`platform.deepseek.com/api/v0/usage/export`）是**登录态的私有接口**，
-要浏览器里的 `userToken`；公开 API 只有 `/user/balance`（余额）。要用这条路：
+官网页面上能直接**导出**，不需要 token —— 这是最省事的一条路：
+
+1. 登录 <https://platform.deepseek.com/usage>
+2. 点右上角的「导出 / Export」，浏览器会下载一个 zip（里面有 `amount-YYYY-M.csv` 与 `cost-YYYY-M.csv`）
+3. 让脚本读它：
 
 ```sh
-# 1) 浏览器登录 platform.deepseek.com，控制台执行 localStorage.getItem("userToken")
-#    把结果原样存进 tools/.deepseek-user-token（已 gitignore），或设 DEEPSEEK_USER_TOKEN
-# 2) 抓最近 3 个月（可 --months=6）
-node tools/fetch-token-usage.mjs
+node tools/fetch-token-usage.mjs --zip="C:\Users\你\Downloads\用量导出.zip"
+# 已经解开的目录也行：
+node tools/fetch-token-usage.mjs --dir="...\解压后的目录"
+```
+
+如果导出按钮坏了，还可以直接调接口（要登录态 `userToken`）：
+
+```sh
+# 浏览器控制台执行 localStorage.getItem("userToken")，把结果原样存进
+# tools/.deepseek-user-token（已 gitignore），或设环境变量 DEEPSEEK_USER_TOKEN
+node tools/fetch-token-usage.mjs --months=3
 ```
 
 **安全**：token 只从上面两个地方读，永远不进仓库；导出的 CSV 第 5 列是明文 api_key，
-脚本按下标取列、不打印也不保存它。
+脚本按下标取列、不打印也不保存它 —— 产物 JSON 里只有按天的 tokens / 请求数 / 花费。
 
-两条路都写完 `src/data/token-usage.json` 后照常提交推送即可。数据为空（`daily: []`）时
+**口径与第一条路对齐**：`tokens` 同样只算 输入(cache miss) + 输出，缓存命中单列成 `cacheRead`。
+月度 CSV 只有按天的合计、没有日内分布，所以这条路的 OHLC 是**平蜡烛**（开=高=低=收）。
+
+两条路都写同一个 `src/data/token-usage.json`，写完照常提交推送即可。数据为空（`daily: []`）时
 **整块不渲染**，所以没跑过也不会在首页留个空框。
 
 ## 部署（Cloudflare Workers + 自定义域名）

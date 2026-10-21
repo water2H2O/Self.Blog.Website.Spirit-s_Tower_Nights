@@ -1,16 +1,16 @@
 {
-  "fetchedAt": "2026-10-21T04:28:21.837Z",
+  "fetchedAt": "2026-10-21T04:56:28.306Z",
   "source": "local:DshSessions",
   "note": "本机 DSH 会话日志统计；tokens = 输入 + 输出，不含缓存命中",
   "months": [
     "2026-10"
   ],
   "totals": {
-    "tokens": 20810077,
-    "input": 16396522,
-    "output": 4413555,
-    "cacheRead": 1679525692,
-    "requests": 4728,
+    "tokens": 20991398,
+    "input": 16481533,
+    "output": 4509865,
+    "cacheRead": 1709626556,
+    "requests": 4835,
     "cost": 0
   },
   "models": [],
@@ -73,15 +73,15 @@
     },
     {
       "date": "2026-10-21",
-      "tokens": 2438844,
-      "input": 2166242,
-      "output": 272602,
-      "cacheRead": 214936704,
-      "requests": 403,
+      "tokens": 2620165,
+      "input": 2251253,
+      "output": 368912,
+      "cacheRead": 245037568,
+      "requests": 510,
       "cost": 0,
       "hours": 5,
       "open": 148351,
-      "close": 943355,
+      "close": 1124676,
       "high": 1192454,
       "low": 26142
     }
