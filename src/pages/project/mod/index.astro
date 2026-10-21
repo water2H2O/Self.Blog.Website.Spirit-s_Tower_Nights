@@ -46,8 +46,9 @@ const systems = [
 const progress = [
 	{ mark: 'done', label: '阶段 01–02', text: '项目地基、衰变系统、特殊容器与仓储分级' },
 	{ mark: 'done', label: '阶段 03', text: '采集系统（矿物取地、火源、营火取烬、冰与木的储量、光暗判定、行为音效）' },
-	{ mark: 'doing', label: '阶段 04', text: '基础仪式台 + 申明板 + 第一版施法 —— 正在施工' },
-	{ mark: 'todo', label: '阶段 05–06', text: '申明板深化（形态 / 附属 / 时序 / 跑偏）、瘴素三阶与方碑' },
+	{ mark: 'done', label: '阶段 04', text: '仪式台 + 申明板 + 施法（30 条反应）+ 余热存储' },
+	{ mark: 'done', label: '阶段 05', text: '三种形态（自身 / 接触 / 发射）+ 拼贴 + 三种修饰材料 + 3 次修饰上限' },
+	{ mark: 'doing', label: '阶段 06', text: '瘴素三阶、浊化与方碑 —— 余热还只是存着，没参与污染' },
 	{ mark: 'todo', label: '阶段 07–09', text: '群系与生态、晶裔、神器四件' },
 	{ mark: 'todo', label: '阶段 10', text: '平衡、本地化、发布' },
 ];
@@ -60,7 +61,7 @@ const MARK = { done: '✅', doing: '🚧', todo: '⬜' } as const;
 	<head>
 		<BaseHead
 			title="水塔夜谈 · 元素之诗"
-			description="《水塔夜谈》的 Minecraft 模组 Elemental Verse：衰变、瘴素、晶裔 —— 你用的每一分魔法，都在让世界变脏。"
+			description="《水塔夜谈》的 Minecraft 模组 Elemental Verse：一个让你自己拼法术的魔法模组 —— 元素是字，申明板是纸，拼贴是语法；而每用一分魔法，世界都会变脏一点。"
 		/>
 		<style>
 			main {
@@ -227,10 +228,80 @@ const MARK = { done: '✅', doing: '🚧', todo: '⬜' } as const;
 
 			<div class="spec">
 				<b>Minecraft</b> 1.21.1 · <b>NeoForge</b> 21.1.262 · <b>Java</b> 21<br />
-				<b>模组 ID</b> elemental_verse · <b>版本</b> 0.1.0 · <b>状态</b> 开发中（阶段 04 施工中）<br />
+				<b>模组 ID</b> elemental_verse · <b>版本</b> 0.1.0 · <b>状态</b> 开发中（阶段 05 完成）<br />
 				<b>源码</b> <a href={REPO} target="_blank" rel="noreferrer">GitHub · Spirit-s_Tower_Nights-Elemental_Verse</a>
 			</div>
 
+			<p class="lead">
+				别的魔法模组给你一本法术书，按一下放一次；这里给你的是<strong>元素、一块空板、一张仪式台</strong>
+				—— 法术长什么样，由你写。
+			</p>
+			<p class="tagline">法术不是发给你的，是拼出来的。<br />元素是字，申明板是纸，仪式台是笔，拼贴是语法。</p>
+
+			<h2>一次施法，四个决定</h2>
+			<table>
+				<tbody>
+					<tr>
+						<th>料</th>
+						<td>用哪些元素 —— 18 种元素往三个投入口里放</td>
+					</tr>
+					<tr>
+						<th>浓度</th>
+						<td>放多少 —— 每个口 1 / 3 / 9 份，三档强度</td>
+					</tr>
+					<tr>
+						<th>形</th>
+						<td>怎么出手 —— 板 = 自身 · 剑 = 接触 · 书 = 发射</td>
+					</tr>
+					<tr>
+						<th>态</th>
+						<td>怎么串起来 —— 两块写好的板 + 一份修饰材料，拼成一段连续法术</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h2>拼贴：两段法术怎么衔接</h2>
+			<p>
+				把两块<strong>已经写好</strong>的申明板放进仪式台，再放一份修饰材料 —— 法术就有了顺序和时差。
+			</p>
+			<table>
+				<tbody>
+					<tr>
+						<th>粘液球</th>
+						<td>两段<strong>同时</strong>生效（默认）</td>
+					</tr>
+					<tr>
+						<th>红石粉</th>
+						<td>第二段<strong>晚 0.5 秒</strong></td>
+					</tr>
+					<tr>
+						<th>末影珍珠</th>
+						<td>飞出去的法术<strong>指哪打哪</strong>，没有飞行时间</td>
+					</tr>
+				</tbody>
+			</table>
+			<p>
+				同一块板最多被修饰 <strong>3</strong> 次，第 4 次会被挡回来：「过于复杂」。所以玩家最后造出来的不是「火球」，而是——
+			</p>
+			<table>
+				<tbody>
+					<tr>
+						<th>冰 + 火 + 板</th>
+						<td>先冻住，再炸一下</td>
+					</tr>
+					<tr>
+						<th>红石粉 + 板(木) + 板(火)</th>
+						<td>0.5 秒后炸 —— 炸完人还没落地</td>
+					</tr>
+					<tr>
+						<th>末影珍珠 + 书(风 &gt; 水)</th>
+						<td>发射即命中，不用等它飞过去</td>
+					</tr>
+				</tbody>
+			</table>
+			<p><strong>这些法术没有一条是预先写进模组里的。</strong></p>
+
+			<h2>但这个世界会记账</h2>
 			<p class="lead">
 				土会干成砂，水会凝成冰，光会在你睡着的时候悄悄熄灭。不是被谁偷走 ——
 				是它们本来就留不住。
@@ -277,8 +348,9 @@ const MARK = { done: '✅', doing: '🚧', todo: '⬜' } as const;
 				}
 			</ul>
 			<p>
-				现在已经能实际玩到的是<strong>仓储与节奏</strong>：元素放久了会坏，密封仓能让它坏得慢一点，
-				耐久条的位置直接显示衰变进度。施法、污染与晶裔还在路上。
+				现在已经能实际玩到的是<strong>「采 — 写 — 形 — 拼」这一整条</strong>：采集元素、在仪式台上写板、
+				用锻造台分流成剑或书、再把两块板拼成一段连续法术。
+				还差的是<strong>代价</strong> —— 余热目前只是存着，还没有变成瘴素。
 			</p>
 
 			<h2>不做什么</h2>
