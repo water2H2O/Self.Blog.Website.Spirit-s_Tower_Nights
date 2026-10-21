@@ -236,27 +236,49 @@ function normalize(raw) {
 }
 
 function writeOut(labels, source) {
-	// 有小时桶就按小时算 OHLC；只有按天合计时退化成平蜡烛
-	const daily = [...byDate.values()]
-		.sort((a, b) => a.date.localeCompare(b.date))
-		.map((day) => {
-			const values = [...day.hours.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
-			const base = values.length ? values : [day.tokens];
-			return {
-				date: day.date,
-				tokens: day.tokens,
-				input: day.input,
-				output: day.output,
-				cacheRead: day.cacheRead,
-				requests: day.requests,
-				cost: Number(day.cost.toFixed(6)),
-				hours: values.length,
-				open: base[0],
-				close: base[base.length - 1],
-				high: Math.max(...base),
-				low: Math.min(...base),
-			};
-		});
+	/**
+	 * OHLC 的来源有两种：
+	 *   · 文件带小时桶（一天多个时段）→ 按小时算，蜡烛有影线
+	 *   · 只有按天合计（范围导出就是这样，每天只有 00:00 一个桶）→
+	 *     用「前一日收盘」当开盘价，这是日线画蜡烛的标准做法；
+	 *     高低就取开盘与收盘的较大者/较小者，没有合成的影线。
+	 */
+	const rows = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+	let prevClose = null;
+	const daily = rows.map((day) => {
+		const values = [...day.hours.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+		const hourly = values.length > 1;
+		let open;
+		let close;
+		let high;
+		let low;
+		if (hourly) {
+			open = values[0];
+			close = values[values.length - 1];
+			high = Math.max(...values);
+			low = Math.min(...values);
+		} else {
+			open = prevClose ?? day.tokens;
+			close = day.tokens;
+			high = Math.max(open, close);
+			low = Math.min(open, close);
+		}
+		prevClose = close;
+		return {
+			date: day.date,
+			tokens: day.tokens,
+			input: day.input,
+			output: day.output,
+			cacheRead: day.cacheRead,
+			requests: day.requests,
+			cost: Number(day.cost.toFixed(6)),
+			hours: values.length,
+			open,
+			close,
+			high,
+			low,
+		};
+	});
 
 	const totals = daily.reduce(
 		(acc, day) => {
@@ -299,7 +321,7 @@ function writeOut(labels, source) {
 			`  ${daily.length} 天（${daily[0]?.date ?? '—'} → ${daily.at(-1)?.date ?? '—'}）· ` +
 			`${totals.tokens.toLocaleString('en-US')} tokens · ${totals.requests.toLocaleString('en-US')} 次请求 · ` +
 			`¥${totals.cost.toFixed(2)}\n` +
-			`  缓存命中 ${totals.cacheRead.toLocaleString('en-US')}（单列，不计入主数字）`,
+			`  其中缓存命中 ${totals.cacheRead.toLocaleString('en-US')}（已计入上面的总数）`,
 	);
 	if (daily.length < 14) {
 		console.log(`\n⚠ 只有 ${daily.length} 天数据 —— 建议把导出范围改到最近一个月，K 线才有东西看。`);

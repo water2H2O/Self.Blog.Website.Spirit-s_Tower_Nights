@@ -670,62 +670,61 @@ pnpm run github:build       # 抓完再跑一次构建
 > 热力图右下角那行「数据截至 …」就是这份缓存的区间末端；GitHub 个人页上的格子
 > 如果显示得更多，等到下一次刷新就会对齐。
 
-## 主页的 token 用量 K 线（本机日志统计）
+## 主页的 token 用量 K 线
 
-首页底部那块「最近在烧什么」是 token 用量，画成按天的 K 线：
-先按小时汇总，一根蜡烛 = 一天，开 / 收取当天首末两小时，影线是那天最大与最小的一小时。
+首页底部那块「最近在烧什么」是 token 用量，画成按天的 K 线：一根蜡烛 = 一天。
 
-**数据从哪来**：两条路，优先用第一条。
+**口径**：`tokens` = 输入 + 输出 + **缓存命中**，也就是当天烧掉的全部。缓存占九成九，
+但图上要的就是这个"热闹"；`cacheRead` 仍然在 JSON 里单列一份备查。
 
-### 一、本机 DSH 会话日志（不需要任何凭据）
+**数据从哪来**：两条路，选一条。站上**当前用的是第二条**（官网导出，带 ¥ 花费、覆盖所有客户端）。
 
-DSH 的会话文件里本来就记着每次请求的 `usage`（输入 / 输出 / 缓存命中），直接统计即可，
-**不联网、不需要 token、不需要 API key**：
+### 一、平台用量导出（带花费，站上现在用这条）
+
+官网上能直接导出，不需要 token：
+
+1. 登录 <https://platform.deepseek.com/usage>
+2. 点右上角的「导出 / Export」，**选好日期范围**，浏览器会下载一个 zip
+3. 让脚本读它：
+
+```sh
+node tools/fetch-token-usage.mjs --zip="C:\Users\你\Downloads\usage_data_2026-09-22_2026-10-21.zip"
+# 已经解开的目录也行：
+node tools/fetch-token-usage.mjs --dir="...\解压后的目录"
+```
+
+导出按钮坏了还可以直接调接口（要登录态 `userToken`）：
+
+```sh
+# 浏览器控制台执行 localStorage.getItem("userToken")，结果原样存进 tools/.deepseek-user-token
+# （已 gitignore），或设环境变量 DEEPSEEK_USER_TOKEN
+node tools/fetch-token-usage.mjs --months=3
+```
+
+**安全**：token 只从上面两个地方读，永远不进仓库。导出的 CSV 里有明文 api_key，
+脚本**按列名**只取 time / model / type / amount / cost —— 不打印、也不写进产物。
+
+**OHLC 怎么来**：
+
+- 文件带小时桶（单日导出那样，一天多个时段）→ 按小时算，蜡烛有影线
+- 只有按天合计（范围导出，每天只有 00:00 一个桶）→ 用「前一日收盘 = 今日开盘」，这是日线画蜡烛的标准做法
+
+**文件名**：认 `amount-2026-09-22_2026-10-21.csv`（日期范围），也认 `amount-2026-10.csv`（整月）。
+
+### 二、本机 DSH 会话日志（不需要任何凭据）
+
+DSH 的会话文件里本来就记着每次请求的 `usage`，直接统计即可，**不联网、不需要 token、不需要 API key**：
 
 ```sh
 node tools/collect-local-usage.mjs            # 扫 ~/.dsh/sessions，默认最近 90 天
 node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 ```
 
-产物 `src/data/token-usage.json` 里 `daily[]` 带 `open / close / high / low`，图表直接用。
+两种来源产出的 JSON 结构一样（`daily[]` 带 `open / close / high / low`），图表直接用。
+代价：只统计**这台机器上经 DSH 产生的用量**，也没有花费金额（第四格会显示「日均」而不是「花费」）。
 
-**口径说明（重要）**：这里的 `tokens` 只算 **输入 + 输出**，
-`cacheReadTokens`（缓存命中的上下文，占九成以上）单独记在 `cacheRead` 里、**不进主数字** ——
-它便宜得多，混进去会让图完全看不出真实工作量。另外这只统计**这台机器上经 DSH 产生的用量**，
-不等于账号在平台上的全部用量（别的客户端算不到）。
-
-### 二、平台用量导出（有花费金额，且有其他客户端的用量）
-
-官网页面上能直接**导出**，不需要 token —— 这是最省事的一条路：
-
-1. 登录 <https://platform.deepseek.com/usage>
-2. 点右上角的「导出 / Export」，浏览器会下载一个 zip（里面有 `amount-YYYY-M.csv` 与 `cost-YYYY-M.csv`）
-3. 让脚本读它：
-
-```sh
-node tools/fetch-token-usage.mjs --zip="C:\Users\你\Downloads\用量导出.zip"
-# 已经解开的目录也行：
-node tools/fetch-token-usage.mjs --dir="...\解压后的目录"
-```
-
-如果导出按钮坏了，还可以直接调接口（要登录态 `userToken`）：
-
-```sh
-# 浏览器控制台执行 localStorage.getItem("userToken")，把结果原样存进
-# tools/.deepseek-user-token（已 gitignore），或设环境变量 DEEPSEEK_USER_TOKEN
-node tools/fetch-token-usage.mjs --months=3
-```
-
-**安全**：token 只从上面两个地方读，永远不进仓库；导出的 CSV 第 5 列是明文 api_key，
-脚本按下标取列、不打印也不保存它 —— 产物 JSON 里只有按天的 tokens / 请求数 / 花费。
-
-**口径与第一条路对齐**：`tokens` 同样只算 输入(cache miss) + 输出，缓存命中单列成 `cacheRead`。
-
-**蜡烛的影线**：用页面「按日期范围导出」的文件（列名是 `start_time_iso` / `end_time_iso`，**按小时**汇总）
-就能算出真的日内 OHLC，和本机日志那条一样；只有早期按月导出的文件（列名 `utc_date`，按天合计）
-才会退化成平蜡烛（开=高=低=收）。
-
-**导出的文件名**形如 `amount-2026-10-14_2026-10-14.csv`（日期范围），脚本认这个，也认老式的 `amount-2026-10.csv`。
+> 两边的数字会有一点出入：同一天本机日志通常比官网高一些（harness 上报的口径包含重试等），
+> 且覆盖不到别的客户端。**以官网为准**。
 
 两条路都写同一个 `src/data/token-usage.json`，写完照常提交推送即可。数据为空（`daily: []`）时
 **整块不渲染**，所以没跑过也不会在首页留个空框。

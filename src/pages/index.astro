@@ -117,7 +117,7 @@ const fmtTokens = (n: number) =>
  */
 const tokenCandles = (() => {
 	if (tokenDaily.length < 1) return [];
-	return tokenDaily.slice(-20).map((day) => {
+	return tokenDaily.slice(-31).map((day) => {
 		const value = day.tokens;
 		const open = day.open ?? value;
 		const close = day.close ?? value;
@@ -150,6 +150,10 @@ const tokenStats = (() => {
 		fetchedAt: tokenData.fetchedAt ?? '',
 		/** 本地会话口径没有花费数据；为 0 时那一格换成「日均」 */
 		showCost: monthCost > 0,
+		/** 数据出处：本机会话日志 / 平台导出 */
+		sourceLabel: (tokenData.source ?? '').includes('local')
+			? '数据来自本机 DSH 会话日志，隔几天刷新一次。'
+			: '数据来自 DeepSeek 开放平台的用量导出，手动刷新。',
 	};
 })();
 
@@ -174,6 +178,10 @@ const tokenChart = (() => {
 	const y = (value: number) => PT + plotH - ((value - min) / span) * plotH;
 	const slot = plotW / tokenCandles.length;
 	const bodyW = Math.max(8, Math.min(34, slot * 0.42));
+	/** 蜡烛多了就别每根都写日期：按数量摊到 6 个刻度左右 */
+	const labelEvery = Math.max(1, Math.ceil(tokenCandles.length / 6));
+	/** 末根固定要写日期，它前面半个间隔内的刻度就别写了，不然会撞在一起 */
+	const lastLabelFloor = tokenCandles.length - 1 - Math.floor(labelEvery / 2);
 	const candles = tokenCandles.map((candle, index) => {
 		const cx = PL + slot * index + slot / 2;
 		const yOpen = y(candle.open);
@@ -187,7 +195,10 @@ const tokenChart = (() => {
 			wickTop: y(candle.high),
 			wickBottom: y(candle.low),
 			up: candle.close >= candle.open,
-			label: index % 2 === 0 || index === tokenCandles.length - 1,
+			label:
+				index === 0 ||
+				index === tokenCandles.length - 1 ||
+				(index % labelEvery === 0 && index < lastLabelFloor),
 			axisX: cx,
 			gridTop: PT,
 			gridBottom: PT + plotH,
@@ -1222,7 +1233,7 @@ const tokenChart = (() => {
 						<p class="tk-note">
 							每根蜡烛是<strong>一天</strong>，数字是当天烧掉的<strong>全部</strong> token（缓存命中也算）。
 							一天上亿是常态 —— 看着唬人，其实大头是缓存，便宜得很。
-							<span class="tk-src">数据来自本机 DSH 会话日志，隔几天刷新一次。</span>
+							<span class="tk-src">{tokenStats.sourceLabel}</span>
 						</p>
 					</div>
 				</>
