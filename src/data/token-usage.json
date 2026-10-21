@@ -1,40 +1,35 @@
 {
-  "fetchedAt": "2026-10-21T19:40:16.521Z",
-  "source": "platform.deepseek.com/usage（页面导出）",
+  "fetchedAt": "2026-10-21T19:54:43.085Z",
+  "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
     "2026-09-22_2026-10-21"
   ],
-  "dimension": "api_key",
+  "dimension": "model",
   "series": [
     {
-      "label": "Harness",
-      "tokens": 1763483603,
-      "share": 57.1
+      "label": "官方 · deepseek-flash",
+      "tokens": 3091079350,
+      "share": 98.6
     },
     {
-      "label": "DeepSeek Harness (App-managed)",
-      "tokens": 1298345665,
-      "share": 42
+      "label": "中转站 · gpt-6.1-sol",
+      "tokens": 34144403,
+      "share": 1.1
     },
     {
-      "label": "hrness",
-      "tokens": 27943143,
-      "share": 0.9
-    },
-    {
-      "label": "charry studio",
-      "tokens": 1306939,
-      "share": 0
+      "label": "中转站 · claude-opus-5-5",
+      "tokens": 8736497,
+      "share": 0.3
     }
   ],
   "totals": {
-    "tokens": 3091079350,
+    "tokens": 3133960250,
     "input": 27176945,
     "output": 8774342,
     "cacheRead": 3055128063,
-    "requests": 10157,
-    "cost": 135.71
+    "requests": 10639,
+    "cost": 147.6219
   },
   "models": [
     {
@@ -53,7 +48,7 @@
       "cost": 0.472066,
       "hours": 1,
       "parts": {
-        "charry studio": 544725
+        "官方 · deepseek-flash": 544725
       },
       "open": 544725,
       "close": 544725,
@@ -70,7 +65,7 @@
       "cost": 0.007961,
       "hours": 1,
       "parts": {
-        "charry studio": 7620
+        "官方 · deepseek-flash": 7620
       },
       "open": 544725,
       "close": 7620,
@@ -87,7 +82,7 @@
       "cost": 0.054216,
       "hours": 1,
       "parts": {
-        "charry studio": 34089
+        "官方 · deepseek-flash": 34089
       },
       "open": 7620,
       "close": 34089,
@@ -104,7 +99,7 @@
       "cost": 0.394767,
       "hours": 1,
       "parts": {
-        "charry studio": 256355
+        "官方 · deepseek-flash": 256355
       },
       "open": 34089,
       "close": 256355,
@@ -121,7 +116,7 @@
       "cost": 0.065605,
       "hours": 1,
       "parts": {
-        "charry studio": 17562
+        "官方 · deepseek-flash": 17562
       },
       "open": 256355,
       "close": 17562,
@@ -138,7 +133,7 @@
       "cost": 0.102895,
       "hours": 1,
       "parts": {
-        "charry studio": 85809
+        "官方 · deepseek-flash": 85809
       },
       "open": 17562,
       "close": 85809,
@@ -155,7 +150,7 @@
       "cost": 0.143784,
       "hours": 1,
       "parts": {
-        "charry studio": 83459
+        "官方 · deepseek-flash": 83459
       },
       "open": 85809,
       "close": 83459,
@@ -172,7 +167,7 @@
       "cost": 0.037655,
       "hours": 1,
       "parts": {
-        "charry studio": 25736
+        "官方 · deepseek-flash": 25736
       },
       "open": 83459,
       "close": 25736,
@@ -189,7 +184,7 @@
       "cost": 0.342306,
       "hours": 1,
       "parts": {
-        "charry studio": 251584
+        "官方 · deepseek-flash": 251584
       },
       "open": 25736,
       "close": 251584,
@@ -206,7 +201,7 @@
       "cost": 15.027202,
       "hours": 1,
       "parts": {
-        "Harness": 221243388
+        "官方 · deepseek-flash": 221243388
       },
       "open": 251584,
       "close": 221243388,
@@ -223,7 +218,7 @@
       "cost": 17.56643,
       "hours": 1,
       "parts": {
-        "Harness": 438634004
+        "官方 · deepseek-flash": 438634004
       },
       "open": 221243388,
       "close": 438634004,
@@ -240,7 +235,7 @@
       "cost": 4.187471,
       "hours": 1,
       "parts": {
-        "Harness": 119532630
+        "官方 · deepseek-flash": 119532630
       },
       "open": 438634004,
       "close": 119532630,
@@ -257,7 +252,7 @@
       "cost": 10.878688,
       "hours": 1,
       "parts": {
-        "Harness": 250132169
+        "官方 · deepseek-flash": 250132169
       },
       "open": 119532630,
       "close": 250132169,
@@ -274,7 +269,7 @@
       "cost": 12.826627,
       "hours": 1,
       "parts": {
-        "Harness": 316049179
+        "官方 · deepseek-flash": 316049179
       },
       "open": 250132169,
       "close": 316049179,
@@ -291,7 +286,7 @@
       "cost": 5.458878,
       "hours": 1,
       "parts": {
-        "Harness": 191818891
+        "官方 · deepseek-flash": 191818891
       },
       "open": 316049179,
       "close": 191818891,
@@ -308,7 +303,7 @@
       "cost": 8.278119,
       "hours": 1,
       "parts": {
-        "Harness": 208700044
+        "官方 · deepseek-flash": 208700044
       },
       "open": 191818891,
       "close": 208700044,
@@ -325,7 +320,7 @@
       "cost": 0.277343,
       "hours": 1,
       "parts": {
-        "Harness": 2246819
+        "官方 · deepseek-flash": 2246819
       },
       "open": 208700044,
       "close": 2246819,
@@ -342,9 +337,7 @@
       "cost": 16.340839,
       "hours": 1,
       "parts": {
-        "Harness": 15126479,
-        "DeepSeek Harness (App-managed)": 252023381,
-        "hrness": 27943143
+        "官方 · deepseek-flash": 295093003
       },
       "open": 2246819,
       "close": 295093003,
@@ -361,7 +354,7 @@
       "cost": 10.402348,
       "hours": 1,
       "parts": {
-        "DeepSeek Harness (App-managed)": 244086934
+        "官方 · deepseek-flash": 244086934
       },
       "open": 295093003,
       "close": 244086934,
@@ -370,20 +363,22 @@
     },
     {
       "date": "2026-10-19",
-      "tokens": 117391382,
+      "tokens": 126164893,
       "input": 809906,
       "output": 217828,
       "cacheRead": 116363648,
-      "requests": 279,
-      "cost": 4.130196,
+      "requests": 293,
+      "cost": 14.537277,
       "hours": 1,
       "parts": {
-        "DeepSeek Harness (App-managed)": 117391382
+        "官方 · deepseek-flash": 117391382,
+        "中转站 · gpt-6.1-sol": 37014,
+        "中转站 · claude-opus-5-5": 8736497
       },
       "open": 244086934,
-      "close": 117391382,
+      "close": 126164893,
       "high": 244086934,
-      "low": 117391382
+      "low": 126164893
     },
     {
       "date": "2026-10-20",
@@ -395,12 +390,12 @@
       "cost": 18.14393,
       "hours": 1,
       "parts": {
-        "DeepSeek Harness (App-managed)": 417096673
+        "官方 · deepseek-flash": 417096673
       },
-      "open": 117391382,
+      "open": 126164893,
       "close": 417096673,
       "high": 417096673,
-      "low": 117391382
+      "low": 126164893
     },
     {
       "date": "2026-10-21",
@@ -412,12 +407,29 @@
       "cost": 10.570718,
       "hours": 1,
       "parts": {
-        "DeepSeek Harness (App-managed)": 267747295
+        "官方 · deepseek-flash": 267747295
       },
       "open": 417096673,
       "close": 267747295,
       "high": 417096673,
       "low": 267747295
+    },
+    {
+      "date": "2026-10-22",
+      "tokens": 34107389,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "requests": 468,
+      "cost": 1.504822,
+      "hours": 0,
+      "parts": {
+        "中转站 · gpt-6.1-sol": 34107389
+      },
+      "open": 267747295,
+      "close": 34107389,
+      "high": 267747295,
+      "low": 34107389
     }
   ]
 }

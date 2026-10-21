@@ -150,10 +150,12 @@ const tokenStats = (() => {
 		fetchedAt: tokenData.fetchedAt ?? '',
 		/** 本地会话口径没有花费数据；为 0 时那一格换成「日均」 */
 		showCost: monthCost > 0,
-		/** 数据出处：本机会话日志 / 平台导出 */
+		/** 数据出处：本机会话日志 / 平台导出 / 平台 + 中转站 */
 		sourceLabel: (tokenData.source ?? '').includes('local')
 			? '数据来自本机 DSH 会话日志，隔几天刷新一次。'
-			: '数据来自 DeepSeek 开放平台的用量导出，手动刷新。',
+			: (tokenData.source ?? '').includes('中转站')
+				? '数据来自 DeepSeek 开放平台 + 中转站导出，手动刷新。'
+				: '数据来自 DeepSeek 开放平台的用量导出，手动刷新。',
 	};
 })();
 

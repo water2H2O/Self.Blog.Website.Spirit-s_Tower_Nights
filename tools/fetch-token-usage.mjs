@@ -120,9 +120,52 @@ function dayOf(date) {
 			/** 按模型 / 按密钥的日内拆分，给堆叠柱状图用 */
 			byModel: new Map(),
 			byKey: new Map(),
+			/** 合并中转站时用的「来源 · 模型」分段表 */
+			bySource: new Map(),
 		});
 	}
 	return byDate.get(date);
+}
+
+/** 有中转站数据时，官方那几段的标签要加前缀，不然和图上的模型混在一起 */
+let officialPrefix = '';
+/** 「来源 · 模型」的全局合计，合并时按它出 series */
+const bySourceTotal = new Map();
+
+/** 中转站那份导出：Time / Model / Input / Output / Cache Read / Cache Creation / Billed Cost */
+function ingestRelay(text) {
+	const { header, rows } = parseCsv(text.replace(/^\uFEFF/, ''));
+	const col = (name) => header.findIndex((h) => h === name);
+	const iTime = col('Time');
+	const iModel = col('Model');
+	const iIn = col('Input Tokens');
+	const iOut = col('Output Tokens');
+	const iCR = col('Cache Read Tokens');
+	const iCC = col('Cache Creation Tokens');
+	const iCost = col('Billed Cost');
+	if (iTime < 0 || iModel < 0) throw new Error('中转站 CSV 里找不到 Time / Model 列');
+
+	for (const row of rows) {
+		const time = (row[header[iTime]] ?? '').trim();
+		if (!time) continue;
+		const date = time.slice(0, 10);
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+		const model = (row[header[iModel]] ?? '未知').trim();
+		const tokens =
+			(Number.parseInt(row[header[iIn]], 10) || 0) +
+			(Number.parseInt(row[header[iOut]], 10) || 0) +
+			(Number.parseInt(row[header[iCR]], 10) || 0) +
+			(Number.parseInt(row[header[iCC]], 10) || 0);
+		const cost = Number.parseFloat(row[header[iCost]]) || 0;
+		if (tokens <= 0) continue;
+		const label = `中转站 · ${model}`;
+		const day = dayOf(date);
+		day.tokens += tokens;
+		day.cost += cost;
+		day.requests += 1;
+		day.bySource.set(label, (day.bySource.get(label) ?? 0) + tokens);
+		bySourceTotal.set(label, (bySourceTotal.get(label) ?? 0) + tokens);
+	}
 }
 
 function ingestAmount(text) {
@@ -161,6 +204,9 @@ function ingestAmount(text) {
 			byKeyName.set(key, (byKeyName.get(key) ?? 0) + counted);
 			day.byModel.set(model, (day.byModel.get(model) ?? 0) + counted);
 			day.byKey.set(key, (day.byKey.get(key) ?? 0) + counted);
+			const sourceLabel = `${officialPrefix}${model}`;
+			day.bySource.set(sourceLabel, (day.bySource.get(sourceLabel) ?? 0) + counted);
+			bySourceTotal.set(sourceLabel, (bySourceTotal.get(sourceLabel) ?? 0) + counted);
 		}
 	}
 }
@@ -247,12 +293,20 @@ function normalize(raw) {
 function writeOut(labels, source) {
 	/**
 	 * 拆分成几段画堆叠图：
-	 *   · 有多个模型 → 按模型拆（「不同模型各烧多少」）
-	 *   · 只有一个模型 → 按 api_key_name 拆（这是导出里唯一能区分客户端 / 中转站的东西）
+	 *   · 合并了中转站 → 按「来源 · 模型」拆（官方 deepseek-flash + 中转站各家模型）
+	 *   · 有多个模型 → 按模型拆
+	 *   · 只有一个模型 → 按 api_key_name 拆（导出里唯一能区分客户端的东西）
 	 * 只有一个分段时，前端会退回普通蜡烛图。
 	 */
-	const dimension = byModel.size > 1 ? 'model' : byKeyName.size > 1 ? 'api_key' : 'single';
-	const seriesSource = dimension === 'model' ? byModel : dimension === 'api_key' ? byKeyName : byModel;
+	const hasRelay = [...bySourceTotal.keys()].some((k) => k.startsWith('中转站'));
+	const dimension = hasRelay || byModel.size > 1 ? 'model' : byKeyName.size > 1 ? 'api_key' : 'single';
+	const seriesSource = hasRelay
+		? bySourceTotal
+		: dimension === 'model'
+			? byModel
+			: dimension === 'api_key'
+				? byKeyName
+				: byModel;
 	const series = [...seriesSource.entries()]
 		.map(([label, tokens]) => ({ label, tokens }))
 		.sort((a, b) => b.tokens - a.tokens);
@@ -287,9 +341,14 @@ function writeOut(labels, source) {
 			low = Math.min(open, close);
 		}
 		prevClose = close;
-		// 这里必须把分段表一起带出来：下面按 dimension 选 model / key 两份之一
-		const partsMap =
-			dimension === 'model' ? day.byModel : dimension === 'api_key' ? day.byKey : day.byModel;
+		// 这里必须把分段表一起带出来：合并中转站时用 bySource，否则按 dimension 选 model / key
+		const partsMap = hasRelay
+			? day.bySource
+			: dimension === 'model'
+				? day.byModel
+				: dimension === 'api_key'
+					? day.byKey
+					: day.byModel;
 		return {
 			date: day.date,
 			tokens: day.tokens,
@@ -366,6 +425,14 @@ function writeOut(labels, source) {
 async function main() {
 	const zipPath = argOf('zip');
 	const dirPath = argOf('dir');
+	const relayPath = argOf('relay');
+
+	if (relayPath && !fs.existsSync(relayPath)) {
+		console.error(`找不到中转站表格：${relayPath}`);
+		process.exit(2);
+	}
+	// 合并中转站时，官方那几段的标签加前缀，避免和图上模型名混淆
+	officialPrefix = relayPath ? '官方 · ' : '';
 
 	let pairs;
 	let labels;
@@ -409,6 +476,13 @@ async function main() {
 	for (const pair of pairs) {
 		if (pair.kind === 'amount') ingestAmount(pair.text);
 		else ingestCost(pair.text);
+	}
+
+	// 中转站的用量不在官方账单里，合并就是直接相加；两边的 token 口径一致（输入+输出+缓存）
+	if (relayPath) {
+		console.log(`合并中转站：${relayPath}`);
+		ingestRelay(fs.readFileSync(relayPath, 'utf8'));
+		source = `${source} + 中转站导出`;
 	}
 
 	writeOut(labels, source);
