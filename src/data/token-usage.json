@@ -1,89 +1,89 @@
 {
-  "fetchedAt": "2026-10-21T04:56:28.306Z",
+  "fetchedAt": "2026-10-21T11:20:53.573Z",
   "source": "local:DshSessions",
-  "note": "本机 DSH 会话日志统计；tokens = 输入 + 输出，不含缓存命中",
+  "note": "本机 DSH 会话日志统计；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
     "2026-10"
   ],
   "totals": {
-    "tokens": 20991398,
-    "input": 16481533,
-    "output": 4509865,
-    "cacheRead": 1709626556,
-    "requests": 4835,
+    "tokens": 1757253614,
+    "input": 16941733,
+    "output": 4597389,
+    "cacheRead": 1735714492,
+    "requests": 4947,
     "cost": 0
   },
   "models": [],
   "daily": [
     {
       "date": "2026-10-17",
-      "tokens": 7177779,
+      "tokens": 467717043,
       "input": 5586715,
       "output": 1591064,
       "cacheRead": 460539264,
       "requests": 1513,
       "cost": 0,
       "hours": 9,
-      "open": 1638332,
-      "close": 634042,
-      "high": 2646346,
-      "low": 50972
+      "open": 30879164,
+      "close": 38592954,
+      "high": 150138698,
+      "low": 20878876
     },
     {
       "date": "2026-10-18",
-      "tokens": 4788131,
+      "tokens": 336176803,
       "input": 3765432,
       "output": 1022699,
       "cacheRead": 331388672,
       "requests": 887,
       "cost": 0,
       "hours": 13,
-      "open": 22340,
-      "close": 33714,
-      "high": 2185448,
-      "low": 14328
+      "open": 4380228,
+      "close": 3056306,
+      "high": 84317654,
+      "low": 2275769
     },
     {
       "date": "2026-10-19",
-      "tokens": 1655977,
+      "tokens": 143460325,
       "input": 1381464,
       "output": 274513,
       "cacheRead": 141804348,
       "requests": 372,
       "cost": 0,
       "hours": 7,
-      "open": 15956,
-      "close": 840677,
-      "high": 840677,
-      "low": 15956
+      "open": 1614420,
+      "close": 57320421,
+      "high": 57802484,
+      "low": 1614420
     },
     {
       "date": "2026-10-20",
-      "tokens": 4749346,
+      "tokens": 535606050,
       "input": 3496669,
       "output": 1252677,
       "cacheRead": 530856704,
       "requests": 1553,
       "cost": 0,
       "hours": 14,
-      "open": 714735,
-      "close": 1097919,
-      "high": 1097919,
-      "low": 8454
+      "open": 101140847,
+      "close": 94435519,
+      "high": 101140847,
+      "low": 232966
     },
     {
       "date": "2026-10-21",
-      "tokens": 2620165,
-      "input": 2251253,
-      "output": 368912,
-      "cacheRead": 245037568,
-      "requests": 510,
+      "tokens": 274293393,
+      "input": 2711453,
+      "output": 456436,
+      "cacheRead": 271125504,
+      "requests": 622,
       "cost": 0,
-      "hours": 5,
-      "open": 148351,
-      "close": 1124676,
-      "high": 1192454,
-      "low": 26142
+      "hours": 7,
+      "open": 69612415,
+      "close": 9249470,
+      "high": 78316038,
+      "low": 9249470
     }
   ]
 }

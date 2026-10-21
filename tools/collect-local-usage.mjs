@@ -113,13 +113,14 @@ for (const file of files) {
 			skipped += 1;
 			continue;
 		}
-		// 口径：**新 token = 输入 + 输出**。
-		// cacheReadTokens 是命中的上下文（这里占了 99%），单独记一列，不算进「花掉的」——
-		// 它便宜得多，混进主数字会让图完全看不出真实工作量。
+		// 口径：**全部烧掉的 token = 输入 + 输出 + 缓存命中**。
+		// 缓存那头占了九成九，但作者要的是「看着热闹」，所以一起算进主数字；
+		// cacheRead 仍然单独记一份，图上的「其中缓存」用它。
 		const input = Number(usage.inputTokens ?? 0);
 		const output = Number(usage.outputTokens ?? 0);
 		const cacheRead = Number(usage.cacheReadTokens ?? 0);
-		const tokens = input + output;
+		const fresh = input + output;
+		const tokens = fresh + cacheRead;
 		if (!Number.isFinite(tokens) || tokens <= 0) continue;
 		const date = dateOf(time);
 		const hour = new Date(time + 8 * 3600 * 1000).getUTCHours();
@@ -180,7 +181,7 @@ const totals = daily.reduce(
 const payload = {
 	fetchedAt: new Date().toISOString(),
 	source: 'local:DshSessions',
-	note: '本机 DSH 会话日志统计；tokens = 输入 + 输出，不含缓存命中',
+	note: '本机 DSH 会话日志统计；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）',
 	months: [...new Set(daily.map((d) => d.date.slice(0, 7)))],
 	totals: {
 		tokens: totals.tokens,

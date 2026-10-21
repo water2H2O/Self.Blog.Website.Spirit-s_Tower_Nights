@@ -143,10 +143,12 @@ const tokenStats = (() => {
 		week7Tokens: sum(week7, 'tokens'),
 		monthTokens: sum(monthDays, 'tokens'),
 		monthCache: sum(monthDays, 'cacheRead'),
+		monthDays: monthDays.length,
+		monthAvg: monthDays.length ? Math.round(sum(monthDays, 'tokens') / monthDays.length) : 0,
 		monthCost,
 		monthLabel: `${Number(monthKey.slice(5, 7))} 月`,
 		fetchedAt: tokenData.fetchedAt ?? '',
-		/** 本地会话口径没有花费数据；为 0 时那一格不显示 */
+		/** 本地会话口径没有花费数据；为 0 时那一格换成「日均」 */
 		showCost: monthCost > 0,
 	};
 })();
@@ -163,13 +165,15 @@ const tokenChart = (() => {
 	const highs = tokenCandles.map((c) => c.high);
 	const lows = tokenCandles.map((c) => c.low);
 	const max = Math.max(...highs);
-	const min = Math.min(...lows);
+	// 基线取 0：日用量之间差着好几个数量级，用「最低值」当底会把蜡烛压成一条线。
+	// 从 0 起画，身长才和当天烧的量成正比。
+	const min = 0;
 	const span = Math.max(1, max - min);
 	const plotW = W - PL - PR;
 	const plotH = H - PT - PB;
 	const y = (value: number) => PT + plotH - ((value - min) / span) * plotH;
 	const slot = plotW / tokenCandles.length;
-	const bodyW = Math.max(7, Math.min(26, slot * 0.5));
+	const bodyW = Math.max(8, Math.min(34, slot * 0.42));
 	const candles = tokenCandles.map((candle, index) => {
 		const cx = PL + slot * index + slot / 2;
 		const yOpen = y(candle.open);
@@ -831,6 +835,11 @@ const tokenChart = (() => {
 				line-height: 1.8;
 				color: rgb(var(--gray));
 			}
+			.tk-src {
+				display: block;
+				margin-top: 0.35em;
+				opacity: 0.65;
+			}
 			@media (max-width: 640px) {
 				.tokens {
 					padding: 1.1em 1em 1em;
@@ -1207,13 +1216,13 @@ const tokenChart = (() => {
 							{tokenStats.showCost ? (
 								<li><span>{tokenStats.monthLabel}花费</span><b>¥{tokenStats.monthCost.toFixed(2)}</b></li>
 							) : (
-								<li><span>缓存命中</span><b>{fmtTokens(tokenStats.monthCache)}</b></li>
+								<li><span>日均</span><b>{fmtTokens(tokenStats.monthAvg)}</b></li>
 							)}
 						</ul>
 						<p class="tk-note">
-							每根蜡烛是<strong>一天</strong>：先按小时汇总，开 / 收取当天首末两小时，影线是那天最大与最小的一小时。
-							只算<strong>新读入 + 生成</strong>的 token；缓存命中的上下文（本机最近几天约 16.7 亿）便宜得多，
-							所以单列在右下角，不混进主数字。
+							每根蜡烛是<strong>一天</strong>，数字是当天烧掉的<strong>全部</strong> token（缓存命中也算）。
+							一天上亿是常态 —— 看着唬人，其实大头是缓存，便宜得很。
+							<span class="tk-src">数据来自本机 DSH 会话日志，隔几天刷新一次。</span>
 						</p>
 					</div>
 				</>

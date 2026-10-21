@@ -23,7 +23,8 @@
  *   · 产物 JSON 只有按天的 tokens / 请求数 / 花费
  *
  * 口径（和 tools/collect-local-usage.mjs 一致，两个来源才可比）：
- *   tokens = 输入（cache miss）+ 输出；缓存命中（cache hit）单列成 cacheRead，不进主数字。
+ *   tokens = 输入(cache miss) + 输出 + 缓存命中(cache hit) —— 当天烧掉的全部；
+ *   cacheRead 另外单列一份，图上用「其中缓存」显示。
  *
  * 关于两类导出文件的差异（都兼容）：
  *   · 页面按日期段导出的：列名含 start_time_iso / end_time_iso，**按小时**——能算出真的日内 OHLC
@@ -138,7 +139,10 @@ function ingestAmount(text) {
 			day.tokens += amount;
 			counted = amount;
 		} else if (type === TYPE_HIT) {
+			// 缓存命中一起算进主数字（要的是热闹），另外留一份给「其中缓存」
 			day.cacheRead += amount;
+			day.tokens += amount;
+			counted = amount;
 		} else {
 			continue;
 		}
@@ -275,7 +279,7 @@ function writeOut(labels, source) {
 	const payload = {
 		fetchedAt: new Date().toISOString(),
 		source,
-		note: '平台用量导出；tokens = 输入(cache miss) + 输出，缓存命中单列',
+		note: '平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）',
 		months: labels,
 		totals: {
 			tokens: totals.tokens,
