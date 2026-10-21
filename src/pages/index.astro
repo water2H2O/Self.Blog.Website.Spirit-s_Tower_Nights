@@ -82,14 +82,25 @@ weeks.forEach((_, index) => {
 /**
  * ★ token 用量 K 线图。
  *
- * 数据来自 `src/data/token-usage.json`，由 `tools/fetch-token-usage.mjs` 在本地抓取后提交 ——
- * 平台侧的用量接口要登录态，静态站不能自己去请求，所以走「本地抓 → 提交 JSON → 构建时读」，
- * 和上面 github.json 是同一套路。**数据为空时整段不渲染**，不会在站上留个空框。
+ * 数据来自 `src/data/token-usage.json`，由 `tools/collect-local-usage.mjs` 读本机 DSH 会话日志统计
+ * （另一条路是 `tools/fetch-token-usage.mjs`，用登录态导出平台用量）。
+ * 静态站构建时不联网，所以走「本地算 → 提交 JSON → 构建时读」，和上面 github.json 同一套路。
+ * **数据为空时整段不渲染**，不会在站上留个空框。
  */
-type TokenDay = { date: string; tokens: number; requests: number; cost: number };
+type TokenDay = {
+	date: string;
+	tokens: number;
+	input?: number;
+	output?: number;
+	cacheRead?: number;
+	requests: number;
+	cost: number;
+};
 const tokenData = tokenUsage as {
 	fetchedAt?: string;
-	totals?: { tokens?: number; requests?: number; cost?: number };
+	source?: string;
+	note?: string;
+	totals?: { tokens?: number; requests?: number; cost?: number; cacheRead?: number };
 	models?: { model: string; tokens: number }[];
 	daily?: TokenDay[];
 };
@@ -99,32 +110,21 @@ const tokenDaily: TokenDay[] = (tokenData.daily ?? []).filter((day) => day.token
 const fmtTokens = (n: number) =>
 	n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(n);
 
-/** 按天 → 按周（周一为一周起点），一根蜡烛 = 一周 */
+/**
+ * 一根蜡烛 = 一天：开 / 收 = 当天第一次与最后一次请求的 token，
+ * 高 / 低 = 当天最大与最小的单次请求。数据里带了 O/H/L/C 就直接用，
+ * 没有（平台导出的口径）就退化成「当天总量」。
+ */
 const tokenCandles = (() => {
-	if (tokenDaily.length < 2) return [];
-	const byWeek = new Map<string, TokenDay[]>();
-	for (const day of tokenDaily) {
-		const d = new Date(`${day.date}T00:00:00Z`);
-		const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86400000);
-		const key = monday.toISOString().slice(0, 10);
-		if (!byWeek.has(key)) byWeek.set(key, []);
-		byWeek.get(key)!.push(day);
-	}
-	return [...byWeek.entries()]
-		.sort((a, b) => a[0].localeCompare(b[0]))
-		.slice(-10)
-		.map(([week, days]) => {
-			const values = days.map((day) => day.tokens);
-			return {
-				week,
-				open: values[0],
-				close: values[values.length - 1],
-				high: Math.max(...values),
-				low: Math.min(...values),
-				total: values.reduce((a, b) => a + b, 0),
-				days: days.length,
-			};
-		});
+	if (tokenDaily.length < 1) return [];
+	return tokenDaily.slice(-20).map((day) => {
+		const value = day.tokens;
+		const open = day.open ?? value;
+		const close = day.close ?? value;
+		const high = day.high ?? Math.max(open, close, value);
+		const low = day.low ?? Math.min(open, close, value);
+		return { date: day.date, open, close, high, low, total: value, requests: day.requests };
+	});
 })();
 
 /** 图上要写的几行数字：最近一天、最近 7 天、本月（按数据里最后一个月的口径） */
@@ -134,16 +134,20 @@ const tokenStats = (() => {
 	const monthKey = last.date.slice(0, 7);
 	const monthDays = tokenDaily.filter((day) => day.date.startsWith(monthKey));
 	const week7 = tokenDaily.slice(-7);
-	const sum = (rows: TokenDay[], key: 'tokens' | 'cost') =>
-		rows.reduce((acc, day) => acc + day[key], 0);
+	const sum = (rows: TokenDay[], key: 'tokens' | 'cost' | 'cacheRead') =>
+		rows.reduce((acc, day) => acc + (day[key] ?? 0), 0);
+	const monthCost = sum(monthDays, 'cost');
 	return {
 		lastDate: last.date,
 		lastTokens: last.tokens,
 		week7Tokens: sum(week7, 'tokens'),
 		monthTokens: sum(monthDays, 'tokens'),
-		monthCost: sum(monthDays, 'cost'),
+		monthCache: sum(monthDays, 'cacheRead'),
+		monthCost,
 		monthLabel: `${Number(monthKey.slice(5, 7))} 月`,
 		fetchedAt: tokenData.fetchedAt ?? '',
+		/** 本地会话口径没有花费数据；为 0 时那一格不显示 */
+		showCost: monthCost > 0,
 	};
 })();
 
@@ -1131,14 +1135,15 @@ const tokenChart = (() => {
 						<div class="tk-head">
 							<span class="tk-brand">DEEPSEEK · TOKENS</span>
 							<span class="tk-total">
-								{tokenStats.monthLabel} {fmtTokens(tokenStats.monthTokens)} tokens · ¥{tokenStats.monthCost.toFixed(2)}
+								{tokenStats.monthLabel} {fmtTokens(tokenStats.monthTokens)} tokens{tokenStats.showCost &&
+									` · ¥${tokenStats.monthCost.toFixed(2)}`}
 							</span>
 						</div>
 						<svg
 							class="tk-chart"
 							viewBox={`0 0 ${tokenChart.W} ${tokenChart.H}`}
 							role="img"
-							aria-label={`按周的 token 用量，最近 ${tokenChart.candles.length} 周`}
+							aria-label={`按天的 token 用量，最近 ${tokenChart.candles.length} 天`}
 						>
 							{[0, 0.5, 1].map((ratio) => (
 								<line
@@ -1189,7 +1194,7 @@ const tokenChart = (() => {
 											text-anchor="middle"
 											class="tk-axis"
 										>
-											{candle.week.slice(5).replace('-', '/')}
+											{candle.date.slice(5).replace('-', '/')}
 										</text>
 									)}
 								</g>
@@ -1199,11 +1204,16 @@ const tokenChart = (() => {
 							<li><span>最近一天</span><b>{fmtTokens(tokenStats.lastTokens)}</b></li>
 							<li><span>最近 7 天</span><b>{fmtTokens(tokenStats.week7Tokens)}</b></li>
 							<li><span>{tokenStats.monthLabel}合计</span><b>{fmtTokens(tokenStats.monthTokens)}</b></li>
-							<li><span>{tokenStats.monthLabel}花费</span><b>¥{tokenStats.monthCost.toFixed(2)}</b></li>
+							{tokenStats.showCost ? (
+								<li><span>{tokenStats.monthLabel}花费</span><b>¥{tokenStats.monthCost.toFixed(2)}</b></li>
+							) : (
+								<li><span>缓存命中</span><b>{fmtTokens(tokenStats.monthCache)}</b></li>
+							)}
 						</ul>
 						<p class="tk-note">
-							每根蜡烛是<strong>一周</strong>：开 / 收取那一周首末两天的用量，影线是那周的最高与最低。
-							数据来自 DeepSeek 开放平台的用量页，手动更新，不是实时。
+							每根蜡烛是<strong>一天</strong>：先按小时汇总，开 / 收取当天首末两小时，影线是那天最大与最小的一小时。
+							只算<strong>新读入 + 生成</strong>的 token；缓存命中的上下文（本机最近几天约 16.7 亿）便宜得多，
+							所以单列在右下角，不混进主数字。
 						</p>
 					</div>
 				</>

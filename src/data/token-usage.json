@@ -1,12 +1,89 @@
 {
-  "fetchedAt": "",
-  "source": "platform.deepseek.com/api/v0/usage/export",
-  "months": [],
+  "fetchedAt": "2026-10-21T04:28:21.837Z",
+  "source": "local:DshSessions",
+  "note": "本机 DSH 会话日志统计；tokens = 输入 + 输出，不含缓存命中",
+  "months": [
+    "2026-10"
+  ],
   "totals": {
-    "tokens": 0,
-    "requests": 0,
+    "tokens": 20810077,
+    "input": 16396522,
+    "output": 4413555,
+    "cacheRead": 1679525692,
+    "requests": 4728,
     "cost": 0
   },
   "models": [],
-  "daily": []
+  "daily": [
+    {
+      "date": "2026-10-17",
+      "tokens": 7177779,
+      "input": 5586715,
+      "output": 1591064,
+      "cacheRead": 460539264,
+      "requests": 1513,
+      "cost": 0,
+      "hours": 9,
+      "open": 1638332,
+      "close": 634042,
+      "high": 2646346,
+      "low": 50972
+    },
+    {
+      "date": "2026-10-18",
+      "tokens": 4788131,
+      "input": 3765432,
+      "output": 1022699,
+      "cacheRead": 331388672,
+      "requests": 887,
+      "cost": 0,
+      "hours": 13,
+      "open": 22340,
+      "close": 33714,
+      "high": 2185448,
+      "low": 14328
+    },
+    {
+      "date": "2026-10-19",
+      "tokens": 1655977,
+      "input": 1381464,
+      "output": 274513,
+      "cacheRead": 141804348,
+      "requests": 372,
+      "cost": 0,
+      "hours": 7,
+      "open": 15956,
+      "close": 840677,
+      "high": 840677,
+      "low": 15956
+    },
+    {
+      "date": "2026-10-20",
+      "tokens": 4749346,
+      "input": 3496669,
+      "output": 1252677,
+      "cacheRead": 530856704,
+      "requests": 1553,
+      "cost": 0,
+      "hours": 14,
+      "open": 714735,
+      "close": 1097919,
+      "high": 1097919,
+      "low": 8454
+    },
+    {
+      "date": "2026-10-21",
+      "tokens": 2438844,
+      "input": 2166242,
+      "output": 272602,
+      "cacheRead": 214936704,
+      "requests": 403,
+      "cost": 0,
+      "hours": 5,
+      "open": 148351,
+      "close": 943355,
+      "high": 1192454,
+      "low": 26142
+    }
+  ]
 }
