@@ -206,6 +206,80 @@ const tokenChart = (() => {
 	});
 	return { W, H, PL, PR, PT, PB, plotW, plotH, max, min, candles, y };
 })();
+
+/**
+ * 多模型时改用「堆叠柱状图」：一天一根柱，按模型分段。
+ *
+ * 只在数据确实是**多模型**时才启用（`dimension === 'model'`）。
+ * 平台导出里还有一种「按 api_key 拆」，但那几个 key 往往是同一个客户端改名，
+ * 堆起来等于把「改名」画成「换了个东西」，会误导 —— 所以那种情况仍用蜡烛图。
+ */
+type TokenSeries = { label: string; tokens: number; share?: number };
+const tokenSeries: TokenSeries[] = (tokenData.series ?? []).filter((s) => s.tokens > 0);
+const stacked = tokenData.dimension === 'model' && tokenSeries.length >= 2;
+
+/** 分段配色：青、紫、金、绿、红 —— 和站上其他图表同一套 */
+const SERIES_COLORS = ['#7fe9f0', '#c9a8ff', '#ffd68a', '#8fdc9b', '#e06a7a', '#9be7e0'];
+const tokenSeriesColored = tokenSeries.map((s, i) => ({
+	...s,
+	color: SERIES_COLORS[i % SERIES_COLORS.length],
+}));
+
+const tokenStack = (() => {
+	if (!stacked || tokenDaily.length === 0) return null;
+	const W = 720;
+	const H = 190;
+	const PL = 8;
+	const PR = 52;
+	const PT = 14;
+	const PB = 26;
+	const plotW = W - PL - PR;
+	const plotH = H - PT - PB;
+	const days = tokenDaily.slice(-31);
+	const max = Math.max(...days.map((d) => d.tokens), 1);
+	const y = (value: number) => PT + plotH - (value / max) * plotH;
+	const slot = plotW / days.length;
+	const barW = Math.max(7, Math.min(30, slot * 0.58));
+	const labelEvery = Math.max(1, Math.ceil(days.length / 6));
+	const lastLabelFloor = days.length - 1 - Math.floor(labelEvery / 2);
+	const bars = days.map((day, index) => {
+		const cx = PL + slot * index + slot / 2;
+		let acc = 0;
+		const segs: {
+			label: string;
+			color: string;
+			value: number;
+			x: number;
+			y: number;
+			h: number;
+		}[] = [];
+		for (const s of tokenSeriesColored) {
+			const value = day.parts?.[s.label] ?? 0;
+			if (value <= 0) continue;
+			const y0 = y(acc);
+			const y1 = y(acc + value);
+			acc += value;
+			segs.push({
+				label: s.label,
+				color: s.color,
+				value,
+				x: cx - barW / 2,
+				y: y1,
+				h: Math.max(0.6, y0 - y1),
+			});
+		}
+		return {
+			date: day.date,
+			cx,
+			segs,
+			label:
+				index === 0 ||
+				index === days.length - 1 ||
+				(index % labelEvery === 0 && index < lastLabelFloor),
+		};
+	});
+	return { W, H, PL, PR, PT, PB, plotW, plotH, max, bars, barW };
+})();
 ---
 
 <!doctype html>
@@ -927,6 +1001,40 @@ const tokenChart = (() => {
 				margin-top: 0.35em;
 				opacity: 0.65;
 			}
+			/* 堆叠图的图例：色块 + 名字 + 占比 + 总量 */
+			.tk-legend {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45em 1.3em;
+				margin: 0.9em 0 0;
+				padding: 0;
+				list-style: none;
+				font-size: 0.8em;
+			}
+			.tk-legend li {
+				display: flex;
+				align-items: center;
+				gap: 0.45em;
+			}
+			.tk-legend .dot {
+				flex: none;
+				width: 9px;
+				height: 9px;
+				border-radius: 2px;
+				box-shadow: 0 0 8px currentColor;
+			}
+			.tk-legend .name {
+				color: rgb(var(--gray));
+			}
+			.tk-legend .share {
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+			}
+			.tk-legend .amt {
+				color: rgb(var(--gray));
+				opacity: 0.7;
+				font-variant-numeric: tabular-nums;
+			}
 			@media (max-width: 640px) {
 				.tokens {
 					padding: 1.1em 1em 1em;
@@ -1258,6 +1366,7 @@ const tokenChart = (() => {
 							viewBox={`0 0 ${tokenChart.W} ${tokenChart.H}`}
 							role="img"
 							aria-label={`按天的 token 用量，最近 ${tokenChart.candles.length} 天`}
+							style={stacked ? 'display:none' : undefined}
 						>
 							{[0, 0.5, 1].map((ratio) => (
 								<line
@@ -1314,6 +1423,77 @@ const tokenChart = (() => {
 								</g>
 							))}
 						</svg>
+						{stacked && tokenStack && (
+							<svg
+								class="tk-chart"
+								viewBox={`0 0 ${tokenStack.W} ${tokenStack.H}`}
+								role="img"
+								aria-label={`按天的 token 用量，按模型拆成 ${tokenSeriesColored.length} 段`}
+							>
+								{[0, 0.5, 1].map((ratio) => (
+									<line
+										x1={tokenStack.PL}
+										x2={tokenStack.W - tokenStack.PR}
+										y1={tokenStack.PT + tokenStack.plotH * ratio}
+										y2={tokenStack.PT + tokenStack.plotH * ratio}
+										stroke="rgba(175,255,255,0.10)"
+										stroke-dasharray="3 5"
+									/>
+								))}
+								<text x={tokenStack.W - 6} y={tokenStack.PT + 4} text-anchor="end" class="tk-axis">
+									{fmtTokens(tokenStack.max)}
+								</text>
+								<text
+									x={tokenStack.W - 6}
+									y={tokenStack.PT + tokenStack.plotH}
+									text-anchor="end"
+									class="tk-axis"
+								>
+									0
+								</text>
+								{tokenStack.bars.map((bar) => (
+									<g>
+										{bar.segs.map((seg) => (
+											<rect
+												x={seg.x}
+												y={seg.y}
+												width={tokenStack.barW}
+												height={seg.h}
+												fill={seg.color}
+												fill-opacity="0.82"
+												rx="1.5"
+											>
+												<title>{`${bar.date} · ${seg.label} · ${fmtTokens(seg.value)}`}</title>
+											</rect>
+										))}
+										{bar.label && (
+											<text
+												x={bar.cx}
+												y={tokenStack.H - 8}
+												text-anchor="middle"
+												class="tk-axis"
+											>
+												{bar.date.slice(5).replace('-', '/')}
+											</text>
+										)}
+									</g>
+								))}
+							</svg>
+						)}
+
+						{stacked && (
+							<ul class="tk-legend">
+								{tokenSeriesColored.map((s) => (
+									<li>
+										<span class="dot" style={`background:${s.color}`} />
+										<span class="name">{s.label}</span>
+										<span class="share">{s.share ?? 0}%</span>
+										<span class="amt">{fmtTokens(s.tokens)}</span>
+									</li>
+								))}
+							</ul>
+						)}
+
 						<ul class="tk-stats">
 							<li><span>最近一天</span><b>{fmtTokens(tokenStats.lastTokens)}</b></li>
 							<li><span>最近 7 天</span><b>{fmtTokens(tokenStats.week7Tokens)}</b></li>
@@ -1325,8 +1505,9 @@ const tokenChart = (() => {
 							)}
 						</ul>
 						<p class="tk-note">
-							每根蜡烛是<strong>一天</strong>，数字是当天烧掉的<strong>全部</strong> token（缓存命中也算）。
-							一天上亿是常态 —— 看着唬人，其实大头是缓存，便宜得很。
+							{stacked ? '每根柱子是一天，按模型分成几段' : '每根蜡烛是一天'}，数字是当天烧掉的<strong
+								>全部</strong
+							> token（缓存命中也算）。一天上亿是常态 —— 看着唬人，其实大头是缓存，便宜得很。
 							<span class="tk-src">{tokenStats.sourceLabel}</span>
 						</p>
 					</div>

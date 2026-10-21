@@ -103,6 +103,8 @@ const TYPE_REQ = 'request_count';
 
 const byDate = new Map();
 const byModel = new Map();
+/** api_key_name 的合计 —— 导出里就这一个能区分「哪台机器 / 哪个中转站」用的 */
+const byKeyName = new Map();
 
 function dayOf(date) {
 	if (!byDate.has(date)) {
@@ -115,6 +117,9 @@ function dayOf(date) {
 			requests: 0,
 			cost: 0,
 			hours: new Map(),
+			/** 按模型 / 按密钥的日内拆分，给堆叠柱状图用 */
+			byModel: new Map(),
+			byKey: new Map(),
 		});
 	}
 	return byDate.get(date);
@@ -151,7 +156,11 @@ function ingestAmount(text) {
 		}
 		if (counted > 0) {
 			const model = (row.model ?? '未知').trim();
+			const key = (row.api_key_name ?? '未知').trim();
 			byModel.set(model, (byModel.get(model) ?? 0) + counted);
+			byKeyName.set(key, (byKeyName.get(key) ?? 0) + counted);
+			day.byModel.set(model, (day.byModel.get(model) ?? 0) + counted);
+			day.byKey.set(key, (day.byKey.get(key) ?? 0) + counted);
 		}
 	}
 }
@@ -237,6 +246,20 @@ function normalize(raw) {
 
 function writeOut(labels, source) {
 	/**
+	 * 拆分成几段画堆叠图：
+	 *   · 有多个模型 → 按模型拆（「不同模型各烧多少」）
+	 *   · 只有一个模型 → 按 api_key_name 拆（这是导出里唯一能区分客户端 / 中转站的东西）
+	 * 只有一个分段时，前端会退回普通蜡烛图。
+	 */
+	const dimension = byModel.size > 1 ? 'model' : byKeyName.size > 1 ? 'api_key' : 'single';
+	const seriesSource = dimension === 'model' ? byModel : dimension === 'api_key' ? byKeyName : byModel;
+	const series = [...seriesSource.entries()]
+		.map(([label, tokens]) => ({ label, tokens }))
+		.sort((a, b) => b.tokens - a.tokens);
+	const totalSeries = series.reduce((a, s) => a + s.tokens, 0) || 1;
+	for (const s of series) s.share = Number(((s.tokens / totalSeries) * 100).toFixed(1));
+
+	/**
 	 * OHLC 的来源有两种：
 	 *   · 文件带小时桶（一天多个时段）→ 按小时算，蜡烛有影线
 	 *   · 只有按天合计（范围导出就是这样，每天只有 00:00 一个桶）→
@@ -264,6 +287,9 @@ function writeOut(labels, source) {
 			low = Math.min(open, close);
 		}
 		prevClose = close;
+		// 这里必须把分段表一起带出来：下面按 dimension 选 model / key 两份之一
+		const partsMap =
+			dimension === 'model' ? day.byModel : dimension === 'api_key' ? day.byKey : day.byModel;
 		return {
 			date: day.date,
 			tokens: day.tokens,
@@ -273,6 +299,7 @@ function writeOut(labels, source) {
 			requests: day.requests,
 			cost: Number(day.cost.toFixed(6)),
 			hours: values.length,
+			parts: Object.fromEntries(partsMap ?? new Map()),
 			open,
 			close,
 			high,
@@ -303,6 +330,8 @@ function writeOut(labels, source) {
 		source,
 		note: '平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）',
 		months: labels,
+		dimension,
+		series,
 		totals: {
 			tokens: totals.tokens,
 			input: totals.input,
@@ -323,8 +352,14 @@ function writeOut(labels, source) {
 			`¥${totals.cost.toFixed(2)}\n` +
 			`  其中缓存命中 ${totals.cacheRead.toLocaleString('en-US')}（已计入上面的总数）`,
 	);
+	if (dimension !== 'single') {
+		console.log(
+			`  拆分维度：${dimension === 'model' ? '模型' : '客户端 / 密钥'} —— ` +
+				series.map((s) => `${s.label} ${s.share}%`).join(' · '),
+		);
+	}
 	if (daily.length < 14) {
-		console.log(`\n⚠ 只有 ${daily.length} 天数据 —— 建议把导出范围改到最近一个月，K 线才有东西看。`);
+		console.log(`\n⚠ 只有 ${daily.length} 天数据 —— 建议把导出范围改到最近一个月，图表才有东西看。`);
 	}
 }
 

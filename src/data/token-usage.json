@@ -1,9 +1,32 @@
 {
-  "fetchedAt": "2026-10-21T11:27:00.540Z",
+  "fetchedAt": "2026-10-21T19:40:16.521Z",
   "source": "platform.deepseek.com/usage（页面导出）",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
     "2026-09-22_2026-10-21"
+  ],
+  "dimension": "api_key",
+  "series": [
+    {
+      "label": "Harness",
+      "tokens": 1763483603,
+      "share": 57.1
+    },
+    {
+      "label": "DeepSeek Harness (App-managed)",
+      "tokens": 1298345665,
+      "share": 42
+    },
+    {
+      "label": "hrness",
+      "tokens": 27943143,
+      "share": 0.9
+    },
+    {
+      "label": "charry studio",
+      "tokens": 1306939,
+      "share": 0
+    }
   ],
   "totals": {
     "tokens": 3091079350,
@@ -29,6 +52,9 @@
       "requests": 7,
       "cost": 0.472066,
       "hours": 1,
+      "parts": {
+        "charry studio": 544725
+      },
       "open": 544725,
       "close": 544725,
       "high": 544725,
@@ -43,6 +69,9 @@
       "requests": 7,
       "cost": 0.007961,
       "hours": 1,
+      "parts": {
+        "charry studio": 7620
+      },
       "open": 544725,
       "close": 7620,
       "high": 544725,
@@ -57,6 +86,9 @@
       "requests": 3,
       "cost": 0.054216,
       "hours": 1,
+      "parts": {
+        "charry studio": 34089
+      },
       "open": 7620,
       "close": 34089,
       "high": 34089,
@@ -71,6 +103,9 @@
       "requests": 23,
       "cost": 0.394767,
       "hours": 1,
+      "parts": {
+        "charry studio": 256355
+      },
       "open": 34089,
       "close": 256355,
       "high": 256355,
@@ -85,6 +120,9 @@
       "requests": 4,
       "cost": 0.065605,
       "hours": 1,
+      "parts": {
+        "charry studio": 17562
+      },
       "open": 256355,
       "close": 17562,
       "high": 256355,
@@ -99,6 +137,9 @@
       "requests": 5,
       "cost": 0.102895,
       "hours": 1,
+      "parts": {
+        "charry studio": 85809
+      },
       "open": 17562,
       "close": 85809,
       "high": 85809,
@@ -113,6 +154,9 @@
       "requests": 14,
       "cost": 0.143784,
       "hours": 1,
+      "parts": {
+        "charry studio": 83459
+      },
       "open": 85809,
       "close": 83459,
       "high": 85809,
@@ -127,6 +171,9 @@
       "requests": 4,
       "cost": 0.037655,
       "hours": 1,
+      "parts": {
+        "charry studio": 25736
+      },
       "open": 83459,
       "close": 25736,
       "high": 83459,
@@ -141,6 +188,9 @@
       "requests": 7,
       "cost": 0.342306,
       "hours": 1,
+      "parts": {
+        "charry studio": 251584
+      },
       "open": 25736,
       "close": 251584,
       "high": 251584,
@@ -155,6 +205,9 @@
       "requests": 758,
       "cost": 15.027202,
       "hours": 1,
+      "parts": {
+        "Harness": 221243388
+      },
       "open": 251584,
       "close": 221243388,
       "high": 221243388,
@@ -169,6 +222,9 @@
       "requests": 1459,
       "cost": 17.56643,
       "hours": 1,
+      "parts": {
+        "Harness": 438634004
+      },
       "open": 221243388,
       "close": 438634004,
       "high": 438634004,
@@ -183,6 +239,9 @@
       "requests": 384,
       "cost": 4.187471,
       "hours": 1,
+      "parts": {
+        "Harness": 119532630
+      },
       "open": 438634004,
       "close": 119532630,
       "high": 438634004,
@@ -197,6 +256,9 @@
       "requests": 692,
       "cost": 10.878688,
       "hours": 1,
+      "parts": {
+        "Harness": 250132169
+      },
       "open": 119532630,
       "close": 250132169,
       "high": 250132169,
@@ -211,6 +273,9 @@
       "requests": 1410,
       "cost": 12.826627,
       "hours": 1,
+      "parts": {
+        "Harness": 316049179
+      },
       "open": 250132169,
       "close": 316049179,
       "high": 316049179,
@@ -225,6 +290,9 @@
       "requests": 514,
       "cost": 5.458878,
       "hours": 1,
+      "parts": {
+        "Harness": 191818891
+      },
       "open": 316049179,
       "close": 191818891,
       "high": 316049179,
@@ -239,6 +307,9 @@
       "requests": 648,
       "cost": 8.278119,
       "hours": 1,
+      "parts": {
+        "Harness": 208700044
+      },
       "open": 191818891,
       "close": 208700044,
       "high": 208700044,
@@ -253,6 +324,9 @@
       "requests": 23,
       "cost": 0.277343,
       "hours": 1,
+      "parts": {
+        "Harness": 2246819
+      },
       "open": 208700044,
       "close": 2246819,
       "high": 208700044,
@@ -267,6 +341,11 @@
       "requests": 1354,
       "cost": 16.340839,
       "hours": 1,
+      "parts": {
+        "Harness": 15126479,
+        "DeepSeek Harness (App-managed)": 252023381,
+        "hrness": 27943143
+      },
       "open": 2246819,
       "close": 295093003,
       "high": 295093003,
@@ -281,6 +360,9 @@
       "requests": 682,
       "cost": 10.402348,
       "hours": 1,
+      "parts": {
+        "DeepSeek Harness (App-managed)": 244086934
+      },
       "open": 295093003,
       "close": 244086934,
       "high": 295093003,
@@ -295,6 +377,9 @@
       "requests": 279,
       "cost": 4.130196,
       "hours": 1,
+      "parts": {
+        "DeepSeek Harness (App-managed)": 117391382
+      },
       "open": 244086934,
       "close": 117391382,
       "high": 244086934,
@@ -309,6 +394,9 @@
       "requests": 1271,
       "cost": 18.14393,
       "hours": 1,
+      "parts": {
+        "DeepSeek Harness (App-managed)": 417096673
+      },
       "open": 117391382,
       "close": 417096673,
       "high": 417096673,
@@ -323,6 +411,9 @@
       "requests": 609,
       "cost": 10.570718,
       "hours": 1,
+      "parts": {
+        "DeepSeek Harness (App-managed)": 267747295
+      },
       "open": 417096673,
       "close": 267747295,
       "high": 417096673,

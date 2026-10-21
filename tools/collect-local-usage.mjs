@@ -88,6 +88,8 @@ if (files.length === 0) {
 }
 
 const byDate = new Map();
+/** 全局按模型的合计 */
+const byModel = new Map();
 let records = 0;
 let skipped = 0;
 const cutoff = Date.now() - DAYS * 86400000;
@@ -124,6 +126,7 @@ for (const file of files) {
 		if (!Number.isFinite(tokens) || tokens <= 0) continue;
 		const date = dateOf(time);
 		const hour = new Date(time + 8 * 3600 * 1000).getUTCHours();
+		const model = obj.data?.message?.source?.model ?? '未知';
 		const day = byDate.get(date) ?? {
 			date,
 			tokens: 0,
@@ -134,6 +137,8 @@ for (const file of files) {
 			cost: 0,
 			/** 按小时的 token 小计，用来算日内 OHLC（单次请求波动太大，直接用会全是针） */
 			hours: new Map(),
+			/** 按模型的日内小计，给堆叠柱状图用 */
+			byModel: new Map(),
 		};
 		day.tokens += tokens;
 		day.input += input;
@@ -141,6 +146,8 @@ for (const file of files) {
 		day.cacheRead += cacheRead;
 		day.requests += 1;
 		day.hours.set(hour, (day.hours.get(hour) ?? 0) + tokens);
+		day.byModel.set(model, (day.byModel.get(model) ?? 0) + tokens);
+		byModel.set(model, (byModel.get(model) ?? 0) + tokens);
 		byDate.set(date, day);
 		records += 1;
 	}
@@ -160,6 +167,7 @@ const daily = [...byDate.values()]
 			requests: day.requests,
 			cost: day.cost,
 			hours: values.length,
+			parts: Object.fromEntries(day.byModel),
 			open: values[0],
 			close: values[values.length - 1],
 			high: Math.max(...values),
@@ -178,11 +186,19 @@ const totals = daily.reduce(
 	{ tokens: 0, input: 0, output: 0, cacheRead: 0, requests: 0 },
 );
 
+const series = [...byModel.entries()]
+	.map(([label, tokens]) => ({ label, tokens }))
+	.sort((a, b) => b.tokens - a.tokens);
+const totalSeries = series.reduce((a, s) => a + s.tokens, 0) || 1;
+for (const s of series) s.share = Number(((s.tokens / totalSeries) * 100).toFixed(1));
+
 const payload = {
 	fetchedAt: new Date().toISOString(),
 	source: 'local:DshSessions',
 	note: '本机 DSH 会话日志统计；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）',
 	months: [...new Set(daily.map((d) => d.date.slice(0, 7)))],
+	dimension: series.length > 1 ? 'model' : 'single',
+	series,
 	totals: {
 		tokens: totals.tokens,
 		input: totals.input,
@@ -191,7 +207,7 @@ const payload = {
 		requests: totals.requests,
 		cost: 0,
 	},
-	models: [],
+	models: series.map((s) => ({ model: s.label, tokens: s.tokens })),
 	daily,
 };
 
