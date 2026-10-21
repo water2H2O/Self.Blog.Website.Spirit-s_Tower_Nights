@@ -4,8 +4,8 @@
  * 两条路，选一条：
  *
  *   A. 读「页面上导出的压缩包」（**不需要 token，推荐**）
- *      登录 platform.deepseek.com/usage → 点右上角「导出」→ 下载到一个 zip
- *      node tools/fetch-token-usage.mjs --zip="C:\Users\你\Downloads\usage.zip"
+ *      登录 platform.deepseek.com/usage → 点「导出」并选好日期范围 → 下载到一个 zip
+ *      node tools/fetch-token-usage.mjs --zip="C:\Users\你\Downloads\usage_data_xxx.zip"
  *      也支持已经解开的目录：--dir="...\解压后的目录"
  *
  *   B. 直接调接口（要登录态 userToken）
@@ -18,11 +18,16 @@
  *
  * 安全：
  *   · token 只从上面两个地方读，**永远不写进仓库**（.deepseek-user-token 已 gitignore）
- *   · 导出的 CSV 第 5 列是明文 api_key —— 本脚本按下标取列，不会打印或保存它
- *   · 产物 JSON 只有按天的 tokens / 请求数 / 花费，没有任何 key
+ *   · 导出的 CSV 里有明文 api_key —— 本脚本按**列名**取数（只读 time / model / type / amount / cost），
+ *     不会打印、也不会写进产物
+ *   · 产物 JSON 只有按天的 tokens / 请求数 / 花费
  *
- * 口径（和 tools/collect-local-usage.mjs 保持一致，两个来源的数字才可比）：
+ * 口径（和 tools/collect-local-usage.mjs 一致，两个来源才可比）：
  *   tokens = 输入（cache miss）+ 输出；缓存命中（cache hit）单列成 cacheRead，不进主数字。
+ *
+ * 关于两类导出文件的差异（都兼容）：
+ *   · 页面按日期段导出的：列名含 start_time_iso / end_time_iso，**按小时**——能算出真的日内 OHLC
+ *   · 早期月度导出的：列名含 utc_date，只有按天合计——OHLC 退化成平蜡烛
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -39,28 +44,7 @@ const argOf = (name) => {
 	return hit ? hit.slice(name.length + 3).replace(/^["']|["']$/g, '') : '';
 };
 
-/** 从「浏览器里 localStorage 的结果」或裸 token 里取出真正的 bearer */
-function readToken() {
-	const env = process.env.DEEPSEEK_USER_TOKEN?.trim();
-	if (env) return normalize(env);
-	if (fs.existsSync(TOKEN_FILE)) return normalize(fs.readFileSync(TOKEN_FILE, 'utf8').trim());
-	return '';
-}
-
-function normalize(raw) {
-	if (!raw) return '';
-	if (raw.startsWith('{')) {
-		try {
-			const parsed = JSON.parse(raw);
-			return String(parsed.value ?? parsed.token ?? '');
-		} catch {
-			/* 不是 JSON 就当成裸 token */
-		}
-	}
-	return raw.replace(/^Bearer\s+/i, '');
-}
-
-/** 极简 CSV 行切分：处理双引号包裹与 "" 转义（够应付这两张表） */
+/** 极简 CSV 行切分：处理双引号包裹与 "" 转义 */
 function splitCsvLine(line) {
 	const out = [];
 	let cur = '';
@@ -71,29 +55,50 @@ function splitCsvLine(line) {
 			if (ch === '"' && line[i + 1] === '"') {
 				cur += '"';
 				i += 1;
-			} else if (ch === '"') {
-				quoted = false;
-			} else {
-				cur += ch;
-			}
-		} else if (ch === '"') {
-			quoted = true;
-		} else if (ch === ',') {
+			} else if (ch === '"') quoted = false;
+			else cur += ch;
+		} else if (ch === '"') quoted = true;
+		else if (ch === ',') {
 			out.push(cur);
 			cur = '';
-		} else {
-			cur += ch;
-		}
+		} else cur += ch;
 	}
 	out.push(cur);
 	return out;
 }
 
-const AMOUNT_TYPES = {
-	MISS: 'input_cache_miss_tokens',
-	HIT: 'input_cache_hit_tokens',
-	OUT: 'output_tokens',
-};
+/** 按**列名**解析：两种导出的列顺序不一样，用下标会读错 */
+function parseCsv(text) {
+	const lines = text.trim().split('\n').filter((l) => l.trim());
+	if (lines.length < 2) return { header: [], rows: [] };
+	const header = splitCsvLine(lines[0]).map((h) => h.trim().replace(/^\uFEFF/, ''));
+	const rows = lines.slice(1).map((line) => {
+		const cells = splitCsvLine(line);
+		const row = {};
+		header.forEach((name, index) => {
+			row[name] = cells[index];
+		});
+		return row;
+	});
+	return { header, rows };
+}
+
+/** 时间桶：小时级导出取 start_time_iso 的日期与小时；月度导出只有 utc_date */
+function bucketOf(row) {
+	const iso = row.start_time_iso ?? row.utc_date ?? '';
+	if (!iso) return null;
+	const date = iso.slice(0, 10);
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+	const hour = row.start_time_iso
+		? Number.parseInt(row.start_time_iso.slice(11, 13), 10)
+		: null;
+	return { date, hour: Number.isFinite(hour) ? hour : null };
+}
+
+const TYPE_MISS = 'input_cache_miss_tokens';
+const TYPE_HIT = 'input_cache_hit_tokens';
+const TYPE_OUT = 'output_tokens';
+const TYPE_REQ = 'request_count';
 
 const byDate = new Map();
 const byModel = new Map();
@@ -108,122 +113,146 @@ function dayOf(date) {
 			cacheRead: 0,
 			requests: 0,
 			cost: 0,
+			hours: new Map(),
 		});
 	}
 	return byDate.get(date);
 }
 
-/** amount.csv：user_id, utc_date, model, api_key_name, api_key(敏感), type, price, amount */
-function parseAmount(text) {
-	for (const line of text.trim().split('\n').slice(1)) {
-		if (!line) continue;
-		const p = splitCsvLine(line);
-		const date = p[1];
-		const model = p[2] ?? '未知';
-		const type = p[5];
-		const amount = Number.parseInt(p[7], 10) || 0;
-		if (!date) continue;
-		const day = dayOf(date);
-		if (type === 'request_count') day.requests += amount;
-		else if (type === AMOUNT_TYPES.MISS) {
+function ingestAmount(text) {
+	for (const row of parseCsv(text).rows) {
+		const bucket = bucketOf(row);
+		if (!bucket) continue;
+		const type = (row.type ?? '').trim();
+		const amount = Number.parseInt(row.amount ?? '0', 10) || 0;
+		const day = dayOf(bucket.date);
+		let counted = 0;
+		if (type === TYPE_REQ) {
+			day.requests += amount;
+		} else if (type === TYPE_MISS) {
 			day.input += amount;
 			day.tokens += amount;
-		} else if (type === AMOUNT_TYPES.OUT) {
+			counted = amount;
+		} else if (type === TYPE_OUT) {
 			day.output += amount;
 			day.tokens += amount;
-		} else if (type === AMOUNT_TYPES.HIT) {
+			counted = amount;
+		} else if (type === TYPE_HIT) {
 			day.cacheRead += amount;
 		} else {
 			continue;
 		}
-		if (type !== 'request_count') {
-			byModel.set(model, (byModel.get(model) ?? 0) + amount);
+		if (type !== TYPE_REQ && bucket.hour !== null) {
+			day.hours.set(bucket.hour, (day.hours.get(bucket.hour) ?? 0) + counted);
+		}
+		if (counted > 0) {
+			const model = (row.model ?? '未知').trim();
+			byModel.set(model, (byModel.get(model) ?? 0) + counted);
 		}
 	}
 }
 
-/** cost.csv：user_id, utc_date, model, wallet_type, cost, currency */
-function parseCost(text) {
-	for (const line of text.trim().split('\n').slice(1)) {
-		if (!line) continue;
-		const p = splitCsvLine(line);
-		const date = p[1];
-		const cost = Number.parseFloat(p[4]) || 0;
-		if (!date) continue;
-		dayOf(date).cost += cost;
+function ingestCost(text) {
+	for (const row of parseCsv(text).rows) {
+		const bucket = bucketOf(row);
+		if (!bucket) continue;
+		dayOf(bucket.date).cost += Number.parseFloat(row.cost ?? '0') || 0;
 	}
 }
 
-/** 解出 zip 里的两张表（用系统自带的 bsdtar，不引依赖） */
-function readZip(zipPath) {
+const CSV_RE = /^(amount|cost)-(.+)\.csv$/i;
+
+function collectFrom(dir) {
+	return fs
+		.readdirSync(dir)
+		.filter((f) => CSV_RE.test(f))
+		.map((f) => ({
+			kind: f.match(CSV_RE)[1].toLowerCase(),
+			label: f.match(CSV_RE)[2],
+			text: fs.readFileSync(path.join(dir, f), 'utf8'),
+		}));
+}
+
+function collectFromZip(zipPath) {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsu-'));
 	try {
 		execFileSync('tar', ['-xf', zipPath, '-C', dir], { stdio: 'ignore' });
+		return collectFrom(dir);
 	} catch (e) {
-		fs.rmSync(dir, { recursive: true, force: true });
 		throw new Error(`解压失败：${zipPath}\n  ${e.message}`);
-	}
-	const files = fs.readdirSync(dir).filter((f) => f.endsWith('.csv'));
-	const pairs = [];
-	for (const file of files) {
-		const m = file.match(/^(amount|cost)-(\d{4})-(\d{1,2})\.csv$/i);
-		if (!m) continue;
-		pairs.push({ kind: m[1].toLowerCase(), month: `${m[2]}-${String(Number(m[3])).padStart(2, '0')}`, text: fs.readFileSync(path.join(dir, file), 'utf8') });
-	}
-	fs.rmSync(dir, { recursive: true, force: true });
-	return pairs;
-}
-
-/** 也接受已经解开的目录 */
-function readDir(dirPath) {
-	return fs
-		.readdirSync(dirPath)
-		.filter((f) => /^(amount|cost)-\d{4}-\d{1,2}\.csv$/i.test(f))
-		.map((f) => {
-			const m = f.match(/^(amount|cost)-(\d{4})-(\d{1,2})\.csv$/i);
-			return {
-				kind: m[1].toLowerCase(),
-				month: `${m[2]}-${String(Number(m[3])).padStart(2, '0')}`,
-				text: fs.readFileSync(path.join(dirPath, f), 'utf8'),
-			};
-		});
-}
-
-/** 某个月的导出包（走接口时用） */
-async function fetchMonth(token, year, month) {
-	const url = `${API}?month=${month}&year=${year}`;
-	const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-	if (!res.ok) throw new Error(`${year}-${month} 导出失败：HTTP ${res.status}`);
-	const buf = Buffer.from(await res.arrayBuffer());
-	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsu-'));
-	const zip = path.join(dir, 'export.zip');
-	fs.writeFileSync(zip, buf);
-	try {
-		execFileSync('tar', ['-xf', zip, '-C', dir], { stdio: 'ignore' });
-		const read = (name) => {
-			const file = path.join(dir, name);
-			return fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-		};
-		return {
-			amount: read(`amount-${year}-${month}.csv`),
-			cost: read(`cost-${year}-${month}.csv`),
-		};
 	} finally {
 		fs.rmSync(dir, { recursive: true, force: true });
 	}
 }
 
-function writeOut(months, source) {
-	// 月度 CSV 只有按天的合计，没有日内分布 —— OHLC 退化成「平蜡烛」（开=高=低=收）
+async function collectFromApi(token, months) {
+	const now = new Date();
+	const out = [];
+	for (let back = months - 1; back >= 0; back -= 1) {
+		const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, 1));
+		const year = d.getUTCFullYear();
+		const month = d.getUTCMonth() + 1;
+		process.stdout.write(`  拉取 ${year}-${String(month).padStart(2, '0')} … `);
+		const url = `${API}?month=${month}&year=${year}`;
+		const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+		if (!res.ok) throw new Error(`${year}-${month} 导出失败：HTTP ${res.status}`);
+		const buf = Buffer.from(await res.arrayBuffer());
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsu-'));
+		const zip = path.join(dir, 'export.zip');
+		fs.writeFileSync(zip, buf);
+		try {
+			execFileSync('tar', ['-xf', zip, '-C', dir], { stdio: 'ignore' });
+			out.push(...collectFrom(dir));
+		} finally {
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
+		console.log('ok');
+	}
+	return out;
+}
+
+function readToken() {
+	const env = process.env.DEEPSEEK_USER_TOKEN?.trim();
+	if (env) return normalize(env);
+	if (fs.existsSync(TOKEN_FILE)) return normalize(fs.readFileSync(TOKEN_FILE, 'utf8').trim());
+	return '';
+}
+
+function normalize(raw) {
+	if (!raw) return '';
+	if (raw.startsWith('{')) {
+		try {
+			const parsed = JSON.parse(raw);
+			return String(parsed.value ?? parsed.token ?? '');
+		} catch {
+			/* 不是 JSON 就当裸 token */
+		}
+	}
+	return raw.replace(/^Bearer\s+/i, '');
+}
+
+function writeOut(labels, source) {
+	// 有小时桶就按小时算 OHLC；只有按天合计时退化成平蜡烛
 	const daily = [...byDate.values()]
 		.sort((a, b) => a.date.localeCompare(b.date))
-		.map((day) => ({
-			...day,
-			open: day.tokens,
-			close: day.tokens,
-			high: day.tokens,
-			low: day.tokens,
-		}));
+		.map((day) => {
+			const values = [...day.hours.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+			const base = values.length ? values : [day.tokens];
+			return {
+				date: day.date,
+				tokens: day.tokens,
+				input: day.input,
+				output: day.output,
+				cacheRead: day.cacheRead,
+				requests: day.requests,
+				cost: Number(day.cost.toFixed(6)),
+				hours: values.length,
+				open: base[0],
+				close: base[base.length - 1],
+				high: Math.max(...base),
+				low: Math.min(...base),
+			};
+		});
 
 	const totals = daily.reduce(
 		(acc, day) => {
@@ -246,8 +275,8 @@ function writeOut(months, source) {
 	const payload = {
 		fetchedAt: new Date().toISOString(),
 		source,
-		note: '平台用量导出；tokens = 输入(cache miss) + 输出，不含缓存命中',
-		months,
+		note: '平台用量导出；tokens = 输入(cache miss) + 输出，缓存命中单列',
+		months: labels,
 		totals: {
 			tokens: totals.tokens,
 			input: totals.input,
@@ -263,17 +292,24 @@ function writeOut(months, source) {
 	fs.writeFileSync(OUT, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
 	console.log(
 		`\n写好了：${path.relative(ROOT, OUT)}\n` +
-			`  ${daily.length} 天 · ${totals.tokens.toLocaleString('en-US')} tokens · ` +
-			`${totals.requests.toLocaleString('en-US')} 次请求 · ¥${totals.cost.toFixed(2)}\n` +
-			`  其中缓存命中 ${totals.cacheRead.toLocaleString('en-US')}（单列，不计入）`,
+			`  ${daily.length} 天（${daily[0]?.date ?? '—'} → ${daily.at(-1)?.date ?? '—'}）· ` +
+			`${totals.tokens.toLocaleString('en-US')} tokens · ${totals.requests.toLocaleString('en-US')} 次请求 · ` +
+			`¥${totals.cost.toFixed(2)}\n` +
+			`  缓存命中 ${totals.cacheRead.toLocaleString('en-US')}（单列，不计入主数字）`,
 	);
+	if (daily.length < 14) {
+		console.log(`\n⚠ 只有 ${daily.length} 天数据 —— 建议把导出范围改到最近一个月，K 线才有东西看。`);
+	}
 }
 
 async function main() {
 	const zipPath = argOf('zip');
 	const dirPath = argOf('dir');
 
-	// A. 读本地导出包
+	let pairs;
+	let labels;
+	let source;
+
 	if (zipPath || dirPath) {
 		if (zipPath && !fs.existsSync(zipPath)) {
 			console.error(`找不到文件：${zipPath}`);
@@ -284,47 +320,37 @@ async function main() {
 			process.exit(2);
 		}
 		console.log(`读本地导出：${zipPath || dirPath}`);
-		const pairs = zipPath ? readZip(zipPath) : readDir(dirPath);
-		if (pairs.length === 0) {
-			console.error('包里没找到 amount-*.csv / cost-*.csv —— 确认导的是用量表，不是别的文件');
+		pairs = zipPath ? collectFromZip(zipPath) : collectFrom(dirPath);
+		labels = [...new Set(pairs.map((p) => p.label))];
+		source = 'platform.deepseek.com/usage（页面导出）';
+	} else {
+		const monthsArg = process.argv.find((a) => a.startsWith('--months='));
+		const months = Math.max(1, Math.min(12, Number.parseInt(monthsArg?.split('=')[1] ?? '3', 10) || 3));
+		const token = readToken();
+		if (!token) {
+			console.error(
+				'缺少凭据。两条路选一条：\n' +
+					'  A) 在 platform.deepseek.com/usage 点「导出」，然后 --zip=<下载到的 zip>（不需要 token）\n' +
+					'  B) 把 userToken 存到 tools/.deepseek-user-token，或设 DEEPSEEK_USER_TOKEN，再 --months=3',
+			);
 			process.exit(2);
 		}
-		const months = [...new Set(pairs.map((p) => p.month))].sort();
-		for (const pair of pairs) {
-			if (pair.kind === 'amount') parseAmount(pair.text);
-			else parseCost(pair.text);
-		}
-		writeOut(months, 'platform.deepseek.com/usage（页面导出）');
-		return;
+		pairs = await collectFromApi(token, months);
+		labels = [`最近 ${months} 个月`];
+		source = 'platform.deepseek.com/api/v0/usage/export';
 	}
 
-	// B. 走接口
-	const monthsArg = process.argv.find((a) => a.startsWith('--months='));
-	const months = Math.max(1, Math.min(12, Number.parseInt(monthsArg?.split('=')[1] ?? '3', 10) || 3));
-	const token = readToken();
-	if (!token) {
-		console.error(
-			'缺少凭据。两条路选一条：\n' +
-				'  A) 在 platform.deepseek.com/usage 点「导出」，然后 --zip=<下载到的 zip>（不需要 token）\n' +
-				'  B) 把 userToken 存到 tools/.deepseek-user-token，或设 DEEPSEEK_USER_TOKEN，再 --months=3',
-		);
+	if (!pairs || pairs.length === 0) {
+		console.error('包里没找到 amount-*.csv / cost-*.csv —— 确认导的是用量表，不是别的文件');
 		process.exit(2);
 	}
 
-	const now = new Date();
-	const fetched = [];
-	for (let back = months - 1; back >= 0; back -= 1) {
-		const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, 1));
-		const year = d.getUTCFullYear();
-		const month = d.getUTCMonth() + 1;
-		process.stdout.write(`  拉取 ${year}-${String(month).padStart(2, '0')} … `);
-		const { amount, cost } = await fetchMonth(token, year, month);
-		parseAmount(amount);
-		parseCost(cost);
-		fetched.push(`${year}-${String(month).padStart(2, '0')}`);
-		console.log('ok');
+	for (const pair of pairs) {
+		if (pair.kind === 'amount') ingestAmount(pair.text);
+		else ingestCost(pair.text);
 	}
-	writeOut(fetched, 'platform.deepseek.com/api/v0/usage/export');
+
+	writeOut(labels, source);
 }
 
 await main();
