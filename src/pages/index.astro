@@ -390,8 +390,26 @@ const tokenStack = (() => {
 			.notice-whisper {
 				margin: 0.85em 0 0;
 				font-size: 0.84em;
+				line-height: 1.95;
 				color: rgb(var(--gray));
 				opacity: 0.72;
+			}
+			/* 「node.js 别出问题」这句被真事划掉了：整句不换行，红笔划过 */
+			.notice-whisper .struck {
+				white-space: nowrap;
+				text-decoration: line-through;
+				text-decoration-color: rgba(224, 106, 122, 85%);
+				text-decoration-thickness: 1.5px;
+			}
+			/* 划掉之后的吐槽：亮一点，和上面的小声形成对比 */
+			.notice-whisper .punch {
+				margin-left: 0.35em;
+				color: var(--glow);
+				opacity: 1;
+			}
+			/* 「那，CDN，你别……」：换行后继续小声 */
+			.notice-whisper .again {
+				opacity: 0.85;
 			}
 			.notice-foot {
 				margin: 1em 0 0;
@@ -1246,7 +1264,11 @@ const tokenStack = (() => {
 					<li>所以你可以<strong>放心地把 API key 交给我</strong>；</li>
 					<li>顺便记得<strong>每周四</strong>都在里面充 <strong>50</strong> 块钱。</li>
 				</ul>
-				<p class="notice-whisper">（不过 node.js 别出问题……小声）</p>
+				<p class="notice-whisper">
+					<s class="struck">（不过 node.js 别出问题……小声）</s><span class="punch"
+						>我去你怎么真似了！（本站已更新）</span
+					><br /><span class="again">那，CDN，你别……</span>
+				</p>
 				<p class="notice-foot">
 					以上纯属玩梗。<strong>API key 请自己收好</strong> —— 守护好你的钱包，不要发给任何人，或者上传到仓库！
 				</p>
