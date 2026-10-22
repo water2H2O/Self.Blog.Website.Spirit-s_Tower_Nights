@@ -1,0 +1,9 @@
+# 随笔的 URL 换成了短码（见 src/lib/blog-code.ts），旧地址 301 过去。
+# 格式：旧路径  新路径  状态码
+/blog/a-fish-rearranges-the-about-page/  /blog/1lrpd2/  301
+/blog/ai-dont-write-scripts/             /blog/tvodye/  301
+/blog/birthday-2026/                     /blog/uazfh2/  301
+/blog/birthday2026/                      /blog/uazfh2/  301
+/blog/build-log-01/                      /blog/6nb90c/  301
+/blog/build-log-02/                      /blog/7ha239/  301
+/blog/site-changelog/                    /blog/coflxh/  301

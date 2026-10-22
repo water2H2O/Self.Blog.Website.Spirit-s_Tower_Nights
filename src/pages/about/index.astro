@@ -1,16 +1,22 @@
 ---
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import AboutHeroImage from '../../assets/oc/about-hero.webp';
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import LicenseBadge from '../../components/LicenseBadge.astro';
 import { FRIENDS } from '../../data/friends';
+import { blogCodes } from '../../lib/blog-code';
 import {
 	BILIBILI_NAME, BILIBILI_URL, EMAIL, GITHUB_NAME, GITHUB_URL,
 	PROJECT_TITLE, QQ_GROUP, QQ_GROUP_URL, QQ_GROUP_VISIBLE,
 	SITE_AUTHOR, X_NAME, X_URL,
 } from '../../consts';
+
+/** 「站点改动记录」这篇的短码 —— 页脚/正文里的链接跟着 URL 规则走，别再硬编码 */
+const changelogCode =
+	blogCodes((await getCollection('blog')).map((post) => post.id)).get('site-changelog') ?? 'site-changelog';
 
 const sections = [
 	{ href: '#me', label: '认识水水' },
@@ -92,7 +98,7 @@ const contacts = [
 				<section class="section site-section" id="site" aria-labelledby="site-title">
 					<div class="section-head"><p class="eyebrow">留一块地方，放喜欢的东西</p><h2 id="site-title">关于这座小站</h2></div>
 					<div class="site-columns">
-						<div><h3>在这里可以看到什么</h3><p>这是我的个人站点，也是一份慢慢积累的创作记录。主要的部分是原创世界观 <a href="/worldview/">{PROJECT_TITLE}</a>：设定、种族、角色、故事、画作和音乐都在其中。</p><p>其他项目放在<a href="/project/">企划</a>，日常与建站过程记在<a href="/blog/">随笔</a>。不必按顺序逛，从感兴趣的地方开始就好。</p><a class="text-link" href="/blog/site-changelog/">翻翻站点改动记录 <span aria-hidden="true">→</span></a></div>
+						<div><h3>在这里可以看到什么</h3><p>这是我的个人站点，也是一份慢慢积累的创作记录。主要的部分是原创世界观 <a href="/worldview/">{PROJECT_TITLE}</a>：设定、种族、角色、故事、画作和音乐都在其中。</p><p>其他项目放在<a href="/project/">企划</a>，日常与建站过程记在<a href="/blog/">随笔</a>。不必按顺序逛，从感兴趣的地方开始就好。</p><a class="text-link" href={`/blog/${changelogCode}/`}>翻翻站点改动记录 <span aria-hidden="true">→</span></a></div>
 						<div class="usage"><h3>想引用或使用作品？</h3><p>本站由我创作、有权授权且明确标注 CC BY 4.0 的文字，可按该许可的要求署名使用。委托画作、音乐和第三方素材不在这个授权范围内；角色及企划的具体说明，以对应页面为准。</p><p>完整条款单独保留，方便随时查阅。不确定能不能用，先发邮件问我就好。</p><a class="text-link" href="/license/">查看作品使用与授权 <span aria-hidden="true">→</span></a></div>
 					</div>
 				</section>

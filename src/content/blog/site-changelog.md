@@ -9,6 +9,27 @@ heroImage: '../../assets/oc/blog-hero.webp'
 
 ---
 
+## 2026-10-22　随笔的网址换成短码
+
+地址栏里那一长串（`/blog/a-fish-rearranges-the-about-page/`）实在太长，改成 6 位短码：
+`/blog/1lrpd2/` 这种。
+
+- 短码由文件名算出来（FNV-1a → base36 的 6 位），见 `src/lib/blog-code.ts`；
+  **文件名继续保留可读的名字**，改标题也不影响链接
+- 详情页、列表页、RSS 三处共用同一份映射，以后加随笔不用改代码
+- 六个地址对应关系：
+
+  | 旧 | 新 |
+  | --- | --- |
+  | `/blog/site-changelog/` | `/blog/coflxh/` |
+  | `/blog/ai-dont-write-scripts/` | `/blog/tvodye/` |
+  | `/blog/birthday-2026/` | `/blog/uazfh2/` |
+  | `/blog/build-log-01/` | `/blog/6nb90c/` |
+  | `/blog/build-log-02/` | `/blog/7ha239/` |
+  | `/blog/a-fish-rearranges-the-about-page/` | `/blog/1lrpd2/` |
+
+旧地址在 `public/_redirects` 里做了 301，之前发出去过的链接不会断。
+
 ## 2026-10-22　token 图合并了中转站的用量（按模型堆叠）
 
 首页那块从「只有官方」变成「官方 + 中转站」：柱子总高是两边相加，颜色区分来源和模型，下面带图例。

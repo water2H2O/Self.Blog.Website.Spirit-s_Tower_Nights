@@ -211,7 +211,7 @@ order: 21
 | `stories` | `src/content/stories/` | `/worldview/stories/文件名/` | 故事正文，按“幕 → 篇 → 话” |
 | `textbook` | `src/content/textbook/` | `/worldview/stories/textbook/文件名/` | **教材**：世界观里的书，一章一个文件 |
 | `music` | `src/content/music/` | `/worldview/music/文件名/` | 与曲师合作的曲目 |
-| `blog` | `src/content/blog/` | `/blog/文件名/` | 随笔（个人区，不在 /worldview/ 下） |
+| `blog` | `src/content/blog/` | `/blog/<短码>/` | 随笔（个人区，不在 /worldview/ 下） |
 | `eden` | `src/content/eden/` | `/project/eden/文件名/` | 群创企划「伊甸园」的稿件 |
 | `draw` | `src/content/draw/` | `/draw/entry/文件名/` | **签筒专用**：只出现在抽签区域的条目 |
 
@@ -223,6 +223,17 @@ order: 21
 > **抽签限定**：`draw` 条目与 `characters` 条目都可以写 `limited: true`，
 > 抽签卡与签筒卡上会挂一个金色「限定」角标，抽到后右侧档案里也会多一行「限定」。
 > 这是纯展示标记，不影响概率 —— 限定角色照样按人数均分。
+
+### 随笔的网址用短码
+
+随笔的文件名照样是给人看的长名字（`a-fish-rearranges-the-about-page.md`），
+但**访问地址是 6 位短码**（`/blog/1lrpd2/`）—— 二十多字的 slug 贴在地址栏里又长又难抄。
+
+- 短码由文件名算出来（FNV-1a → base36 6 位），见 `src/lib/blog-code.ts`；
+  **改文件名 = 换短码**，所以定稿后别再重命名文件
+- 详情页、列表页、RSS 三处共用同一份映射，加新随笔不用改代码
+- 换短码之前的旧地址（`/blog/site-changelog/` 这类）在 `public/_redirects` 里 301 到新地址；
+  以后若再改文件名，记得补一行
 
 > **设定（`lore`）的类目表在 `src/lib/lore.ts`**，索引页与侧栏目录都读它 ——
 > `LORE_CATEGORIES` 定顺序，`LORE_CATEGORY_NOTES` 是「这一类装什么」的一句话

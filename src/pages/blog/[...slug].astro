@@ -1,11 +1,14 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
+import { blogCodes } from '../../lib/blog-code';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	// URL 用短码（/blog/k3m9d2/），文件名保持可读 —— 见 src/lib/blog-code.ts
+	const codes = blogCodes(posts.map((post) => post.id));
 	return posts.map((post) => ({
-		params: { slug: post.id },
+		params: { slug: codes.get(post.id) ?? post.id },
 		props: post,
 	}));
 }
