@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-21T20:06:18.071Z",
+  "fetchedAt": "2026-10-22T16:43:26.748Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -10,29 +10,29 @@
     {
       "label": "官方 · deepseek-flash",
       "tokens": 3091079350,
-      "share": 98.6,
+      "share": 96,
       "cost": 135.71
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 36098099,
-      "share": 1.2,
-      "cost": 1.554
+      "tokens": 116631735,
+      "share": 3.6,
+      "cost": 7.2838
     },
     {
       "label": "中转站 · claude-opus-5-5",
-      "tokens": 8736497,
-      "share": 0.3,
-      "cost": 10.4028
+      "tokens": 11311702,
+      "share": 0.4,
+      "cost": 10.6268
     }
   ],
   "totals": {
-    "tokens": 3135913946,
+    "tokens": 3219022787,
     "input": 27176945,
     "output": 8774342,
     "cacheRead": 3055128063,
-    "requests": 10649,
-    "cost": 147.6669
+    "requests": 11426,
+    "cost": 153.6207
   },
   "models": [
     {
@@ -419,20 +419,38 @@
     },
     {
       "date": "2026-10-22",
-      "tokens": 36061085,
+      "tokens": 118928137,
       "input": 0,
       "output": 0,
       "cacheRead": 0,
-      "requests": 478,
-      "cost": 1.549773,
+      "requests": 1240,
+      "cost": 7.487795,
       "hours": 0,
       "parts": {
-        "中转站 · gpt-6.1-sol": 36061085
+        "中转站 · gpt-6.1-sol": 116352932,
+        "中转站 · claude-opus-5-5": 2575205
       },
       "open": 267747295,
-      "close": 36061085,
+      "close": 118928137,
       "high": 267747295,
-      "low": 36061085
+      "low": 118928137
+    },
+    {
+      "date": "2026-10-23",
+      "tokens": 241789,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "requests": 15,
+      "cost": 0.01574,
+      "hours": 0,
+      "parts": {
+        "中转站 · gpt-6.1-sol": 241789
+      },
+      "open": 118928137,
+      "close": 241789,
+      "high": 118928137,
+      "low": 241789
     }
   ]
 }
