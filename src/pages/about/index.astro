@@ -1,165 +1,182 @@
 ---
+import { Image } from 'astro:assets';
 import AboutHeroImage from '../../assets/oc/about-hero.webp';
-import Layout from '../../layouts/BlogPost.astro';
-import { FRIENDS, FRIENDS_INLINE_COUNT } from '../../data/friends';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import LicenseBadge from '../../components/LicenseBadge.astro';
+import { FRIENDS } from '../../data/friends';
 import {
-	BILIBILI_NAME,
-	BILIBILI_URL,
-	EMAIL,
-	GITHUB_NAME,
-	GITHUB_URL,
-	PROJECT_TITLE,
-	QQ_GROUP,
-	QQ_GROUP_URL,
-	QQ_GROUP_VISIBLE,
-	SITE_AUTHOR,
-	X_NAME,
-	X_URL,
+	BILIBILI_NAME, BILIBILI_URL, EMAIL, GITHUB_NAME, GITHUB_URL,
+	PROJECT_TITLE, QQ_GROUP, QQ_GROUP_URL, QQ_GROUP_VISIBLE,
+	SITE_AUTHOR, X_NAME, X_URL,
 } from '../../consts';
 
-/** 其余几篇说明，放在页面末尾当入口 */
-const more = [
-	{
-		href: '/about/site/',
-		title: '关于这个站点',
-		desc: '站点怎么组织的，以及建站以来的改动记录。',
-	},
-	{
-		href: '/about/friends/',
-		title: '友情链接',
-		desc: '朋友们的站点，以及我在参与的项目。',
-	},
-	{
-		href: '/license/',
-		title: '作品使用与授权',
-		desc: '哪些内容可以自由使用（CC BY 4.0），哪些需要先联系我。',
-	},
+const sections = [
+	{ href: '#me', label: '认识水水' },
+	{ href: '#works', label: '我在做什么' },
+	{ href: '#contact', label: '联系我' },
+	{ href: '#friends', label: '朋友与伙伴' },
+	{ href: '#site', label: '关于本站' },
+];
+const works = [
+	{ href: '/worldview/', title: PROJECT_TITLE, mark: '设定与故事', text: '从种族、角色到他们经历的故事，这是我慢慢搭起来的原创世界。' },
+	{ href: '/worldview/music/', title: '回响之殿', mark: 'OC 音乐', text: '和曲师们一起，把角色的心事与经历写进音乐里。' },
+	{ href: '/project/', title: '其他企划', mark: '一起做点喜欢的事', text: '参与和制作的项目，还有与朋友们一起养出来的想法。' },
+];
+const contacts = [
+	{ label: 'B 站', name: BILIBILI_NAME, href: BILIBILI_URL, note: '音乐 PV、表情包小剧场' },
+	{ label: 'X', name: X_NAME, href: X_URL, note: '也可以在这里找到我' },
+	{ label: 'GitHub', name: GITHUB_NAME, href: GITHUB_URL, note: '代码与项目' },
+	...(QQ_GROUP_VISIBLE ? [{ label: 'QQ 群', name: QQ_GROUP, href: QQ_GROUP_URL, note: '点击群号前往加群' }] : []),
 ];
 ---
 
-<Layout
-	title="关于"
-	description="关于作者水水，以及联系方式。"
-	pubDate={new Date('2026-10-10')}
-	heroImage={AboutHeroImage}
->
-	<h2>关于我</h2>
-	<p>
-		叫我 <strong>{SITE_AUTHOR}</strong> 或者水水都行。在主站那边是「淼渺_Water2H2O」——
-		淼渺是我在这个世界里最早写下的角色，一个怕高、有点怂、但在正经事上很倔的水精灵实习药剂师。
-	</p>
-	<p>
-		平时做的三件事：写这个世界的设定和故事、给角色画图与约稿、以及做 OC
-		音乐企划（到现在和七位曲师合作过）。也做表情包小剧场一类的轻东西，纯粹因为好玩。
-	</p>
-	<p>
-		主要作品都在本站的 <a href="/worldview/">{PROJECT_TITLE}</a> 里，
-		其余是随笔与个人内容。
-	</p>
-	<!-- 维护备注：这段是按站内现有内容拟的草稿，改这里就行。 -->
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title="关于 · 水水的小站" description="认识水水，看看我在做什么，也认识这里的朋友与伙伴。联系方式、站点介绍与使用说明都在这里。" image={AboutHeroImage} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<header class="intro" id="me" aria-labelledby="about-title">
+				<div class="intro-copy">
+					<p class="eyebrow">关于这座水塔，也关于我</p>
+					<h1 id="about-title">你好，我是水水。</h1>
+					<p class="intro-lead">写故事，养角色，<br />也和朋友一起做点喜欢的事。</p>
+					<p>叫我 <strong>{SITE_AUTHOR}</strong> 或者水水都行。在主站那边，我是「淼渺_Water2H2O」。欢迎来这里坐坐。</p>
+					<a class="intro-link" href="#contact">想聊聊？在这里联系我 <span aria-hidden="true">↗</span></a>
+				</div>
+				<figure class="intro-art">
+					<Image src={AboutHeroImage} width={840} alt="水水的关于页配图" loading="eager" />
+					<figcaption>故事里的角色，也是生活中的陪伴。</figcaption>
+				</figure>
+			</header>
+			<nav class="section-nav" aria-label="关于页分区">
+				{sections.map((section) => <a href={section.href}>{section.label}</a>)}
+			</nav>
+			<div class="about-grid">
+				<section class="section works-section" id="works" aria-labelledby="works-title">
+					<div class="section-head"><p class="eyebrow">慢慢写，慢慢长大</p><h2 id="works-title">我在做什么</h2></div>
+					<div class="story-copy">
+						<p>淼渺是我在这个世界里最早写下的角色：一个怕高、有点怂，但在正经事上很倔的水精灵实习药剂师。她和伙伴们的故事，都收在 <a href="/worldview/">{PROJECT_TITLE}</a> 里。</p>
+						<p>平时会写设定和故事、给角色画图与约稿，也做 OC 音乐企划，已经和七位曲师合作过。偶尔还做些表情包小剧场——没有别的理由，就是觉得好玩。</p>
+					</div>
+					<div class="work-links">
+						{works.map((work) => (
+							<a class="work-card" href={work.href}><span class="eyebrow">{work.mark}</span><h3>{work.title}<span aria-hidden="true">↗</span></h3><p>{work.text}</p></a>
+						))}
+					</div>
+				</section>
+				<section class="section contact-section" id="contact" aria-labelledby="contact-title">
+					<div class="section-head"><p class="eyebrow">想聊聊的话</p><h2 id="contact-title">联系我</h2></div>
+					<p class="muted">授权、转载或合作，发邮件最方便。音乐和小剧场，也可以去 B 站看看。</p>
+					<a class="email-card" href={`mailto:${EMAIL}`}><span class="eyebrow">写封邮件</span><strong>{EMAIL}</strong><span>授权 · 转载 · 合作 <span aria-hidden="true">↗</span></span></a>
+					<ul class="contact-list">
+						{contacts.map((contact) => (
+							<li><a href={contact.href} target="_blank" rel="noreferrer"><span class="contact-platform">{contact.label}</span><span class="contact-detail"><strong>{contact.name}</strong><small>{contact.note}</small></span><span class="out-arrow" aria-hidden="true">↗</span></a></li>
+						))}
+					</ul>
+				</section>
+				<section class="section friends-section" id="friends" aria-labelledby="friends-title">
+					<div class="section-head"><p class="eyebrow">不止我一个人的小世界</p><h2 id="friends-title">朋友与伙伴</h2></div>
+					<p class="muted">朋友们的小站、我参与的项目，还有帮这座水塔搭起来的工具。路过的话，也去他们那里坐坐吧。</p>
+					<ul class="friend-grid">
+						{FRIENDS.map((friend) => (
+							<li><a href={friend.href} target="_blank" rel="noreferrer"><h3>{friend.who}<span aria-hidden="true">↗</span></h3><span class="friend-address">{new URL(friend.href).host}</span>{friend.note && <p>{friend.note}</p>}</a></li>
+						))}
+					</ul>
+					<p class="friends-foot">想随机认识一位角色？去<a href="/draw/">抽支签</a>，或者在<a href="/draw/pool/">签筒</a>里慢慢翻。</p>
+				</section>
+				<section class="section site-section" id="site" aria-labelledby="site-title">
+					<div class="section-head"><p class="eyebrow">留一块地方，放喜欢的东西</p><h2 id="site-title">关于这座小站</h2></div>
+					<div class="site-columns">
+						<div><h3>在这里可以看到什么</h3><p>这是我的个人站点，也是一份慢慢积累的创作记录。主要的部分是原创世界观 <a href="/worldview/">{PROJECT_TITLE}</a>：设定、种族、角色、故事、画作和音乐都在其中。</p><p>其他项目放在<a href="/project/">企划</a>，日常与建站过程记在<a href="/blog/">随笔</a>。不必按顺序逛，从感兴趣的地方开始就好。</p><a class="text-link" href="/blog/site-changelog/">翻翻站点改动记录 <span aria-hidden="true">→</span></a></div>
+						<div class="usage"><h3>想引用或使用作品？</h3><p>本站由我创作、有权授权且明确标注 CC BY 4.0 的文字，可按该许可的要求署名使用。委托画作、音乐和第三方素材不在这个授权范围内；角色及企划的具体说明，以对应页面为准。</p><p>完整条款单独保留，方便随时查阅。不确定能不能用，先发邮件问我就好。</p><a class="text-link" href="/license/">查看作品使用与授权 <span aria-hidden="true">→</span></a></div>
+					</div>
+				</section>
+			</div>
+			<div class="page-license"><LicenseBadge kind="cc-by" note="本页委托插图版权归原画师所有，不适用 CC BY 4.0。" /></div>
+		</main>
+		<Footer />
+	</body>
+</html>
 
-	<h2>联系</h2>
-	<ul>
-		<li>
-			邮箱：<a href={`mailto:${EMAIL}`}>{EMAIL}</a>
-			（授权、转载、合作都发这里）
-		</li>
-		<li>
-			B 站：<a href={BILIBILI_URL} target="_blank" rel="noreferrer">{BILIBILI_NAME}</a>
-			（音乐 PV、表情包小剧场都在那边）
-		</li>
-		<li>
-			X：<a href={X_URL} target="_blank" rel="noreferrer">{X_NAME}</a>
-		</li>
-		<li>
-			GitHub：<a href={GITHUB_URL} target="_blank" rel="noreferrer">{GITHUB_NAME}</a>
-		</li>
-		{QQ_GROUP_VISIBLE && (
-			<li>
-				QQ 群：<a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">{QQ_GROUP}</a>
-				（点击群号前往加群）
-			</li>
-		)}
-	</ul>
-
-	<h2>友情链接</h2>
-	<p class="friends-lead">
-		朋友们的站点，以及我在参与的项目。完整名单在<a href="/about/friends/">友情链接</a>页。
-	</p>
-	<ul class="friends">
-		{
-			FRIENDS.slice(0, FRIENDS_INLINE_COUNT).map((item) => (
-				<li>
-					<a href={item.href} target="_blank" rel="noreferrer">
-						{item.who}
-					</a>
-					{item.note && <span class="desc">{item.note}</span>}
-				</li>
-			))
-		}
-		{FRIENDS.length > FRIENDS_INLINE_COUNT && (
-			<li class="more-link">
-				<a href="/about/friends/">查看其余 {FRIENDS.length - FRIENDS_INLINE_COUNT} 个链接 →</a>
-			</li>
-		)}
-	</ul>
-
-	<h2>还有这些</h2>
-	<ul class="more">
-		{
-			more.map((item) => (
-				<li>
-					<a href={item.href}>{item.title}</a>
-					<span class="desc">{item.desc}</span>
-				</li>
-			))
-		}
-	</ul>
-
-	<style>
-		.more {
-			list-style: none;
-			padding: 0;
-		}
-		.more li {
-			margin-bottom: 0.7em;
-		}
-		.more a {
-			font-weight: 700;
-		}
-		.more .desc {
-			display: block;
-			font-size: 0.86em;
-			color: rgb(var(--gray));
-		}
-		/* 友情链接：关于页里内嵌一块，完整名单另开一页 */
-		.friends-lead {
-			margin: 0 0 0.9em;
-			font-size: 0.9em;
-			color: rgb(var(--gray));
-		}
-		.friends-lead a {
-			color: var(--accent);
-		}
-		.friends {
-			list-style: none;
-			padding: 0;
-		}
-		.friends li {
-			margin-bottom: 0.75em;
-			line-height: 1.7;
-		}
-		.friends a {
-			font-weight: 700;
-		}
-		.friends .desc {
-			display: block;
-			font-size: 0.86em;
-			color: rgb(var(--gray));
-		}
-		.friends .more-link a {
-			font-weight: 400;
-			color: var(--accent);
-		}
-	</style>
-</Layout>
+<style>
+	main { width: 1120px; max-width: calc(100% - 3rem); padding: 2.5rem 0 3rem; }
+	section, .intro { scroll-margin-top: 6rem; }
+	.intro { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: clamp(1.5rem, 4vw, 4rem); padding: 1rem 0 2.5rem; }
+	.eyebrow { margin: 0 0 0.65rem; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--accent); }
+	h1 { margin: 0 0 1.2rem; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.25; }
+	.intro-lead { font-size: clamp(1.15rem, 2vw, 1.45rem); line-height: 1.8; color: rgb(var(--black)); }
+	.intro-copy > p:not(.eyebrow):not(.intro-lead) { color: rgb(var(--gray)); font-size: 0.9rem; max-width: 32em; }
+	.intro-link, .text-link { display: inline-block; margin-top: 0.5rem; text-decoration: none; font-size: 0.95rem; }
+	.intro-link span { margin-left: 0.5em; }
+	.intro-art { margin: 0; min-width: 0; }
+	.intro-art img { display: block; width: 100%; height: auto; border-radius: 1.25rem; border: 1px solid rgb(var(--border)); box-sizing: border-box; }
+	figcaption { margin-top: 0.65rem; font-size: 0.7rem; color: rgb(var(--gray)); text-align: right; }
+	.section-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0 1.7rem; border-top: 1px solid rgb(var(--border)); }
+	.section-nav a { padding: 0.45rem 0.9rem; font-size: 0.9rem; border: 1px solid rgb(var(--border)); border-radius: 99px; color: rgb(var(--gray-dark)); text-decoration: none; background: rgba(26,47,62,0.55); }
+	.section-nav a:hover { color: var(--glow); border-color: var(--accent-dark); }
+	.about-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+	.section { min-width: 0; border: 1px solid rgb(var(--border)); border-radius: 1.2rem; padding: clamp(1.2rem, 2.6vw, 2rem); background: rgba(26,47,62,0.7); }
+	.section-head { margin-bottom: 1.2rem; }
+	h2 { font-size: 1.5rem; margin: 0; }
+	h3 { font-size: 1rem; }
+	.section p { line-height: 1.9; font-size: 0.95rem; }
+	.muted, .story-copy { color: rgb(var(--gray)); }
+	.story-copy p:first-child { margin-top: 0; }
+	.work-links { display: grid; gap: 0.7rem; margin-top: 1.6rem; }
+	.work-card { display: block; padding: 1rem 1.1rem; border: 1px solid rgb(var(--border)); border-radius: 0.8rem; text-decoration: none; background: rgba(18,34,46,0.45); }
+	.work-card:hover, .friend-grid a:hover { border-color: var(--accent-dark); background: rgba(34,64,79,0.6); }
+	.work-card h3, .friend-grid h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin: 0; color: rgb(var(--black)); }
+	.work-card h3 span, .friend-grid h3 span { flex-shrink: 0; font-size: 0.95rem; color: var(--accent); }
+	.work-card p { margin: 0.5rem 0 0; color: rgb(var(--gray)); font-size: 0.9rem; }
+	.work-card .eyebrow { display: block; font-size: 0.65rem; margin-bottom: 0.35rem; }
+	.email-card { display: grid; gap: 0.4rem; padding: 1.1rem; margin: 1.2rem 0 0.6rem; border-radius: 0.8rem; border: 1px solid rgba(127,233,240,0.35); background: rgba(127,233,240,0.06); text-decoration: none; }
+	.email-card .eyebrow { margin: 0; }
+	.email-card strong { color: var(--glow); font-size: 0.92rem; overflow-wrap: anywhere; }
+	.email-card > span:last-child { color: rgb(var(--gray)); font-size: 0.72rem; }
+	.email-card:hover { border-color: var(--accent); }
+	.contact-list, .friend-grid { list-style: none; margin: 0; padding: 0; }
+	.contact-list li + li { border-top: 1px solid rgb(var(--border)); }
+	.contact-list a { display: flex; align-items: center; gap: 0.9rem; padding: 1rem 0; text-decoration: none; }
+	.contact-platform { flex: 0 0 3.2rem; font-size: 0.78rem; color: rgb(var(--gray)); }
+	.contact-detail { display: grid; min-width: 0; gap: 0.15rem; }
+	.contact-detail strong { color: rgb(var(--gray-dark)); font-weight: 500; font-size: 0.78rem; overflow-wrap: anywhere; }
+	.contact-detail small { font-size: 0.68rem; color: rgb(var(--gray)); }
+	.contact-list a:hover strong { color: var(--glow); }
+	.out-arrow { margin-left: auto; font-size: 0.9rem; }
+	.friends-section, .site-section { grid-column: 1 / -1; }
+	.friend-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; margin-top: 1.4rem; }
+	.friend-grid li { min-width: 0; }
+	.friend-grid a { display: block; height: 100%; box-sizing: border-box; padding: 1.1rem; border: 1px solid rgb(var(--border)); border-radius: 0.8rem; background: rgba(18,34,46,0.4); text-decoration: none; }
+	.friend-grid h3 { font-size: 0.87rem; }
+	.friend-address { display: block; color: var(--accent); font-size: 0.68rem; margin-top: 0.4rem; overflow-wrap: anywhere; }
+	.friend-grid p { margin: 0.65rem 0 0; font-size: 0.73rem; color: rgb(var(--gray)); }
+	.friends-foot { margin: 1.4rem 0 0; color: rgb(var(--gray)); }
+	.site-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
+	.site-columns > div { min-width: 0; }
+	.site-columns p { color: rgb(var(--gray)); }
+	.usage { border-left: 1px solid rgb(var(--border)); padding-left: 2rem; }
+	.page-license { margin-top: 1.7rem; }
+	a:focus-visible { outline: 2px solid var(--glow); outline-offset: 4px; border-radius: 0.3rem; }
+	@media (max-width: 800px) {
+		.about-grid { grid-template-columns: minmax(0, 1fr); }
+		.intro { gap: 1.5rem; }
+		.friend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	}
+	@media (max-width: 560px) {
+		main { max-width: calc(100% - 2rem); padding-top: 1.5rem; }
+		.intro { grid-template-columns: minmax(0, 1fr); padding-top: 0; gap: 1.5rem; }
+		.intro-art { max-width: 100%; }
+		.intro-lead br { display: none; }
+		figcaption { text-align: left; }
+		.section-nav { gap: 0.45rem; }
+		.section-nav a { padding: 0.4rem 0.75rem; font-size: 0.74rem; }
+		.friend-grid, .site-columns { grid-template-columns: minmax(0, 1fr); }
+		.site-columns { gap: 1.5rem; }
+		.usage { border-left: 0; border-top: 1px solid rgb(var(--border)); padding: 1.5rem 0 0; }
+	}
+</style>

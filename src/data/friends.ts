@@ -1,11 +1,8 @@
 /**
  * 友情链接名单。
  *
- * 抽成单独一份是因为两个地方都要用：
- *   · src/pages/about/index.astro   —— 关于页里内嵌一小块（只列前几条）
- *   · src/pages/about/friends.astro —— 完整页（全部条目）
- * 以前名单只写在 friends.astro 里，关于页只能给一个入口卡片；两处若各写一份，
- * 加人时必漏一处。
+ * 完整名单统一展示在关于页 /about/#friends。
+ * /about/friends/ 仅保留兼容跳转；新增或修改链接只维护这里。
  *
  * 排序：先朋友，再我在参与的项目，最后是站点本身用到的技术支持。
  * 每条：
@@ -56,6 +53,3 @@ export const FRIENDS: FriendLink[] = [
 		note: '本站技术支持，就是吃的有点多',
 	},
 ];
-
-/** 关于页里内嵌显示几条（其余去完整页看） */
-export const FRIENDS_INLINE_COUNT = 4;

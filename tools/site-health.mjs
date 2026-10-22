@@ -111,7 +111,12 @@ for (const page of pages) {
 	seenTitles.get(title).push(where);
 
 	const canonical = (html.match(/<link rel="canonical" href="([^"]+)"/) ?? [])[1];
-	const expected = `https://water2h2o.com${where === '/' ? '/' : `${where}/`}`;
+	// Astro 的静态兼容跳转应以目标页为 canonical，而不是旧地址。
+	const redirect = html.match(/<meta http-equiv="refresh" content="\d+;url=(\/[^"\s]*)"/i)?.[1];
+	const expected = redirect
+		? new URL(redirect, 'https://water2h2o.com').href
+		: `https://water2h2o.com${where === '/' ? '/' : `${where}/`}`;
+	if (redirect && !refExists(redirect)) structural.push(`${where}: 跳转目标不存在 → ${redirect}`);
 	if (!canonical) structural.push(`${where}: 没有 canonical`);
 	else if (canonical !== expected) structural.push(`${where}: canonical 指向 ${canonical}，应为 ${expected}`);
 

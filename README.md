@@ -41,6 +41,13 @@ dev.cmd preview     # 预览构建结果
 `dev.cmd` 会自动接入 DSH 内置的 Node/pnpm 运行时，并把 pnpm 缓存放在工作区内的 `..\.dsh-cache`。
 机器上已装好 Node 时，直接 `pnpm install` / `pnpm dev` 即可。
 
+### 关于页：一页分区展示
+
+- `/about/` 不再使用随笔布局：个人介绍与配图、创作入口、联系方式、完整友链、站点与授权摘要统一展示，并提供页内分区导航。
+- 友链仍只维护 `src/data/friends.ts`，全部显示，不再按前几条截断。
+- 旧地址 `/about/friends/` 与 `/about/site/` 分别跳转到 `/about/#friends` 与 `/about/#site`。Astro 静态构建生成带 canonical、noindex 和备用链接的跳转页；站点健康检查按跳转目标校验 canonical，并继续校验目标和锚点。
+- 授权全文继续保留在 `/license/`，完整建站历史继续保留在 `/blog/site-changelog/`，关于页不再重复维护一份“最近更新”。
+
 ### 界面文案与本地验收
 
 - 导航和按钮直接说明去向或动作；页面介绍面向来访读者，不把内部文件路径、数据来源和实现细节当作操作说明。
