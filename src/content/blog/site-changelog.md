@@ -9,6 +9,31 @@ heroImage: '../../assets/oc/blog-hero.webp'
 
 ---
 
+## 2026-10-22　Node.js 真的出事了 —— 升到 22.23.4
+
+首页那条玩笑写着「不过 node.js 别出问题（小声）」，结果第二天它就出事了。
+
+Node.js 10-21 发了[安全更新](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)，一口气修 10 个漏洞：
+
+- **CVE-2026-111497（高危）**：Brotli 解码器越界写，**能远程执行代码**
+- **CVE-2026-105482（高危）**：`dns.resolve` 截断含 NUL 的名字
+- **CVE-2026-106069（高危）**：主机名松散解析成 IP 时，TLS 证书校验被绕过
+- 另有 4 个中危、3 个低危，以及 c-ares / OpenSSL / Undici / **CA 证书**的依赖更新
+
+修复版本：**22.23.4 / 24.22.1 / 26.12.1**。我们原来钉的是 **22.12.0**，正好在受影响区间 ——
+而且两个地方都用它：Cloudflare 构建镜像读 `.node-version`，GitHub Actions 的定时刷新也是 `node-version-file: .node-version`。
+
+所以：
+
+- `.node-version`：`22.12.0` → **`22.23.4`**
+- `package.json` 的 `engines` 跟着抬到 `>=22.23.4`
+
+> 站上的构建只产出静态文件，真正跑在 Cloudflare Workers 上的不是 Node，所以**线上访客不受影响**；
+> 但构建机解压依赖、跑 `fetch` 时确实会走这些代码路径，能升就升。
+
+顺带记一笔：DSH 自己内嵌的运行时还是 **Node 24.21.0**（24 线修在 24.22.1），
+那个不归这个仓库管，要等 harness 更新 —— 在此之前别拿它去解不可信的 Brotli 数据。
+
 ## 2026-10-22　随笔的网址换成短码
 
 地址栏里那一长串（`/blog/a-fish-rearranges-the-about-page/`）实在太长，改成 6 位短码：
