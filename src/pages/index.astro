@@ -1322,13 +1322,13 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 							)}
 						</ul>
 						<p class="tk-note">
-							三个人一桌：一位常驻、一位外援、一位结账的。下面这排数字就是这顿饭的账。
+							三位同桌，各凭本事吃饭。谁吃得多、谁来得勤、谁的账单最扎眼，都记在这里。
 							{claudeSeat?.cost && (
 								<>
 									<br
-									/>—— 橙色那位只吃了 <strong>{claudeSeat.share}%</strong>，账单却是 <strong
+									/>—— 橙色那位的饭量只占 <strong>{claudeSeat.share}%</strong>，却吃出了 <strong
 										>{claudeSeat.cost.toFixed(2)}</strong
-									> 元。
+									> 元的账单。
 								</>
 							)}
 							<span class="tk-src">{tokenStats.sourceLabel}</span>
