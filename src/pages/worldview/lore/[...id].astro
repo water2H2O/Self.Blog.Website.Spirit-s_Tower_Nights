@@ -43,6 +43,7 @@ const relatedLore = (await Promise.all(related.map((ref) => getEntry(ref)))).fil
 	summary={summary}
 	themeColor={themeColor}
 	cover={cover}
+	showCover={false}
 	tags={tags}
 	meta={meta}
 	canon={entry.data.canon}

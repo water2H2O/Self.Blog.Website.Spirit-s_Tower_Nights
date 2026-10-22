@@ -21,6 +21,8 @@ interface Props {
 	summary: string;
 	themeColor: string;
 	cover?: ImageMetadata;
+	/** 纯文字档案可关闭整个配图区域；不影响页面分享图。 */
+	showCover?: boolean;
 	tags?: string[];
 	/** 信息栏：角色页放年龄/所属，设定页放分类/别名等 */
 	meta?: MetaItem[];
@@ -46,6 +48,7 @@ const {
 	summary,
 	themeColor,
 	cover,
+	showCover = true,
 	tags = [],
 	meta = [],
 	spoiler = 'none',
@@ -237,7 +240,7 @@ const CANON = {
 				<SpoilerNote level={spoiler} />
 				<TagList tags={tags} color={themeColor} />
 				{
-					cover ? (
+					showCover && (cover ? (
 						<div class="cover">
 							<Image src={cover} alt={title} width={1020} />
 						</div>
@@ -247,7 +250,7 @@ const CANON = {
 							<span class="none-mark">暂无配图</span>
 							<span class="none-text">可以先看看下面的文字。</span>
 						</div>
-					)
+					))
 				}
 			</header>
 			{
