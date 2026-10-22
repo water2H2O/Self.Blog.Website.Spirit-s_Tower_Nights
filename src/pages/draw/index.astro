@@ -58,10 +58,10 @@ const fortunes = [
 
 /** 档案字段空着的角色，右侧随机挑一句填上 */
 const fallbacks = [
-	'关于这一位的档案还没写全，眼下只留下了一个名字。',
-	'塔里的人对 TA 了解不多 —— 也许下次再摇到就知道了。',
-	'记录还在整理中，目前能确定的只有名字与出处。',
-	'这份档案很薄。想补充的话，随时可以找站长。',
+	'这一位的详细档案还没写全，先记住 TA 的名字吧。',
+	'关于 TA 的记录还不多，更多介绍有待补充。',
+	'档案还在整理中，可以先看看已有的介绍。',
+	'这份档案还很简短。如果你是设主，欢迎联系站长补充。',
 ];
 
 const first = pool[0];
@@ -716,13 +716,13 @@ const first = pool[0];
 					>，把<strong>立绘与设定文件一起带上</strong>就行。</span
 				>
 				<span class="thin"
-					>想让自己家的 OC 进签筒？<strong>邮件到
+					>想让自己的 OC 加入？<strong>发邮件到
 					<a href={`mailto:${EMAIL}`}>{EMAIL}</a></strong
 					>，附立绘与设定文件。</span
 				>
 			</p>
 			<p class="lead">
-				摇一支签，会遇见一位角色，还有 TA 的档案与今天的运势。签筒里现有 <a
+				摇一支签，遇见一位角色，看看 TA 的档案和你今天的运势。签筒里现有 <a
 					href="/draw/pool/">{pool.length} 位</a
 				>。
 			</p>
@@ -764,18 +764,18 @@ const first = pool[0];
 						<p class="d-summary" id="d-summary">{first.summary}</p>
 						<dl id="d-fields"></dl>
 						<p class="d-fallback" id="d-fallback" hidden></p>
-						<a class="d-link" id="d-link" href={first.href}>看 TA 的完整档案 →</a>
+						<a class="d-link" id="d-link" href={first.href}>查看角色档案 →</a>
 					</aside>
 				</div>
 
 				<p class="key-hint">
 					<span class="kb-hint">也可以按 <kbd>空格</kbd> 或 <kbd>回车</kbd> 再摇一支</span
-					><span class="touch-hint">点上面的按钮，可以接着摇</span>
+					><span class="touch-hint">点击抽签按钮开始，抽完还可以再摇</span>
 				</p>
 
 				<div class="actions">
 					<button type="button" id="draw">摇一支签</button>
-					<a class="pool-link" href="/draw/pool/">看签筒里都有谁 →</a>
+					<a class="pool-link" href="/draw/pool/">查看签筒 →</a>
 				</div>
 
 				<div class="slip pending" id="slip" data-key="none">
@@ -784,7 +784,7 @@ const first = pool[0];
 				</div>
 
 				<div class="history" id="history" hidden>
-					<p class="history-title">这一轮抽到过</p>
+					<p class="history-title">这次抽到的角色</p>
 					<div class="history-list" id="history-list"></div>
 				</div>
 			</div>

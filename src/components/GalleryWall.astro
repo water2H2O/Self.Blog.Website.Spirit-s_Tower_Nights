@@ -51,7 +51,7 @@ const {
 	minHeight = 200,
 	kindSizing = false,
 	layout = 'random',
-	emptyText = '还没有图片。',
+	emptyText = '这里暂时还没有画作。',
 } = Astro.props;
 
 const count = (predicate: (item: WallItem) => boolean) => items.filter(predicate).length;
@@ -113,7 +113,7 @@ const filters = showFilters
 }
 
 <div class="lightbox">
-	<button class="close" type="button" aria-label="关闭">✕</button>
+	<button class="close" type="button" aria-label="关闭大图">✕</button>
 	<img src="" alt="" />
 	<p class="caption"></p>
 </div>

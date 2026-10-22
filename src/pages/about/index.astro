@@ -77,7 +77,7 @@ const more = [
 		{QQ_GROUP_VISIBLE && (
 			<li>
 				QQ 群：<a href={QQ_GROUP_URL} target="_blank" rel="noreferrer">{QQ_GROUP}</a>
-				（点群号直接加群）
+				（点击群号前往加群）
 			</li>
 		)}
 	</ul>
@@ -99,7 +99,7 @@ const more = [
 		}
 		{FRIENDS.length > FRIENDS_INLINE_COUNT && (
 			<li class="more-link">
-				<a href="/about/friends/">还有 {FRIENDS.length - FRIENDS_INLINE_COUNT} 条 →</a>
+				<a href="/about/friends/">查看其余 {FRIENDS.length - FRIENDS_INLINE_COUNT} 个链接 →</a>
 			</li>
 		)}
 	</ul>

@@ -362,7 +362,7 @@ const bookLabel = `${HANDBOOK.title}${chapterNo ? ` · ${chapterNo}` : ''}`;
 			{
 				sections.length > 0 && (
 					<nav class="sections" aria-label="本章小节">
-						<span class="label">本章</span>
+						<span class="label">本章目录</span>
 						{sections.map((section) => (
 							<a href={`#${section.slug}`}>{section.text}</a>
 						))}
@@ -376,7 +376,7 @@ const bookLabel = `${HANDBOOK.title}${chapterNo ? ` · ${chapterNo}` : ''}`;
 
 			{
 				inVolume.length > 1 && (
-					<nav class="volume-nav" aria-label="本卷其他章">
+					<nav class="volume-nav" aria-label="本卷目录">
 						<p class="label">{entry.data.volume ?? '本书'}</p>
 						<ul>
 							{inVolume.map((piece) => (

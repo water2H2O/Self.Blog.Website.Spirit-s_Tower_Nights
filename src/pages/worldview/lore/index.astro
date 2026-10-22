@@ -257,8 +257,8 @@ const groups = LORE_CATEGORIES.map((category) => ({
 		<main>
 			<h1>设定</h1>
 			<p class="lead">
-				{all.length} 条设定，分 {groups.length} 类。先读「世界规则」那一类，这个世界的底层就通了；
-				每一条都可以关联角色、种族与其它条目，几边互相指路。左边是类目，点一下跳过去。
+				共 {all.length} 条设定，分为 {groups.length} 类。不妨先从「世界规则」读起，了解这个世界如何运转。
+				也可以选择感兴趣的分类，再沿着条目中的链接认识相关角色与种族。
 			</p>
 
 			<div class="layout">
@@ -281,7 +281,7 @@ const groups = LORE_CATEGORIES.map((category) => ({
 								))}
 							</ul>
 							<p class="cats-foot">
-								条目按类目排；点类目跳到那一段，滚动时会自动标出当前在哪一类。
+								选择分类，跳到想看的设定。
 							</p>
 						</nav>
 					)
@@ -308,7 +308,7 @@ const groups = LORE_CATEGORIES.map((category) => ({
 							))
 						) : (
 							<p class="empty">
-								还没有设定条目。在 <code>src/content/lore/</code> 下新建一个 markdown 文件即可。
+								暂时还没有公开的设定条目。
 							</p>
 						)
 					}

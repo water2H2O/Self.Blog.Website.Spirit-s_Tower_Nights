@@ -7,9 +7,9 @@ const { level = 'none' } = Astro.props;
 
 const text =
 	level === 'heavy'
-		? '本页含重要剧透，建议先读相关故事再来。'
+		? '这里会提到重要剧情，建议读完相关故事后再看。'
 		: level === 'mild'
-			? '本页含轻微剧透。'
+			? '这里会提到少量剧情，请留意剧透。'
 			: '';
 ---
 

@@ -283,7 +283,7 @@ const themeSongs = (await getCollection('music', ({ data }) => !data.draft))
 				{
 					prev ? (
 						<a href={`/worldview/stories/${prev.id}/`}>
-							<span class="dir">← 上一篇</span>
+							<span class="dir">← 上一话</span>
 							<span class="name">{prev.data.code} {prev.data.title}</span>
 						</a>
 					) : (
@@ -293,7 +293,7 @@ const themeSongs = (await getCollection('music', ({ data }) => !data.draft))
 				{
 					next ? (
 						<a class="next" href={`/worldview/stories/${next.id}/`}>
-							<span class="dir">下一篇 →</span>
+							<span class="dir">下一话 →</span>
 							<span class="name">{next.data.code} {next.data.title}</span>
 						</a>
 					) : (

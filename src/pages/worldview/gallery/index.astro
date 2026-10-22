@@ -44,7 +44,7 @@ const items = fs
 	<head>
 		<BaseHead
 			title="画廊"
-			description={`${SITE_TITLE} 的图池：原创设定、联动设定、企划与插画。`}
+			description={`${SITE_TITLE} 的画廊：原创角色、联动角色与企划相关的画作。`}
 		/>
 		<style>
 			main {
@@ -77,9 +77,9 @@ const items = fs
 		<main>
 			<h1>画廊</h1>
 			<p class="lead">
-				图池共 {items.length} 张，每次打开随机抽 {SAMPLE_SIZE} 张铺成照片墙 —— 大小、横竖、顺序都随机，刷新即换。
+				这里有 {items.length} 张画作，每次打开随机展示 {SAMPLE_SIZE} 张。点开看大图，刷新换一组。
 			</p>
-			<p class="lead">（鼠标指针套装等周边素材不参与铺墙，只留在图池里。）</p>
+			<p class="lead">鼠标指针套装不在这里展示，可在相关角色页查看。</p>
 			<p class="notice">
 				<strong>图片不适用 CC BY 4.0。</strong>
 				原创设定版权归我（{SITE_AUTHOR}）所有；<strong>联动设定版权归各设主所有</strong>

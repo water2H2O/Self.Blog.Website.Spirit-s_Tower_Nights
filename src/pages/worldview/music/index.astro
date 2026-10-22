@@ -245,7 +245,7 @@ const tracks = (await getCollection('music', ({ data }) => !data.draft)).sort(
 											{track.data.audioAlt && (
 												<source src={track.data.audioAlt} type={track.data.audioAltType ?? 'audio/ogg'} />
 											)}
-											你的浏览器不支持音频播放。
+											当前浏览器无法播放这段音频，请换个浏览器试试。
 										</audio>
 									</div>
 								)}

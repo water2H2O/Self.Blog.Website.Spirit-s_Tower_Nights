@@ -15,7 +15,7 @@ const acts = groupByArc(episodes);
 	<head>
 		<BaseHead
 			title="故事"
-			description="水塔夜谈主线正文，按“幕 → 篇 → 话”组织。"
+			description="水塔夜谈的主线故事。按幕、篇、话排列，从目录选择一话开始阅读。"
 		/>
 		<style>
 			main {
@@ -138,7 +138,7 @@ const acts = groupByArc(episodes);
 			<StoriesTabs current="stories" />
 			<h1>故事</h1>
 			<p class="lead">
-				共 {episodes.length} 话。按“幕 → 篇 → 话”组织；点开任意一话即为正文，页底可以翻到上一篇 / 下一篇。
+				共 {episodes.length} 话，按幕、篇、话排列。选一话开始读，读完可以在页底继续翻到下一话。
 			</p>
 
 			{/* 窄屏才出现的折叠目录：58 话在手机上滚起来太长 */}
@@ -174,7 +174,7 @@ const acts = groupByArc(episodes);
 						</section>
 					))
 				) : (
-					<p class="empty">还没有正文。把文稿放进 src/content/stories/ 即可。</p>
+					<p class="empty">暂时还没有公开的故事正文。</p>
 				)
 			}
 		</main>

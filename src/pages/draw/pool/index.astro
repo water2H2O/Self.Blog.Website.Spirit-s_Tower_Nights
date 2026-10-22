@@ -35,7 +35,7 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 	<head>
 		<BaseHead
 			title="签筒"
-			description={`签筒里全部 ${entries.length} 位与他们的 ${owners.length} 位设主，按设主名排列。`}
+			description={`浏览签筒里的 ${entries.length} 位角色，按 ${owners.length} 位设主的名字排列。`}
 		/>
 		<style>
 			main {
@@ -200,9 +200,9 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 				>，把<strong>立绘与设定文件一起带上</strong>就行。
 			</p>
 			<p class="lead">
-				{entries.length} 位，来自 {owners.length} 位设主，按设主名排列。想摇一支玩，回<a
+				共 {entries.length} 位角色，来自 {owners.length} 位设主，按设主名排列。也可以去<a
 					href="/draw/">抽签</a
-				>。
+				>，随机遇见一位。
 			</p>
 
 			{
@@ -226,8 +226,8 @@ const owners = [...new Set(entries.map((item) => item.owner))]
 										) : (
 											/* 还没有立绘：明写「暂无」，别留一个空框 */
 											<span class="no-info">
-												<b>#NO INFO</b>
-												<i>暂无立绘</i>
+												<b>立绘待补充</b>
+												<i>可以先查看档案</i>
 											</span>
 										)}
 										{item.href.startsWith('/draw/entry/') && <span class="flag">签筒</span>}

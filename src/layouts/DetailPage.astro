@@ -57,9 +57,9 @@ const {
 } = Astro.props;
 
 const CANON = {
-	locked: { label: '正典 · 不可变更', hint: '这一条已经钉死，写作时不应违背' },
-	open: { label: '可扩展', hint: '大方向已定，细节可以继续长' },
-	draft: { label: '草稿', hint: '随时可能推翻重写' },
+	locked: { label: '正典 · 不可变更', hint: '已确定的核心设定，后续故事以此为准' },
+	open: { label: '可扩展', hint: '基本设定已确定，细节仍可补充' },
+	draft: { label: '草稿', hint: '仍在整理中，内容可能调整' },
 } as const;
 ---
 
@@ -244,8 +244,8 @@ const CANON = {
 					) : (
 						/* 还没有图：占位框，明说「暂无」而不是留一片空白 */
 						<div class="cover none" data-no-info>
-							<span class="none-mark">#NO INFO</span>
-							<span class="none-text">这一位还没有立绘</span>
+							<span class="none-mark">暂无配图</span>
+							<span class="none-text">可以先看看下面的文字。</span>
 						</div>
 					)
 				}

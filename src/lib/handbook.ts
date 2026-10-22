@@ -23,7 +23,7 @@ export const HANDBOOK = {
 	notice: '内部教学材料 · 请勿外传',
 	/** 页面上给读者的一句定位（不是书里的原文） */
 	blurb:
-		'正典把 T6 定成「魔法指令集」——一切法术的基石。这本册子是白塔学院发给新学徒的第一学年总览：先教什么、按什么顺序教、哪些部分先别碰。它不是教材本身，真正的课程在讲堂与练习场上。',
+		'T6 是「魔法指令集」，也是一切法术的基石。这份白塔学院的第一学年课程总览，带新学徒了解要学什么、从哪里开始，以及哪些内容留待以后。它是一份学习路标，完整的课程还在讲堂与练习场上。',
 } as const;
 
 /** 一篇（序篇 / 章 / 结语 / 附录） */
@@ -64,7 +64,7 @@ export const HANDBOOK_VOLUMES: HandbookVolume[] = [
 	{
 		no: 1,
 		title: '总论：法则、魔力与施法者',
-		note: '这一卷只有三章，却是往后所有内容的落脚处。读慢一点。',
+		note: '从法则、魔力与施法者的关系开始，为后面的学习打好基础。',
 		pieces: [
 			{ slug: 'ch-01', title: '第一章　魔法是什么' },
 			{ slug: 'ch-02', title: '第二章　施法三步骤' },
@@ -98,7 +98,7 @@ export const HANDBOOK_VOLUMES: HandbookVolume[] = [
 	{
 		no: 4,
 		title: '法术状态空间导论',
-		note: '第三门：法术与环境各自处在什么状态，怎么读、怎么让它自己停下来。',
+		note: '第三门课：读懂法术与环境的状态，学会让法术在合适的时候停下来。',
 		pieces: [
 			{ slug: 'ch-14', title: '第十四章　这门课教什么' },
 			{ slug: 'ch-15', title: '第十五章　起环境：状态场' },
@@ -110,7 +110,7 @@ export const HANDBOOK_VOLUMES: HandbookVolume[] = [
 	{
 		no: 5,
 		title: '综合：从指令集到第一个法术',
-		note: '把三门课合起来用一遍 —— 这一卷还没写。',
+		note: '将三门课连起来，尝试构建第一个法术。本卷内容尚未完成。',
 		pieces: [
 			{ slug: 'ch-19', title: '第十九章　复合申明与逻辑结构' },
 			{ slug: 'ch-20', title: '第二十章　从零构建一个法术' },
@@ -128,7 +128,7 @@ export const HANDBOOK_VOLUMES: HandbookVolume[] = [
 	{
 		no: 7,
 		title: '附录',
-		note: '术语表、语法速查、错误代码索引、练习答案 —— 都还没写。',
+		note: '术语表、语法速查、错误代码索引与练习答案，尚未完成。',
 		pieces: [
 			{ slug: 'appendix-a', title: '附录 A　术语表' },
 			{ slug: 'appendix-b', title: '附录 B　申明语法速查表' },

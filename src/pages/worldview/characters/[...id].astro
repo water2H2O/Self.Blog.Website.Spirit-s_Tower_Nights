@@ -162,7 +162,7 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 	<Content />
 
 	{/* 跨企划指路：同一角色在别的企划里也有档案时（例如蔚蓝） */}
-	<CrossLinkBox links={entry.data.crossLinks ?? []} heading="这个角色另有出处" />
+	<CrossLinkBox links={entry.data.crossLinks ?? []} heading="在其他企划中认识这个角色" />
 
 	{
 		relationList.length > 0 && (
@@ -220,7 +220,7 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 									{cursorItems.length > 9 && <span class="res-more">等 {cursorItems.length} 个</span>}
 								</div>
 								<p class="hint">
-									指针属于可下载的数字资源，预览图不放进下面的画作。上面是其中几个的样子，压缩包里还有每个指针的动图预览。
+									这里展示了部分指针。下载压缩包后，还可以查看每个指针的动图预览。
 								</p>
 							</>
 						)}

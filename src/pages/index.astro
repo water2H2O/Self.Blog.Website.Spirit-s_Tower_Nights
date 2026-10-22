@@ -1073,7 +1073,7 @@ const tokenStack = (() => {
 						<p class="bd-k">10 月 20 日</p>
 						<p class="bd-t">生日快乐</p>
 						<p class="bd-s">
-							这张贺图只在今天摆在这儿，明天它就回<a href="/worldview/gallery/">画廊</a>里当普通的一张。
+							今天把这张贺图放在首页，一起庆祝。明天起，仍然可以在<a href="/worldview/gallery/">画廊</a>里找到它。
 						</p>
 					</div>
 				</div>
@@ -1282,7 +1282,7 @@ const tokenStack = (() => {
 				<a class="card" href="/blog/">
 					<span class="badge">记录</span>
 					<h2>随笔</h2>
-					<p>制作花絮、灵感笔记，以及这个站自己的一些记录。</p>
+					<p>制作花絮、灵感笔记，还有这个站点的成长记录。</p>
 					<p class="stats">{posts.length} 篇</p>
 				</a>
 
@@ -1350,7 +1350,7 @@ const tokenStack = (() => {
 					))}
 				</ul>
 				<p class="gh-note">
-					这个站本身也在上面。绿格子最近才开始长 —— 见谅（
+					这个站的源码也在 GitHub 上，最近的更新都留在这些格子里。
 					<span class="gh-updated">热力图与仓库每天自动刷新一次</span>
 				</p>
 			</div>
@@ -1370,7 +1370,7 @@ const tokenStack = (() => {
 							class="tk-chart"
 							viewBox={`0 0 ${tokenChart.W} ${tokenChart.H}`}
 							role="img"
-							aria-label={`按天的 token 用量，最近 ${tokenChart.candles.length} 天`}
+							aria-label={`最近 ${tokenChart.candles.length} 天的 token 用量`}
 							style={stacked ? 'display:none' : undefined}
 						>
 							{[0, 0.5, 1].map((ratio) => (
@@ -1433,7 +1433,7 @@ const tokenStack = (() => {
 								class="tk-chart"
 								viewBox={`0 0 ${tokenStack.W} ${tokenStack.H}`}
 								role="img"
-								aria-label={`按天的 token 用量，按模型拆成 ${tokenSeriesColored.length} 段`}
+								aria-label={`每日 token 用量，按 ${tokenSeriesColored.length} 个模型分段显示`}
 							>
 								{[0, 0.5, 1].map((ratio) => (
 									<line

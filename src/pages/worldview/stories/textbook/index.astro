@@ -36,7 +36,7 @@ const splitTitle = (title: string) => {
 	<head>
 		<BaseHead
 			title={`${HANDBOOK.title} · 教材`}
-			description={`${HANDBOOK.subtitle}。白塔学院发给新学徒的第一学年课程总览，按「卷 → 章」组织，目前写完 ${writtenPieces} / ${totalPieces} 篇。`}
+			description={`${HANDBOOK.subtitle}。白塔学院新学徒的第一学年课程总览，按卷、章排列，目前可阅读 ${writtenPieces} / ${totalPieces} 篇。`}
 		/>
 		<style>
 			main {
@@ -225,8 +225,8 @@ const splitTitle = (title: string) => {
 				</dl>
 				<p class="notice">{HANDBOOK.notice}</p>
 				<p class="progress">
-					目前写完 <b>{writtenPieces}</b> / {totalPieces} 篇，约 <b>{Math.round(chars / 1000)}</b> 千字；
-					标「待写」的是还没落笔的部分。
+					目前可阅读 <b>{writtenPieces}</b> / {totalPieces} 篇，约 <b>{Math.round(chars / 1000)}</b> 千字。
+					尚未完成的篇目标为「待写」。
 				</p>
 			</section>
 
