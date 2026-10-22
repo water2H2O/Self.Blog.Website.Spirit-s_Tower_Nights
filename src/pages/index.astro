@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
+import canteenTrio from '../assets/oc/canteen-trio.webp';
 import githubData from '../data/github.json';
 import tokenUsage from '../data/token-usage.json';
 import BaseHead from '../components/BaseHead.astro';
@@ -80,12 +81,12 @@ weeks.forEach((_, index) => {
 });
 
 /**
- * ★ token 用量 K 线图。
+ * ★ token 用量「食堂三席」。
  *
  * 数据来自 `src/data/token-usage.json`，由 `tools/collect-local-usage.mjs` 读本机 DSH 会话日志统计
  * （另一条路是 `tools/fetch-token-usage.mjs`，用登录态导出平台用量）。
  * 静态站构建时不联网，所以走「本地算 → 提交 JSON → 构建时读」，和上面 github.json 同一套路。
- * **数据为空时整段不渲染**，不会在站上留个空框。
+ * 图是画好的三联画，这里只把数字对到每个人脚下；**数据为空时整段不渲染**。
  */
 type TokenDay = {
 	date: string;
@@ -109,23 +110,6 @@ const tokenDaily: TokenDay[] = (tokenData.daily ?? []).filter((day) => day.token
 /** 千分位 + 中文单位，图表旁边的数字用 */
 const fmtTokens = (n: number) =>
 	n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(n);
-
-/**
- * 一根蜡烛 = 一天：开 / 收 = 当天第一次与最后一次请求的 token，
- * 高 / 低 = 当天最大与最小的单次请求。数据里带了 O/H/L/C 就直接用，
- * 没有（平台导出的口径）就退化成「当天总量」。
- */
-const tokenCandles = (() => {
-	if (tokenDaily.length < 1) return [];
-	return tokenDaily.slice(-31).map((day) => {
-		const value = day.tokens;
-		const open = day.open ?? value;
-		const close = day.close ?? value;
-		const high = day.high ?? Math.max(open, close, value);
-		const low = day.low ?? Math.min(open, close, value);
-		return { date: day.date, open, close, high, low, total: value, requests: day.requests };
-	});
-})();
 
 /** 图上要写的几行数字：最近一天、最近 7 天、本月（按数据里最后一个月的口径） */
 const tokenStats = (() => {
@@ -159,132 +143,33 @@ const tokenStats = (() => {
 	};
 })();
 
-/** 蜡烛的 SVG 坐标（纯静态，不需要前端 JS） */
-const tokenChart = (() => {
-	if (tokenCandles.length === 0) return null;
-	const W = 720;
-	const H = 190;
-	const PL = 8;
-	const PR = 52; // 右侧留一条窄栏放数值刻度
-	const PT = 14;
-	const PB = 26;
-	const highs = tokenCandles.map((c) => c.high);
-	const lows = tokenCandles.map((c) => c.low);
-	const max = Math.max(...highs);
-	// 基线取 0：日用量之间差着好几个数量级，用「最低值」当底会把蜡烛压成一条线。
-	// 从 0 起画，身长才和当天烧的量成正比。
-	const min = 0;
-	const span = Math.max(1, max - min);
-	const plotW = W - PL - PR;
-	const plotH = H - PT - PB;
-	const y = (value: number) => PT + plotH - ((value - min) / span) * plotH;
-	const slot = plotW / tokenCandles.length;
-	const bodyW = Math.max(8, Math.min(34, slot * 0.42));
-	/** 蜡烛多了就别每根都写日期：按数量摊到 6 个刻度左右 */
-	const labelEvery = Math.max(1, Math.ceil(tokenCandles.length / 6));
-	/** 末根固定要写日期，它前面半个间隔内的刻度就别写了，不然会撞在一起 */
-	const lastLabelFloor = tokenCandles.length - 1 - Math.floor(labelEvery / 2);
-	const candles = tokenCandles.map((candle, index) => {
-		const cx = PL + slot * index + slot / 2;
-		const yOpen = y(candle.open);
-		const yClose = y(candle.close);
-		return {
-			...candle,
-			cx,
-			bodyW,
-			bodyY: Math.min(yOpen, yClose),
-			bodyH: Math.max(2, Math.abs(yClose - yOpen)),
-			wickTop: y(candle.high),
-			wickBottom: y(candle.low),
-			up: candle.close >= candle.open,
-			label:
-				index === 0 ||
-				index === tokenCandles.length - 1 ||
-				(index % labelEvery === 0 && index < lastLabelFloor),
-			axisX: cx,
-			gridTop: PT,
-			gridBottom: PT + plotH,
-		};
-	});
-	return { W, H, PL, PR, PT, PB, plotW, plotH, max, min, candles, y };
-})();
-
 /**
- * 多模型时改用「堆叠柱状图」：一天一根柱，按模型分段。
- *
- * 只在数据确实是**多模型**时才启用（`dimension === 'model'`）。
- * 平台导出里还有一种「按 api_key 拆」，但那几个 key 往往是同一个客户端改名，
- * 堆起来等于把「改名」画成「换了个东西」，会误导 —— 所以那种情况仍用蜡烛图。
+ * 按模型拆开的用量。`dimension === 'model'` 时才有内容，
+ * 「按 api_key 拆」那种不认 —— 那几个 key 往往是同一个客户端改名。
  */
 type TokenSeries = { label: string; tokens: number; share?: number; cost?: number };
 const tokenSeries: TokenSeries[] = (tokenData.series ?? []).filter((s) => s.tokens > 0);
-const stacked = tokenData.dimension === 'model' && tokenSeries.length >= 2;
 
-/** 那个又贵又小的 Claude —— 图注里要单独点它的账 */
-const claudeSeries = tokenSeries.find((s) => /claude/i.test(s.label) && s.cost) ?? null;
-
-/** 分段配色：青、紫、金、绿、红 —— 和站上其他图表同一套 */
-const SERIES_COLORS = ['#7fe9f0', '#c9a8ff', '#ffd68a', '#8fdc9b', '#e06a7a', '#9be7e0'];
-const tokenSeriesColored = tokenSeries.map((s, i) => ({
-	...s,
-	color: SERIES_COLORS[i % SERIES_COLORS.length],
-}));
-
-const tokenStack = (() => {
-	if (!stacked || tokenDaily.length === 0) return null;
-	const W = 720;
-	const H = 190;
-	const PL = 8;
-	const PR = 52;
-	const PT = 14;
-	const PB = 26;
-	const plotW = W - PL - PR;
-	const plotH = H - PT - PB;
-	const days = tokenDaily.slice(-31);
-	const max = Math.max(...days.map((d) => d.tokens), 1);
-	const y = (value: number) => PT + plotH - (value / max) * plotH;
-	const slot = plotW / days.length;
-	const barW = Math.max(7, Math.min(30, slot * 0.58));
-	const labelEvery = Math.max(1, Math.ceil(days.length / 6));
-	const lastLabelFloor = days.length - 1 - Math.floor(labelEvery / 2);
-	const bars = days.map((day, index) => {
-		const cx = PL + slot * index + slot / 2;
-		let acc = 0;
-		const segs: {
-			label: string;
-			color: string;
-			value: number;
-			x: number;
-			y: number;
-			h: number;
-		}[] = [];
-		for (const s of tokenSeriesColored) {
-			const value = day.parts?.[s.label] ?? 0;
-			if (value <= 0) continue;
-			const y0 = y(acc);
-			const y1 = y(acc + value);
-			acc += value;
-			segs.push({
-				label: s.label,
-				color: s.color,
-				value,
-				x: cx - barW / 2,
-				y: y1,
-				h: Math.max(0.6, y0 - y1),
-			});
-		}
-		return {
-			date: day.date,
-			cx,
-			segs,
-			label:
-				index === 0 ||
-				index === days.length - 1 ||
-				(index % labelEvery === 0 && index < lastLabelFloor),
-		};
-	});
-	return { W, H, PL, PR, PT, PB, plotW, plotH, max, bars, barW };
-})();
+/**
+ * ★ 食堂三席：一张图讲完三个人在干什么。
+ *
+ * 图是作者画的三联画（蓝发抱着碗 / 白发趴在桌上 / 橙发举着账单），
+ * 台词已经画在画里了，所以座位上只补数据：谁吃掉了多少、来了几天、要付多少钱。
+ * 座位顺序跟着图走（DeepSeek、GPT、Claude），不按用量排 —— 画换不了，位置就不能换。
+ */
+const SEAT_ORDER = ['deepseek', 'gpt', 'claude'];
+const seatRank = (label: string) => {
+	const index = SEAT_ORDER.findIndex((key) => label.toLowerCase().includes(key));
+	return index === -1 ? SEAT_ORDER.length : index;
+};
+const canteenSeats = tokenSeries
+	.map((series) => ({
+		...series,
+		shortName: series.label.split('·').pop()?.trim() ?? series.label,
+		days: tokenDaily.filter((day) => (day.parts?.[series.label] ?? 0) > 0).length,
+	}))
+	.sort((a, b) => seatRank(a.label) - seatRank(b.label));
+const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? null;
 ---
 
 <!doctype html>
@@ -946,7 +831,7 @@ const tokenStack = (() => {
 				}
 			}
 
-			/* ---------- token 用量 K 线 ---------- */
+			/* ---------- token 用量：食堂三席 ---------- */
 			.tokens {
 				margin-top: 1.2em;
 				padding: 1.3em 1.5em 1.1em;
@@ -975,24 +860,66 @@ const tokenStack = (() => {
 				font-size: 0.84em;
 				color: var(--accent);
 			}
-			.tk-chart {
+			/* 三联画本身：白描边在深色底上会像贴纸，加一层很淡的光衬着 */
+			.canteen {
+				margin: 1em 0 0;
+				border-radius: 14px;
+				overflow: hidden;
+				background:
+					radial-gradient(120% 110% at 50% 0%, rgba(127, 233, 240, 9%), transparent 72%),
+					rgba(8, 26, 38, 45%);
+				border: 1px solid rgba(175, 255, 255, 10%);
+			}
+			.cn-stage {
 				display: block;
 				width: 100%;
 				height: auto;
-				margin: 0.9em 0 0.2em;
-				overflow: visible;
 			}
-			.tk-axis {
-				fill: rgb(var(--gray));
-				font-size: 11px;
+			/* 三个座位对三格画：名字、饭量占比、总量与出勤、这顿花了多少 */
+			.cn-seats {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 0.5em;
+				list-style: none;
+				margin: 0.9em 0 0;
+				padding: 0;
+			}
+			.cn-seats li {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.12em;
+				text-align: center;
+			}
+			.cn-name {
+				font-size: 0.74em;
 				letter-spacing: 0.04em;
+				color: rgb(var(--gray));
+				overflow-wrap: anywhere;
+			}
+			.cn-share {
+				font-size: 1.34em;
+				line-height: 1.15;
+				font-weight: 600;
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+			}
+			.cn-meta {
+				font-size: 0.74em;
+				color: rgb(var(--gray));
+				opacity: 0.85;
+			}
+			.cn-cost {
+				font-size: 0.76em;
+				color: var(--accent);
+				font-variant-numeric: tabular-nums;
 			}
 			.tk-stats {
 				display: grid;
 				grid-template-columns: repeat(4, minmax(0, 1fr));
 				gap: 0.6em;
 				list-style: none;
-				margin: 0.9em 0 0;
+				margin: 1em 0 0;
 				padding: 0;
 			}
 			.tk-stats li {
@@ -1024,46 +951,23 @@ const tokenStack = (() => {
 				margin-top: 0.35em;
 				opacity: 0.65;
 			}
-			/* 堆叠图的图例：色块 + 名字 + 占比 + 总量 */
-			.tk-legend {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.45em 1.3em;
-				margin: 0.9em 0 0;
-				padding: 0;
-				list-style: none;
-				font-size: 0.8em;
-			}
-			.tk-legend li {
-				display: flex;
-				align-items: center;
-				gap: 0.45em;
-			}
-			.tk-legend .dot {
-				flex: none;
-				width: 9px;
-				height: 9px;
-				border-radius: 2px;
-				box-shadow: 0 0 8px currentColor;
-			}
-			.tk-legend .name {
-				color: rgb(var(--gray));
-			}
-			.tk-legend .share {
-				color: var(--glow);
-				font-variant-numeric: tabular-nums;
-			}
-			.tk-legend .amt {
-				color: rgb(var(--gray));
-				opacity: 0.7;
-				font-variant-numeric: tabular-nums;
-			}
 			@media (max-width: 640px) {
 				.tokens {
 					padding: 1.1em 1em 1em;
 				}
 				.tk-stats {
 					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+				.cn-seats {
+					gap: 0.3em;
+				}
+				.cn-share {
+					font-size: 1.15em;
+				}
+				.cn-name,
+				.cn-meta,
+				.cn-cost {
+					font-size: 0.68em;
 				}
 			}
 		</style>
@@ -1377,7 +1281,7 @@ const tokenStack = (() => {
 				</p>
 			</div>
 
-			{tokenChart && tokenStats && (
+			{tokenStats && canteenSeats.length > 0 && (
 				<>
 					<h2 class="section-title">最近在烧什么</h2>
 					<div class="tokens">
@@ -1388,139 +1292,25 @@ const tokenStack = (() => {
 									` · ¥${tokenStats.monthCost.toFixed(2)}`}
 							</span>
 						</div>
-						<svg
-							class="tk-chart"
-							viewBox={`0 0 ${tokenChart.W} ${tokenChart.H}`}
-							role="img"
-							aria-label={`最近 ${tokenChart.candles.length} 天的 token 用量`}
-							style={stacked ? 'display:none' : undefined}
-						>
-							{[0, 0.5, 1].map((ratio) => (
-								<line
-									x1={tokenChart.PL}
-									x2={tokenChart.W - tokenChart.PR}
-									y1={tokenChart.PT + tokenChart.plotH * ratio}
-									y2={tokenChart.PT + tokenChart.plotH * ratio}
-									stroke="rgba(175,255,255,0.10)"
-									stroke-dasharray="3 5"
-								/>
+						<div class="canteen">
+							<Image
+								class="cn-stage"
+								src={canteenTrio}
+								alt="三联画：蓝发少女抱着盛满米饭的鲸鱼碗喊「再来一碗」；白发少女趴在一摞本子上，说「终于干完了」；橙发少女举着一张「账单」，一脸困惑"
+								width={1440}
+								loading="lazy"
+							/>
+						</div>
+						<ul class="cn-seats">
+							{canteenSeats.map((seat) => (
+								<li>
+									<span class="cn-name">{seat.shortName}</span>
+									<span class="cn-share">{seat.share ?? 0}%</span>
+									<span class="cn-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
+									{seat.cost ? <span class="cn-cost">¥{seat.cost.toFixed(2)}</span> : null}
+								</li>
 							))}
-							{/* 纵轴刻度：只在最高 / 最低处标两个值，够看且不吵 */}
-							<text x={tokenChart.W - 6} y={tokenChart.PT + 4} text-anchor="end" class="tk-axis">
-								{fmtTokens(tokenChart.max)}
-							</text>
-							<text
-								x={tokenChart.W - 6}
-								y={tokenChart.PT + tokenChart.plotH}
-								text-anchor="end"
-								class="tk-axis"
-							>
-								{fmtTokens(tokenChart.min)}
-							</text>
-							{tokenChart.candles.map((candle) => (
-								<g>
-									<line
-										x1={candle.cx}
-										x2={candle.cx}
-										y1={candle.wickTop}
-										y2={candle.wickBottom}
-										stroke={candle.up ? '#7fe9f0' : '#e06a7a'}
-										stroke-width="1.4"
-										stroke-linecap="round"
-									/>
-									<rect
-										x={candle.cx - candle.bodyW / 2}
-										y={candle.bodyY}
-										width={candle.bodyW}
-										height={candle.bodyH}
-										rx="1.5"
-										fill={candle.up ? '#7fe9f0' : '#e06a7a'}
-										fill-opacity={candle.up ? '0.9' : '0.78'}
-									/>
-									{candle.label && (
-										<text
-											x={candle.cx}
-											y={tokenChart.H - 8}
-											text-anchor="middle"
-											class="tk-axis"
-										>
-											{candle.date.slice(5).replace('-', '/')}
-										</text>
-									)}
-								</g>
-							))}
-						</svg>
-						{stacked && tokenStack && (
-							<svg
-								class="tk-chart"
-								viewBox={`0 0 ${tokenStack.W} ${tokenStack.H}`}
-								role="img"
-								aria-label={`每日 token 用量，按 ${tokenSeriesColored.length} 个模型分段显示`}
-							>
-								{[0, 0.5, 1].map((ratio) => (
-									<line
-										x1={tokenStack.PL}
-										x2={tokenStack.W - tokenStack.PR}
-										y1={tokenStack.PT + tokenStack.plotH * ratio}
-										y2={tokenStack.PT + tokenStack.plotH * ratio}
-										stroke="rgba(175,255,255,0.10)"
-										stroke-dasharray="3 5"
-									/>
-								))}
-								<text x={tokenStack.W - 6} y={tokenStack.PT + 4} text-anchor="end" class="tk-axis">
-									{fmtTokens(tokenStack.max)}
-								</text>
-								<text
-									x={tokenStack.W - 6}
-									y={tokenStack.PT + tokenStack.plotH}
-									text-anchor="end"
-									class="tk-axis"
-								>
-									0
-								</text>
-								{tokenStack.bars.map((bar) => (
-									<g>
-										{bar.segs.map((seg) => (
-											<rect
-												x={seg.x}
-												y={seg.y}
-												width={tokenStack.barW}
-												height={seg.h}
-												fill={seg.color}
-												fill-opacity="0.82"
-												rx="1.5"
-											>
-												<title>{`${bar.date} · ${seg.label} · ${fmtTokens(seg.value)}`}</title>
-											</rect>
-										))}
-										{bar.label && (
-											<text
-												x={bar.cx}
-												y={tokenStack.H - 8}
-												text-anchor="middle"
-												class="tk-axis"
-											>
-												{bar.date.slice(5).replace('-', '/')}
-											</text>
-										)}
-									</g>
-								))}
-							</svg>
-						)}
-
-						{stacked && (
-							<ul class="tk-legend">
-								{tokenSeriesColored.map((s) => (
-									<li>
-										<span class="dot" style={`background:${s.color}`} />
-										<span class="name">{s.label}</span>
-										<span class="share">{s.share ?? 0}%</span>
-										<span class="amt">{fmtTokens(s.tokens)}</span>
-									</li>
-								))}
-							</ul>
-						)}
-
+						</ul>
 						<ul class="tk-stats">
 							<li><span>最近一天</span><b>{fmtTokens(tokenStats.lastTokens)}</b></li>
 							<li><span>最近 7 天</span><b>{fmtTokens(tokenStats.week7Tokens)}</b></li>
@@ -1532,15 +1322,13 @@ const tokenStack = (() => {
 							)}
 						</ul>
 						<p class="tk-note">
-							{stacked ? '每根柱子是一天，按模型分成几段' : '每根蜡烛是一天'}，数字是当天烧掉的<strong
-								>全部</strong
-							> token（缓存命中也算），用起来上亿是常态
-							{claudeSeries && (
+							三个人一桌：一位常驻、一位外援、一位结账的。下面这排数字就是这顿饭的账。
+							{claudeSeat?.cost && (
 								<>
 									<br
-									/>—— 以及，图中仅占比 <strong>{claudeSeries.share}%</strong> 的 Claude 花了我 <strong
-										>{claudeSeries.cost?.toFixed(2)}</strong
-									> 元！
+									/>—— 橙色那位只吃了 <strong>{claudeSeat.share}%</strong>，账单却是 <strong
+										>{claudeSeat.cost.toFixed(2)}</strong
+									> 元。
 								</>
 							)}
 							<span class="tk-src">{tokenStats.sourceLabel}</span>
