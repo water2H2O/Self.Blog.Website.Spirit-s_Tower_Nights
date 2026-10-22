@@ -5,6 +5,7 @@ import logo from '../assets/oc/logo.webp';
 import canteenTrio from '../assets/oc/canteen-trio.webp';
 import githubData from '../data/github.json';
 import tokenUsage from '../data/token-usage.json';
+import { summarizeTokens, fmtYi, perMillion } from '../data/token-stats.mjs';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
@@ -111,37 +112,8 @@ const tokenDaily: TokenDay[] = (tokenData.daily ?? []).filter((day) => day.token
 const fmtTokens = (n: number) =>
 	n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(n);
 
-/** 图上要写的几行数字：最近一天、最近 7 天、本月（按数据里最后一个月的口径） */
-const tokenStats = (() => {
-	if (tokenDaily.length === 0) return null;
-	const last = tokenDaily[tokenDaily.length - 1];
-	const monthKey = last.date.slice(0, 7);
-	const monthDays = tokenDaily.filter((day) => day.date.startsWith(monthKey));
-	const week7 = tokenDaily.slice(-7);
-	const sum = (rows: TokenDay[], key: 'tokens' | 'cost' | 'cacheRead') =>
-		rows.reduce((acc, day) => acc + (day[key] ?? 0), 0);
-	const monthCost = sum(monthDays, 'cost');
-	return {
-		lastDate: last.date,
-		lastTokens: last.tokens,
-		week7Tokens: sum(week7, 'tokens'),
-		monthTokens: sum(monthDays, 'tokens'),
-		monthCache: sum(monthDays, 'cacheRead'),
-		monthDays: monthDays.length,
-		monthAvg: monthDays.length ? Math.round(sum(monthDays, 'tokens') / monthDays.length) : 0,
-		monthCost,
-		monthLabel: `${Number(monthKey.slice(5, 7))} 月`,
-		fetchedAt: tokenData.fetchedAt ?? '',
-		/** 本地会话口径没有花费数据；为 0 时那一格换成「日均」 */
-		showCost: monthCost > 0,
-		/** 数据出处：本机会话日志 / 平台导出 / 平台 + 中转站 */
-		sourceLabel: (tokenData.source ?? '').includes('local')
-			? '数据来自本机 DSH 会话日志，隔几天刷新一次。'
-			: (tokenData.source ?? '').includes('中转站')
-				? '数据来自 DeepSeek 开放平台 + 中转站导出，手动刷新。'
-				: '数据来自 DeepSeek 开放平台的用量导出，手动刷新。',
-	};
-})();
+/** 所有完整日指标均以导出快照的北京时间为准，避免凌晨误判。 */
+const tokenStats = summarizeTokens(tokenData);
 
 /**
  * 按模型拆开的用量。`dimension === 'model'` 时才有内容，
@@ -165,6 +137,7 @@ const seatRank = (label: string) => {
 const canteenSeats = tokenSeries
 	.map((series) => ({
 		...series,
+		unitPrice: perMillion(series.tokens, series.cost),
 		shortName: series.label.split('·').pop()?.trim() ?? series.label,
 		days: tokenDaily.filter((day) => (day.parts?.[series.label] ?? 0) > 0).length,
 	}))
@@ -940,6 +913,9 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				color: var(--glow);
 				font-weight: 600;
 			}
+			.tk-stats small { font-size: 0.65em; line-height: 1.5; color: rgb(var(--gray)); }
+			.tk-stats b { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+			.cn-price { font-size: 0.72em; color: var(--accent); }
 			.tk-note {
 				margin: 0.9em 0 0;
 				font-size: 0.76em;
@@ -1308,18 +1284,15 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 									<span class="cn-share">{seat.share ?? 0}%</span>
 									<span class="cn-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
 									{seat.cost ? <span class="cn-cost">¥{seat.cost.toFixed(2)}</span> : null}
+                                    {seat.unitPrice !== null && <span class="cn-price">¥{seat.unitPrice.toFixed(3)} / 百万 tokens</span>}
 								</li>
 							))}
 						</ul>
 						<ul class="tk-stats">
-							<li><span>最近一天</span><b>{fmtTokens(tokenStats.lastTokens)}</b></li>
-							<li><span>最近 7 天</span><b>{fmtTokens(tokenStats.week7Tokens)}</b></li>
-							<li><span>{tokenStats.monthLabel}合计</span><b>{fmtTokens(tokenStats.monthTokens)}</b></li>
-							{tokenStats.showCost ? (
-								<li><span>{tokenStats.monthLabel}花费</span><b>¥{tokenStats.monthCost.toFixed(2)}</b></li>
-							) : (
-								<li><span>日均</span><b>{fmtTokens(tokenStats.monthAvg)}</b></li>
-							)}
+                            <li><span>昨天 · {tokenStats.yesterdayDate.slice(5).replace('-', '/')}</span><b>{tokenStats.yesterday ? fmtYi(tokenStats.yesterday.tokens) : '数据未齐'}</b><small>相对导出日期的完整一天</small></li>
+                            <li><span>近 7 天日均</span><b>{tokenStats.weekAverage !== null ? fmtYi(tokenStats.weekAverage) : '数据未齐'}</b><small>{tokenStats.weekChange !== null ? `较前 7 天 ${tokenStats.weekChange >= 0 ? '+' : ''}${tokenStats.weekChange.toFixed(1)}%` : '前后两周数据不足，暂不比较'}</small></li>
+                            <li><span>每百万 tokens</span><b>{tokenStats.unitPrice !== null ? `¥${tokenStats.unitPrice.toFixed(3)}` : '暂无花费数据'}</b><small>本月实付均价，含缓存命中</small></li>
+                            <li><span>按这速度，月底</span><b>{tokenStats.prediction ? `${tokenStats.prediction.cost !== null ? `约 ¥${tokenStats.prediction.cost.toFixed(0)} / ` : '约 '}${fmtYi(tokenStats.prediction.tokens)}` : '数据不足，暂不预测'}</b><small>{tokenStats.prediction ? `按本月已记录的 ${tokenStats.prediction.observedDays} 个完整日均速外推${tokenStats.prediction.missingDays ? `，另缺 ${tokenStats.prediction.missingDays} 天` : ''}` : '需本月至少 7 个已记录完整日'}</small></li>
 						</ul>
 						<p class="tk-note">
 							三位同桌，各凭本事吃饭。谁吃得多、谁来得勤、谁的账单最扎眼，都记在这里。
@@ -1331,7 +1304,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 									> 元的账单。
 								</>
 							)}
-							<span class="tk-src">{tokenStats.sourceLabel}</span>
+							<span class="tk-src">数据截至 {tokenStats.snapshotLabel} · {tokenStats.sourceLabel}，非实时。座位为整个导出区间；四格按快照日期及本月计算。缺日不按零补齐；不同来源的结束日期仍可能不一致。月底预测不含今天，不是账单承诺。</span>
 						</p>
 					</div>
 				</>

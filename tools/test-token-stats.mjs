@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import { summarizeTokens, perMillion, fmtYi } from '../src/data/token-stats.mjs';
+const daily = Array.from({ length: 23 }, (_, i) => ({ date: `2026-10-${String(i + 1).padStart(2, '0')}`, tokens: i === 22 ? 100 : 1e8, cost: i === 22 ? 99 : 5 }));
+const data = { fetchedAt: '2026-10-22T16:30:00Z', daily };
+const stats = summarizeTokens(data);
+assert.equal(stats.today, '2026-10-23');
+assert.equal(stats.yesterday.tokens, 1e8);
+assert.equal(stats.weekAverage, 1e8);
+assert.equal(stats.weekChange, 0);
+assert.equal(stats.prediction.tokens, 31e8);
+assert.equal(stats.prediction.cost, 155); // excludes today's artificially high cost
+assert.equal(stats.elapsed, 22);
+assert.equal(summarizeTokens({ ...data, daily: daily.filter(row => row.date !== '2026-10-20') }).weekAverage, null);
+const missingMonth = summarizeTokens({ ...data, daily: daily.filter(row => row.date !== '2026-10-01') }).prediction;
+assert.equal(missingMonth.missingDays, 1);
+assert.equal(missingMonth.observedDays, 21);
+assert.equal(missingMonth.tokens, 31e8); // missing is omitted, not silently filled with zero
+assert.equal(summarizeTokens({ ...data, daily: daily.slice(-5) }).prediction, null);
+assert.equal(summarizeTokens({ ...data, daily: daily.filter(row => row.date !== '2026-10-22') }).yesterday, null);
+assert.equal(summarizeTokens({ ...data, daily: daily.filter(row => row.date !== '2026-10-10') }).weekChange, null);
+assert.equal(summarizeTokens({ ...data, daily: daily.map(row => ({ ...row, cost: 0 })) }).unitPrice, null);
+assert.equal(summarizeTokens({ ...data, daily: [...daily].reverse() }).weekAverage, stats.weekAverage);
+assert.equal(summarizeTokens({ fetchedAt: 'bad', daily }), null);
+assert.equal(summarizeTokens({ daily: [] }), null);
+assert.equal(perMillion(0, 3), null);
+assert.ok(Math.abs(perMillion(1e8, 5) - 0.05) < 1e-12);
+assert.equal(fmtYi(8431000), '0.08 亿');
+const february = summarizeTokens({ fetchedAt: '2028-02-29T00:00:00Z', daily: Array.from({ length: 29 }, (_, i) => ({ date: `2028-02-${String(i + 1).padStart(2, '0')}`, tokens: 100, cost: 1 })) });
+assert.equal(february.prediction.tokens, 2900);
+console.log('Token statistics tests passed (snapshot timezone, partial day, calendar windows, missing dates, no cost, leap month).');
