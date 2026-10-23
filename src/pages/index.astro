@@ -894,17 +894,15 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				color: var(--accent);
 				font-variant-numeric: tabular-nums;
 			}
-            .cn-guests { margin-top: 1.2em; padding: 1em; border: 1px dashed rgba(143,220,155,.35); border-radius: 12px; background: linear-gradient(115deg,rgba(143,220,155,.07),transparent); }
-            .cn-guest-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .8em; color: var(--glow); font-size: .85em; }
-            .cn-guest-heading small { color: rgb(var(--gray)); font-size: .85em; }
-            .cn-guest-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 1em; list-style: none; margin: .8em 0 0; padding: 0; }
-            .cn-guest { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1em; min-width: 0; }
-            .cn-guest-art { display: flex; flex-direction: column; align-items: center; color: #9bdab6; flex: 0 0 160px; }
-            .cn-guest-photo { display: block; width: 100%; height: auto; }
-            .cn-guest-ticket { font-size: .65em; letter-spacing: .12em; border: 1px solid currentColor; padding: .15em .7em; border-radius: 99px; }
-            .cn-guest-quip { color: rgb(var(--gray)); font-size: .72em; }
-            .cn-guest-info { display: flex; flex-direction: column; align-items: flex-start; gap: .18em; min-width: 0; }
-            .cn-guest-info .cn-name { font-size: .85em; }
+            /* 第一排坐满了，再开一排：沿用座位的排法，只多一张小像 */
+            .cn-row { margin-top: 1.3em; padding-top: 1.1em; border-top: 1px dashed rgba(175, 255, 255, 14%); }
+            .cn-row-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.7em; margin: 0 0 0.8em; font-size: 0.78em; letter-spacing: 0.04em; color: var(--glow); }
+            .cn-row-label small { color: rgb(var(--gray)); font-size: 0.92em; letter-spacing: 0; }
+            .cn-row-seats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.7em; list-style: none; margin: 0; padding: 0; }
+            .cn-row-seats li { display: flex; flex-direction: column; align-items: center; gap: 0.1em; padding: 0.7em 0.5em 0.8em; border-radius: 12px; text-align: center; background: rgba(175, 255, 255, 3%); border: 1px solid rgba(175, 255, 255, 9%); }
+            .cn-row-art { width: 92px; margin-bottom: 0.4em; color: #9bdab6; }
+            .cn-row-art img,
+            .cn-row-art svg { display: block; width: 100%; height: auto; }
 			.tk-stats {
 				display: grid;
 				grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1308,19 +1306,17 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 							))}
 						</ul>
                         {guestSeats.length > 0 && (
-                            <section class="cn-guests" aria-label="食堂加座">
-                                <div class="cn-guest-heading"><span>食堂加座</span><small>人齐了就添一副碗筷。</small></div>
-                                <ul class="cn-guest-list">
+                            <div class="cn-row">
+                                <p class="cn-row-label"><span>第二排</span><small>第一排坐满了，只好再开一张桌。</small></p>
+                                <ul class="cn-row-seats">
                                     {guestSeats.map((seat) => (
-                                        <li class="cn-guest">
-                                            <div class="cn-guest-art" aria-hidden="true">
-                                                <span class="cn-guest-ticket">{seat.isGlm ? '新客加座' : '欢迎入座'}</span>
+                                        <li>
+                                            <div class="cn-row-art" aria-hidden="true">
                                                 {seat.isGlm ? (
                                                     <Image
-                                                        class="cn-guest-photo"
                                                         src={glmGuest}
                                                         alt=""
-                                                        width={320}
+                                                        width={192}
                                                         loading="lazy"
                                                     />
                                                 ) : (
@@ -1334,19 +1330,18 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                                     <path d="M48 18 Q41 11 47 5 M66 15 Q61 8 67 2" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/>
                                                 </svg>
                                                 )}
-                                                <span class="cn-guest-quip">{seat.isGlm ? '听说这里能续饭？' : '给我也来一碗。'}</span>
                                             </div>
-                                            <div class="cn-guest-info">
-                                                <span class="cn-name">{seat.shortName}</span>
-                                                <b class="cn-share">{seat.share > 0 ? `${seat.share}%` : '<0.1%'}</b>
-                                                <span class="cn-meta">{fmtTokens(seat.tokens)} tokens · 来了 {seat.days} 天</span>
-                                                {seat.cost !== null && <span class="cn-cost">账单 ¥{seat.cost.toFixed(4)}</span>}
-                                                {seat.unitPrice !== null && <span class="cn-price">¥{seat.unitPrice.toFixed(3)} / 百万 tokens</span>}
-                                            </div>
+                                            <span class="cn-name">{seat.shortName}</span>
+                                            <span class="cn-share">{seat.share > 0 ? `${seat.share}%` : '<0.1%'}</span>
+                                            <span class="cn-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
+                                            {seat.cost !== null && (
+                                                <span class="cn-cost">¥{seat.cost < 1 ? seat.cost.toFixed(3) : seat.cost.toFixed(2)}</span>
+                                            )}
+                                            {seat.unitPrice !== null && <span class="cn-price">¥{seat.unitPrice.toFixed(3)} / 百万 tokens</span>}
                                         </li>
                                     ))}
                                 </ul>
-                            </section>
+                            </div>
                         )}
 						<ul class="tk-stats">
                             <li><span>昨天 · {tokenStats.yesterdayDate.slice(5).replace('-', '/')}</span><b>{tokenStats.yesterday ? fmtYi(tokenStats.yesterday.tokens) : '数据未齐'}</b><small>相对导出日期的完整一天</small></li>
