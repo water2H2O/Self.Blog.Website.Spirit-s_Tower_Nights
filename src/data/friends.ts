@@ -55,6 +55,12 @@ export const FRIENDS: FriendLink[] = [
 		note: '「大肥鱼」是 DeepSeek 娘的社区昵称：1244 件表情包、梗图与二创的开放档案',
 	},
 	{
+		// 2026-10-24 作者给的地址；站里的座右铭是「纸上得来终觉浅，绝知此事要躬行」
+		href: 'https://blog.xiey.work/',
+		who: 'In Huntersxy',
+		note: 'Huntersxy 的个人博客：技术折腾与折腾记录',
+	},
+	{
 		href: 'https://blophy.cn/',
 		who: '青柠工作室（Lime Studio）',
 		note: '非商业音乐游戏《Blophy 方菱律动》，我在其中担任主催与外交',
