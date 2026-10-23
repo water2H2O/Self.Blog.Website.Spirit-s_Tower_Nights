@@ -43,6 +43,12 @@ export const FRIENDS: FriendLink[] = [
 		who: '天涯',
 	},
 	{
+		// 2026-10-24 作者给的地址；作者 lmy414，AI 形象「蓝色大肥鱼」的制作者
+		href: 'https://emaostudio.online/',
+		who: '维度镜像（mirror@blog）',
+		note: '终端风格的机器可读博客，作者也是 AI 形象「蓝色大肥鱼」的制作者',
+	},
+	{
 		href: 'https://blophy.cn/',
 		who: '青柠工作室（Lime Studio）',
 		note: '非商业音乐游戏《Blophy 方菱律动》，我在其中担任主催与外交',
