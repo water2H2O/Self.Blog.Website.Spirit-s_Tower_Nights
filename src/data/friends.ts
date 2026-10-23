@@ -43,10 +43,16 @@ export const FRIENDS: FriendLink[] = [
 		who: '天涯',
 	},
 	{
-		// 2026-10-24 作者给的地址；作者 lmy414，AI 形象「蓝色大肥鱼」的制作者
+		// 2026-10-24 作者给的地址；作者 lmy414，同一个人的两个站
 		href: 'https://emaostudio.online/',
 		who: '维度镜像（mirror@blog）',
-		note: '终端风格的机器可读博客，作者也是 AI 形象「蓝色大肥鱼」的制作者',
+		note: '终端风格的机器可读博客，作者就是下面那条 AI 娘图库的站长',
+	},
+	{
+		// 与上一条同一位作者（GitHub lmy414/bluedafeiyu）；中文域名，浏览器会显示成 蓝色大肥鱼.com
+		href: 'https://蓝色大肥鱼.com/',
+		who: '蓝色大肥鱼',
+		note: '「大肥鱼」是 DeepSeek 娘的社区昵称：1244 件表情包、梗图与二创的开放档案',
 	},
 	{
 		href: 'https://blophy.cn/',
