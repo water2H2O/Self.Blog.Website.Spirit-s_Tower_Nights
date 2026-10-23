@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import canteenTrio from '../assets/oc/canteen-trio.webp';
+import glmGuest from '../assets/oc/glm-guest.webp';
 import githubData from '../data/github.json';
 import tokenUsage from '../data/token-usage.json';
 import { summarizeTokens, fmtYi } from '../data/token-stats.mjs';
@@ -898,7 +899,8 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
             .cn-guest-heading small { color: rgb(var(--gray)); font-size: .85em; }
             .cn-guest-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 1em; list-style: none; margin: .8em 0 0; padding: 0; }
             .cn-guest { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1em; min-width: 0; }
-            .cn-guest-art { display: flex; flex-direction: column; align-items: center; color: #9bdab6; flex: 0 0 140px; }
+            .cn-guest-art { display: flex; flex-direction: column; align-items: center; color: #9bdab6; flex: 0 0 160px; }
+            .cn-guest-photo { display: block; width: 100%; height: auto; }
             .cn-guest-ticket { font-size: .65em; letter-spacing: .12em; border: 1px solid currentColor; padding: .15em .7em; border-radius: 99px; }
             .cn-guest-quip { color: rgb(var(--gray)); font-size: .72em; }
             .cn-guest-info { display: flex; flex-direction: column; align-items: flex-start; gap: .18em; min-width: 0; }
@@ -1313,6 +1315,15 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                         <li class="cn-guest">
                                             <div class="cn-guest-art" aria-hidden="true">
                                                 <span class="cn-guest-ticket">{seat.isGlm ? '新客加座' : '欢迎入座'}</span>
+                                                {seat.isGlm ? (
+                                                    <Image
+                                                        class="cn-guest-photo"
+                                                        src={glmGuest}
+                                                        alt=""
+                                                        width={320}
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
                                                 <svg viewBox="0 0 140 100" width="140" height="100" focusable="false">
                                                     <path d="M106 18 L86 67 M119 23 L94 68" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
                                                     <path d="M33 49 Q34 26 48 29 Q55 13 67 27 Q83 18 93 44" fill="#e6f4de"/>
@@ -1322,6 +1333,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                                     <path d="M50 87 H80" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
                                                     <path d="M48 18 Q41 11 47 5 M66 15 Q61 8 67 2" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/>
                                                 </svg>
+                                                )}
                                                 <span class="cn-guest-quip">{seat.isGlm ? '听说这里能续饭？' : '给我也来一碗。'}</span>
                                             </div>
                                             <div class="cn-guest-info">
