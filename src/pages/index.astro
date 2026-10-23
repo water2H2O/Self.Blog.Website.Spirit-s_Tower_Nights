@@ -134,14 +134,21 @@ const seatRank = (label: string) => {
 	const index = SEAT_ORDER.findIndex((key) => label.toLowerCase().includes(key));
 	return index === -1 ? SEAT_ORDER.length : index;
 };
-const canteenSeats = tokenSeries
+/** 三联画只有三格，座位最多三个：先按家族（DeepSeek / GPT / Claude）排，再按家族内用量取最大的那个 */
+const seatsAll = tokenSeries
 	.map((series) => ({
 		...series,
 		unitPrice: perMillion(series.tokens, series.cost),
 		shortName: series.label.split('·').pop()?.trim() ?? series.label,
 		days: tokenDaily.filter((day) => (day.parts?.[series.label] ?? 0) > 0).length,
 	}))
-	.sort((a, b) => seatRank(a.label) - seatRank(b.label));
+	.sort((a, b) => seatRank(a.label) - seatRank(b.label) || b.tokens - a.tokens);
+const canteenSeats = seatsAll.slice(0, 3);
+/** 坐不下的那些（glm、同一个家族的另一个 Claude 之类）：合并成一句说明，不塞进座位 */
+const extraAll = seatsAll.slice(3);
+/** 占比小到 0.05% 以下的就不点名了，否则「0%」写在注释里很怪 */
+const extraSeats = extraAll.filter((seat) => (seat.share ?? 0) >= 0.05);
+const tinyCount = extraAll.length - extraSeats.length;
 const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? null;
 ---
 
@@ -1321,7 +1328,14 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 									> 元的账单。
 								</>
 							)}
-							<span class="tk-src">数据截至 {tokenStats.snapshotLabel} · {tokenStats.sourceLabel}，非实时。座位为整个导出区间；四格按快照日期及本月计算。缺日不按零补齐；不同来源的结束日期仍可能不一致。</span>
+							<span class="tk-src">
+								数据截至 {tokenStats.snapshotLabel} · {tokenStats.sourceLabel}，非实时。座位为整个导出区间；
+								四格按快照日期及本月计算。缺日不按零补齐；不同来源的结束日期仍可能不一致。
+								{(extraSeats.length > 0 || tinyCount > 0) &&
+									` 另有点单不入座：${
+										extraSeats.length ? extraSeats.map((s) => `${s.shortName} ${s.share ?? 0}%`).join('、') : ''
+									}${tinyCount > 0 ? `${extraSeats.length ? '，' : ''}另有 ${tinyCount} 个模型零星用量` : ''}。`}
+							</span>
 						</p>
 					</a>
 				</>
