@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-23T17:34:28.911Z",
+  "fetchedAt": "2026-10-23T17:38:27.455Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -21,21 +21,15 @@
     },
     {
       "label": "中转站 · claude-opus-5-5",
-      "tokens": 17586361,
+      "tokens": 17586553,
       "share": 0.5,
-      "cost": 11.213
+      "cost": 11.2134
     },
     {
       "label": "中转站 · glm-5.3-flash",
       "tokens": 5333727,
       "share": 0.1,
       "cost": 0.1145
-    },
-    {
-      "label": "中转站 · claude-opus-5",
-      "tokens": 192,
-      "share": 0,
-      "cost": 0.0004
     }
   ],
   "totals": {
@@ -444,8 +438,7 @@
         "官方 · deepseek-flash": 161048566,
         "中转站 · gpt-6.1-sol": 47656747,
         "中转站 · glm-5.3-flash": 5333727,
-        "中转站 · claude-opus-5-5": 6274659,
-        "中转站 · claude-opus-5": 192
+        "中转站 · claude-opus-5-5": 6274851
       },
       "open": 269601674,
       "close": 220313891,

@@ -148,6 +148,13 @@ function addCost(label, cost) {
 	costByLabel.set(label, (costByLabel.get(label) ?? 0) + cost);
 }
 
+/**
+ * 同一个家族的不同叫法并到一条线上。
+ * 作者 2026-10-24：新出现的 claude-opus-5 与原来的 claude-opus-5-5 算一家，不单独占一席。
+ */
+const MODEL_ALIASES = new Map([['claude-opus-5', 'claude-opus-5-5']]);
+const canonicalModel = (model) => MODEL_ALIASES.get(model.toLowerCase()) ?? model;
+
 /** 中转站那份导出：Time / Model / Input / Output / Cache Read / Cache Creation / Billed Cost */
 function ingestRelay(text) {
 	const { header, rows } = parseCsv(text.replace(/^\uFEFF/, ''));
@@ -166,7 +173,7 @@ function ingestRelay(text) {
 		if (!time) continue;
 		const date = time.slice(0, 10);
 		if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-		const model = (row[header[iModel]] ?? '未知').trim();
+		const model = canonicalModel((row[header[iModel]] ?? '未知').trim());
 		const inTok = Number.parseInt(row[header[iIn]], 10) || 0;
 		const outTok = Number.parseInt(row[header[iOut]], 10) || 0;
 		const crTok = Number.parseInt(row[header[iCR]], 10) || 0;
