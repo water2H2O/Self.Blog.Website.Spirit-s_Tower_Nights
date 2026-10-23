@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-22T00:39:28.711Z",
+  "fetchedAt": "2026-10-23T00:37:19.535Z",
   "user": {
     "login": "water2H2O",
     "name": "",
@@ -11,25 +11,25 @@
   },
   "repos": [
     {
-      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
-      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
-      "language": "Astro",
-      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
-      "stars": 0,
-      "pushedAt": "2026-10-21T20:06:54Z",
-      "createdAt": "2026-10-09T07:50:22Z",
-      "sizeKb": 56105,
-      "empty": false
-    },
-    {
       "name": "Spirit-s_Tower_Nights-Elemental_Verse",
       "description": "《水塔夜谈》世界观的 Minecraft 模组：水塔夜谈，元素之诗",
       "language": "Java",
       "url": "https://github.com/water2H2O/Spirit-s_Tower_Nights-Elemental_Verse",
       "stars": 0,
-      "pushedAt": "2026-10-21T14:54:31Z",
+      "pushedAt": "2026-10-22T19:03:14Z",
       "createdAt": "2026-10-16T21:39:13Z",
-      "sizeKb": 2560,
+      "sizeKb": 2585,
+      "empty": false
+    },
+    {
+      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
+      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
+      "language": "Astro",
+      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
+      "stars": 1,
+      "pushedAt": "2026-10-22T18:43:22Z",
+      "createdAt": "2026-10-09T07:50:22Z",
+      "sizeKb": 56416,
       "empty": false
     },
     {
@@ -79,8 +79,8 @@
   ],
   "contributions": {
     "from": "2025-10-19",
-    "to": "2026-10-22",
-    "total": 364,
+    "to": "2026-10-23",
+    "total": 385,
     "weeks": [
       "0000010",
       "1100010",
@@ -134,7 +134,7 @@
       "0110010",
       "0110014",
       "2331114",
-      "3232100"
+      "3232210"
     ]
   }
 }
