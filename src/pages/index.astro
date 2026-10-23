@@ -833,9 +833,26 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				font-size: 0.84em;
 				color: var(--accent);
 			}
+			/* 整块面板变成 /token 的入口：像张可点的卡片，别像一段文字 */
+			.tokens-link {
+				display: block;
+				text-decoration: none;
+				color: inherit;
+				transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+			}
+			.tokens-link:hover {
+				transform: translateY(-1px);
+				border-color: rgba(175, 255, 255, 40%);
+				box-shadow: var(--glow-shadow);
+			}
+			.tk-more {
+				margin-left: 0.6em;
+				font-size: 0.86em;
+				color: var(--accent);
+				white-space: nowrap;
+			}
 			/* 三联画本身：白描边在深色底上会像贴纸，加一层很淡的光衬着 */
-			.canteen {
-				margin: 1em 0 0;
+			.canteen {				margin: 1em 0 0;
 				border-radius: 14px;
 				overflow: hidden;
 				background:
@@ -1260,12 +1277,13 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 			{tokenStats && canteenSeats.length > 0 && (
 				<>
 					<h2 class="section-title">最近在烧什么</h2>
-					<div class="tokens">
+					<a class="tokens tokens-link" href="/token/">
 						<div class="tk-head">
 							<span class="tk-brand">DEEPSEEK · TOKENS</span>
 							<span class="tk-total">
 								{tokenStats.monthLabel} {fmtTokens(tokenStats.monthTokens)} tokens{tokenStats.showCost &&
 									` · ¥${tokenStats.monthCost.toFixed(2)}`}
+								<span class="tk-more">详细图表 →</span>
 							</span>
 						</div>
 						<div class="canteen">
@@ -1295,7 +1313,6 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                             <li><span>按这速度，月底</span><b>{tokenStats.prediction ? `${tokenStats.prediction.cost !== null ? `约 ¥${tokenStats.prediction.cost.toFixed(0)} / ` : '约 '}${fmtYi(tokenStats.prediction.tokens)}` : '数据不足，暂不预测'}</b><small>{tokenStats.prediction ? `按本月已记录的 ${tokenStats.prediction.observedDays} 个完整日均速外推${tokenStats.prediction.missingDays ? `，另缺 ${tokenStats.prediction.missingDays} 天` : ''}` : '需本月至少 7 个已记录完整日'}</small></li>
 						</ul>
 						<p class="tk-note">
-							三位同桌，各凭本事吃饭。谁吃得多、谁来得勤、谁的账单最扎眼，都记在这里。
 							{claudeSeat?.cost && (
 								<>
 									<br
@@ -1306,7 +1323,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 							)}
 							<span class="tk-src">数据截至 {tokenStats.snapshotLabel} · {tokenStats.sourceLabel}，非实时。座位为整个导出区间；四格按快照日期及本月计算。缺日不按零补齐；不同来源的结束日期仍可能不一致。</span>
 						</p>
-					</div>
+					</a>
 				</>
 			)}
 		</main>

@@ -1,0 +1,537 @@
+---
+/**
+ * /token —— 「最近在烧什么」的详细页。
+ *
+ * 首页那块只放三席 + 四格；真要看曲线、看每天怎么烧、看哪个模型贵，
+ * 都在这页。数据还是 src/data/token-usage.json（tools/fetch-token-usage.mjs 生成）。
+ * 全部是构建时算好的静态 SVG，页面不带前端 JS。
+ */
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import tokenUsage from '../data/token-usage.json';
+
+type Day = {
+	date: string;
+	tokens: number;
+	requests: number;
+	cost: number;
+	parts?: Record<string, number>;
+};
+type Series = { label: string; tokens: number; share?: number; cost?: number };
+const data = tokenUsage as {
+	daily?: Day[];
+	series?: Series[];
+	source?: string;
+	fetchedAt?: string;
+	dimension?: string;
+	totals?: { tokens?: number; cost?: number; requests?: number; cacheRead?: number };
+};
+
+const days: Day[] = (data.daily ?? []).filter((d) => d.tokens > 0);
+const series: Series[] = (data.series ?? []).filter((s) => s.tokens > 0);
+
+/** 三个系列够用了；多了就按顺序取色 */
+const COLORS = ['#7fe9f0', '#c9a8ff', '#ffd68a', '#8fdc9b', '#e06a7a', '#9be7e0'];
+const colored = series.map((s, i) => ({ ...s, color: COLORS[i % COLORS.length] }));
+
+const fmt = (n: number) =>
+	n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(n);
+const fmtYuan = (n: number) => `¥${n.toFixed(2)}`;
+
+const totalTokens = data.totals?.tokens ?? days.reduce((a, d) => a + d.tokens, 0);
+const totalCost = data.totals?.cost ?? days.reduce((a, d) => a + d.cost, 0);
+const totalRequests = data.totals?.requests ?? days.reduce((a, d) => a + d.requests, 0);
+const dayCount = days.length || 1;
+const avgTokens = totalTokens / dayCount;
+const avgCost = totalCost / dayCount;
+const unitPrice = totalTokens > 0 ? (totalCost / totalTokens) * 1e6 : null;
+const lastDate = days.at(-1)?.date ?? '';
+
+/** 有花费的天里，最贵的一天 */
+const priciest = [...days].sort((a, b) => b.cost - a.cost)[0] ?? null;
+/** 用量最大的一天 */
+const biggest = [...days].sort((a, b) => b.tokens - a.tokens)[0] ?? null;
+
+/** 每日堆叠柱：一天一根，按来源 · 模型分段 */
+const stack = (() => {
+	if (days.length === 0) return null;
+	const W = 960;
+	const H = 280;
+	const PL = 10;
+	const PR = 76;
+	const PT = 16;
+	const PB = 30;
+	const plotW = W - PL - PR;
+	const plotH = H - PT - PB;
+	const max = Math.max(...days.map((d) => d.tokens), 1);
+	const y = (v: number) => PT + plotH - (v / max) * plotH;
+	const slot = plotW / days.length;
+	const barW = Math.max(6, Math.min(30, slot * 0.6));
+	const labelEvery = Math.max(1, Math.ceil(days.length / 8));
+	const bars = days.map((d, i) => {
+		const cx = PL + slot * i + slot / 2;
+		let acc = 0;
+		const segs: { color: string; label: string; y: number; h: number; value: number }[] = [];
+		for (const s of colored) {
+			const value = d.parts?.[s.label] ?? (colored.length === 1 ? d.tokens : 0);
+			if (value <= 0) continue;
+			const y0 = y(acc);
+			const y1 = y(acc + value);
+			acc += value;
+			segs.push({ color: s.color, label: s.label, y: y1, h: Math.max(0.6, y0 - y1), value });
+		}
+		return {
+			date: d.date,
+			cx,
+			segs,
+			label: i === 0 || i === days.length - 1 || i % labelEvery === 0,
+		};
+	});
+	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW };
+})();
+
+/** 每日花费：细柱 */
+const costChart = (() => {
+	if (days.length === 0) return null;
+	const W = 960;
+	const H = 150;
+	const PL = 10;
+	const PR = 76;
+	const PT = 12;
+	const PB = 26;
+	const plotW = W - PL - PR;
+	const plotH = H - PT - PB;
+	const max = Math.max(...days.map((d) => d.cost), 0.01);
+	const y = (v: number) => PT + plotH - (v / max) * plotH;
+	const slot = plotW / days.length;
+	const barW = Math.max(5, Math.min(26, slot * 0.55));
+	const labelEvery = Math.max(1, Math.ceil(days.length / 8));
+	const bars = days.map((d, i) => ({
+		cx: PL + slot * i + slot / 2,
+		y: y(d.cost),
+		h: Math.max(0.6, PT + plotH - y(d.cost)),
+		date: d.date,
+		cost: d.cost,
+		label: i === 0 || i === days.length - 1 || i % labelEvery === 0,
+	}));
+	return { W, H, PL, PR, PT, PB, plotW, plotH, max, bars, barW };
+})();
+
+/** 表格：倒序，最近的在上面 */
+const rows = [...days].reverse();
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="烧了什么 · token 用量"
+			description="这个站每天烧掉多少 DeepSeek token、花多少钱、各模型各占多少 —— 详细图表与逐日明细。"
+		/>
+		<style>
+			main {
+				width: 1020px;
+			}
+			.crumb {
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+				text-decoration: none;
+			}
+			.crumb:hover {
+				color: var(--glow);
+			}
+			h1 {
+				margin: 0.7em 0 0.2em;
+			}
+			.lead {
+				margin: 0 0 2em;
+				font-size: 0.92em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+			}
+			h2 {
+				display: flex;
+				align-items: center;
+				gap: 0.85em;
+				margin: 2.6em 0 0.9em;
+				font-size: 0.84em;
+				font-weight: 400;
+				letter-spacing: 0.22em;
+				color: rgb(var(--gray));
+			}
+			h2::before {
+				content: '';
+				flex: none;
+				width: 7px;
+				height: 7px;
+				background: var(--accent);
+				transform: rotate(45deg);
+				box-shadow: 0 0 12px rgba(175, 255, 255, 75%);
+			}
+			h2::after {
+				content: '';
+				flex: 1;
+				height: 1px;
+				background: linear-gradient(90deg, rgba(175, 255, 255, 30%), transparent 70%);
+			}
+			.card {
+				padding: 1.4em 1.5em 1.2em;
+				border-radius: 16px;
+				background:
+					radial-gradient(120% 90% at 100% 0%, rgba(127, 233, 240, 6%), transparent 58%),
+					var(--surface);
+				border: 1px solid rgb(var(--gray-light));
+			}
+			.kpis {
+				display: grid;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				gap: 0.7em;
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.kpis li {
+				display: flex;
+				flex-direction: column;
+				gap: 0.2em;
+				padding: 0.8em 0.9em;
+				border-radius: 12px;
+				background: rgba(175, 255, 255, 4%);
+				border: 1px solid rgba(175, 255, 255, 12%);
+			}
+			.kpis span {
+				font-size: 0.72em;
+				letter-spacing: 0.06em;
+				color: rgb(var(--gray));
+			}
+			.kpis b {
+				font-size: 1.28em;
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+			}
+			.kpis small {
+				font-size: 0.7em;
+				color: rgb(var(--gray));
+				opacity: 0.75;
+			}
+			svg.chart {
+				display: block;
+				width: 100%;
+				height: auto;
+				overflow: visible;
+			}
+			.axis {
+				fill: rgb(var(--gray));
+				font-size: 11px;
+			}
+			.grid {
+				stroke: rgba(175, 255, 255, 10%);
+				stroke-dasharray: 3 5;
+			}
+			.legend {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5em 1.4em;
+				margin: 1em 0 0;
+				padding: 0;
+				list-style: none;
+				font-size: 0.8em;
+			}
+			.legend li {
+				display: flex;
+				align-items: center;
+				gap: 0.45em;
+			}
+			.legend .dot {
+				flex: none;
+				width: 9px;
+				height: 9px;
+				border-radius: 2px;
+			}
+			.legend .name {
+				color: rgb(var(--gray));
+			}
+			.legend .num {
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+			}
+			.share-row {
+				display: grid;
+				grid-template-columns: 12em 1fr 8.5em;
+				align-items: center;
+				gap: 0.9em;
+				padding: 0.5em 0;
+				border-bottom: 1px dashed rgb(var(--gray-light));
+				font-size: 0.86em;
+			}
+			.share-row:last-child {
+				border-bottom: 0;
+			}
+			.share-bar {
+				height: 8px;
+				border-radius: 999px;
+				background: rgba(175, 255, 255, 6%);
+				overflow: hidden;
+			}
+			.share-bar i {
+				display: block;
+				height: 100%;
+				border-radius: 999px;
+			}
+			.share-num {
+				text-align: right;
+				white-space: nowrap;
+				font-variant-numeric: tabular-nums;
+				color: var(--glow);
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 0.84em;
+				font-variant-numeric: tabular-nums;
+			}
+			th,
+			td {
+				padding: 0.55em 0.6em;
+				text-align: right;
+				border-bottom: 1px solid rgb(var(--gray-light));
+			}
+			th:first-child,
+			td:first-child {
+				text-align: left;
+			}
+			th {
+				font-weight: 400;
+				color: rgb(var(--gray));
+				letter-spacing: 0.06em;
+			}
+			tbody tr:hover {
+				background: rgba(175, 255, 255, 4%);
+			}
+			.note {
+				margin: 1em 0 0;
+				font-size: 0.76em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+			}
+			.note code {
+				font-size: 0.95em;
+				color: var(--accent);
+			}
+			@media (max-width: 720px) {
+				.kpis {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+				.share-row {
+					grid-template-columns: 8em 1fr 5.5em;
+					gap: 0.6em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<a class="crumb" href="/">← 首页</a>
+			<h1>烧了什么</h1>
+			<p class="lead">
+				这个站每天要烧掉多少 token、花多少钱。数字来自 DeepSeek 开放平台的用量导出 + 中转站的账单，
+				两边合并去重后按下天统计 —— <strong>不是实时</strong>，每次导出后手动刷新一次。
+			</p>
+
+			<ul class="kpis">
+				<li>
+					<span>区间合计</span><b>{fmt(totalTokens)}</b><small
+						>{days.length} 天 · {totalRequests.toLocaleString('en-US')} 次请求</small
+					>
+				</li>
+				<li>
+					<span>总花费</span><b>{fmtYuan(totalCost)}</b><small
+						>每百万 tokens 约 ¥{unitPrice ? unitPrice.toFixed(3) : '—'}</small
+					>
+				</li>
+				<li>
+					<span>日均</span><b>{fmt(avgTokens)}</b><small>{fmtYuan(avgCost)} / 天</small>
+				</li>
+				<li>
+					<span>最贵的一天</span><b>{priciest ? fmtYuan(priciest.cost) : '—'}</b><small
+						>{priciest ? priciest.date : '—'}</small
+					>
+				</li>
+			</ul>
+
+			<h2>每天烧多少（按来源 · 模型）</h2>
+			<div class="card">
+				{
+					stack && (
+						<svg class="chart" viewBox={`0 0 ${stack.W} ${stack.H}`} role="img" aria-label="每日 token 用量堆叠柱状图">
+							{[0, 0.25, 0.5, 0.75, 1].map((r) => (
+								<line
+									class="grid"
+									x1={stack.PL}
+									x2={stack.W - stack.PR}
+									y1={stack.PT + stack.plotH * r}
+									y2={stack.PT + stack.plotH * r}
+								/>
+							))}
+							<text class="axis" x={stack.W - 6} y={stack.PT + 4} text-anchor="end">
+								{fmt(stack.max)}
+							</text>
+							<text class="axis" x={stack.W - 6} y={stack.PT + stack.plotH} text-anchor="end">
+								0
+							</text>
+							{stack.bars.map((bar) => (
+								<g>
+									{bar.segs.map((seg) => (
+										<rect
+											x={bar.cx - stack.barW / 2}
+											y={seg.y}
+											width={stack.barW}
+											height={seg.h}
+											fill={seg.color}
+											fill-opacity="0.85"
+											rx="1.5"
+										>
+											<title>{`${bar.date} · ${seg.label} · ${fmt(seg.value)}`}</title>
+										</rect>
+									))}
+									{bar.label && (
+										<text class="axis" x={bar.cx} y={stack.H - 8} text-anchor="middle">
+											{bar.date.slice(5).replace('-', '/')}
+										</text>
+									)}
+								</g>
+							))}
+						</svg>
+					)
+				}
+				<ul class="legend">
+					{
+						colored.map((s) => (
+							<li>
+								<span class="dot" style={`background:${s.color}`} />
+								<span class="name">{s.label}</span>
+								<span class="num">{fmt(s.tokens)}</span>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+
+			<h2>每天花多少</h2>
+			<div class="card">
+				{
+					costChart && (
+						<svg class="chart" viewBox={`0 0 ${costChart.W} ${costChart.H}`} role="img" aria-label="每日花费柱状图">
+							{[0, 0.5, 1].map((r) => (
+								<line
+									class="grid"
+									x1={costChart.PL}
+									x2={costChart.W - costChart.PR}
+									y1={costChart.PT + costChart.plotH * r}
+									y2={costChart.PT + costChart.plotH * r}
+								/>
+							))}
+							<text class="axis" x={costChart.W - 6} y={costChart.PT + 4} text-anchor="end">
+								{fmtYuan(costChart.max)}
+							</text>
+							<text class="axis" x={costChart.W - 6} y={costChart.PT + costChart.plotH} text-anchor="end">
+								0
+							</text>
+							{costChart.bars.map((bar) => (
+								<g>
+									<rect
+										x={bar.cx - costChart.barW / 2}
+										y={bar.y}
+										width={costChart.barW}
+										height={bar.h}
+										fill="url(#cost-grad)"
+										rx="1.5"
+									>
+										<title>{`${bar.date} · ${fmtYuan(bar.cost)}`}</title>
+									</rect>
+									{bar.label && (
+										<text class="axis" x={bar.cx} y={costChart.H - 8} text-anchor="middle">
+											{bar.date.slice(5).replace('-', '/')}
+										</text>
+									)}
+								</g>
+							))}
+							<defs>
+								<linearGradient id="cost-grad" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="0%" stop-color="#ffd68a" />
+									<stop offset="100%" stop-color="#e06a7a" />
+								</linearGradient>
+							</defs>
+						</svg>
+					)
+				}
+				<p class="note">
+					最贵的是 {priciest ? `${priciest.date}（${fmtYuan(priciest.cost)}）` : '—'}；
+					用量最大的是 {biggest ? `${biggest.date}（${fmt(biggest.tokens)}）` : '—'}。
+				</p>
+			</div>
+
+			<h2>谁占了多少</h2>
+			<div class="card">
+				{
+					colored.map((s) => (
+						<div class="share-row">
+							<span>{s.label}</span>
+							<span class="share-bar">
+								<i style={`width:${Math.max(1, s.share ?? 0)}%;background:${s.color}`} />
+							</span>
+							<span class="share-num">
+								{s.share ?? 0}% · {fmt(s.tokens)}
+							</span>
+						</div>
+					))
+				}
+				<p class="note">
+					占比按整个导出区间的 token 总量算。单价差得很远：贵的那种往往量小、账单却大。
+				</p>
+			</div>
+
+			<h2>逐日明细</h2>
+			<div class="card">
+				<table>
+					<thead>
+						<tr>
+							<th>日期</th>
+							<th>tokens</th>
+							<th>请求</th>
+							<th>花费</th>
+							<th>构成</th>
+						</tr>
+					</thead>
+					<tbody>
+						{
+							rows.map((d) => (
+								<tr>
+									<td>{d.date}</td>
+									<td>{fmt(d.tokens)}</td>
+									<td>{d.requests}</td>
+									<td>{d.cost ? fmtYuan(d.cost) : '—'}</td>
+									<td>
+										{Object.entries(d.parts ?? {})
+											.sort((a, b) => b[1] - a[1])
+											.map(([label, v]) => `${label.replace(/^官方 · |^中转站 · /, '')} ${fmt(v)}`)
+											.join(' + ')}
+									</td>
+								</tr>
+							))
+						}
+					</tbody>
+				</table>
+			</div>
+
+			<p class="note">
+				数据源：{data.source ?? 'token-usage.json'}。刷新方式是在仓库里跑
+				<code>node tools/fetch-token-usage.mjs --zip=… --relay=…</code> 再提交，站点重新构建后这页才更新。
+				最后一天（{lastDate}）通常还不完整。
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>
