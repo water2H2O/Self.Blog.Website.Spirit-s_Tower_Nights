@@ -714,7 +714,7 @@ pnpm run github:build       # 抓完再跑一次构建
 - 统计逻辑在 `src/data/token-stats.mjs`；回归检查：`node tools/test-token-stats.mjs`（时区、半日、缺日、零费用和闰月）。
 - 花钱那句「橙色那位只吃了 0.3%，账单却是 10.63 元」是**算出来的**，不是手写的
 
-三联画的三格固定给 DeepSeek、GPT、Claude 家族，不再对整个系列直接截取前三项。同家族不同型号合并用量、花费，出勤天数按日期去重；缺席家族留位，不能让别的模型错贴角色。坐不下的模型排在「第二排」，样式与第一排座位一致（只是多一张小像和一块底），不写「新客」「加座」之类的身份标签；GLM 用小像 `src/assets/oc/glm-guest.webp`，还没画立绘的先用饭碗图标顶上。新增系列自动排到第二排，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
+三联画的三格固定给 DeepSeek、GPT、Claude 家族，不再对整个系列直接截取前三项。同家族不同型号合并用量、花费，出勤天数按日期去重；缺席家族留位，不能让别的模型错贴角色。坐不下的模型排在「加桌」一行：比第一排小一号（小像在左、文字在右，固定宽度从左排起，不拉伸），不写「新客」「加座」之类的身份标签；GLM 用小像 `src/assets/oc/glm-guest.webp`，还没画立绘的先用饭碗图标顶上。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
 
 改三联画格数时才需要调整 `TABLE_FAMILIES` 与 `.cn-seats` 的列数；加座区为自适应网格。
 
