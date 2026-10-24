@@ -1,49 +1,66 @@
 {
-  "fetchedAt": "2026-10-23T17:38:27.455Z",
+  "fetchedAt": "2026-10-24T16:17:32.502Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
-    "2026-09-25_2026-10-24"
+    "2026-09-25_2026-10-24",
+    "2026-10-24_2026-10-24"
   ],
   "dimension": "model",
   "series": [
     {
       "label": "官方 · deepseek-flash",
-      "tokens": 3491602318,
-      "share": 94.9,
-      "cost": 154.1338
+      "tokens": 3689519265,
+      "share": 93.2,
+      "cost": 164.6176
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 164046693,
-      "share": 4.5,
-      "cost": 11.0718
+      "tokens": 234081466,
+      "share": 5.9,
+      "cost": 13.6181
     },
     {
       "label": "中转站 · claude-opus-5-5",
-      "tokens": 17586553,
-      "share": 0.5,
-      "cost": 11.2134
+      "tokens": 28177807,
+      "share": 0.7,
+      "cost": 12.9727
     },
     {
       "label": "中转站 · glm-5.3-flash",
-      "tokens": 5333727,
+      "tokens": 5335437,
       "share": 0.1,
-      "cost": 0.1145
+      "cost": 0.115
+    },
+    {
+      "label": "官方 · deepseek-v4-pro",
+      "tokens": 519278,
+      "share": 0,
+      "cost": 0.8572
+    },
+    {
+      "label": "中转站 · gpt-6-astra",
+      "tokens": 360459,
+      "share": 0,
+      "cost": 0.2437
     }
   ],
   "totals": {
-    "tokens": 3678569291,
-    "input": 32429118,
-    "output": 9553105,
-    "cacheRead": 3449620095,
-    "requests": 12919,
-    "cost": 176.5336
+    "tokens": 3957993712,
+    "input": 37275544,
+    "output": 10046072,
+    "cacheRead": 3642716927,
+    "requests": 14063,
+    "cost": 192.4242
   },
   "models": [
     {
       "model": "deepseek-flash",
-      "tokens": 3491602318
+      "tokens": 3689519265
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "tokens": 519278
     }
   ],
   "daily": [
@@ -447,20 +464,25 @@
     },
     {
       "date": "2026-10-24",
-      "tokens": 5644164,
-      "input": 25535,
-      "output": 5701,
-      "cacheRead": 5612928,
-      "requests": 10,
-      "cost": 0.160598,
-      "hours": 1,
+      "tokens": 285068585,
+      "input": 4871961,
+      "output": 498668,
+      "cacheRead": 198709760,
+      "requests": 1154,
+      "cost": 16.051212,
+      "hours": 13,
       "parts": {
-        "官方 · deepseek-flash": 5644164
+        "官方 · deepseek-flash": 203561111,
+        "官方 · deepseek-v4-pro": 519278,
+        "中转站 · gpt-6-astra": 360459,
+        "中转站 · gpt-6.1-sol": 70034773,
+        "中转站 · claude-opus-5-5": 10591254,
+        "中转站 · glm-5.3-flash": 1710
       },
-      "open": 220313891,
-      "close": 5644164,
-      "high": 220313891,
-      "low": 5644164
+      "open": 30016656,
+      "close": 1486988,
+      "high": 53419282,
+      "low": 851554
     }
   ]
 }

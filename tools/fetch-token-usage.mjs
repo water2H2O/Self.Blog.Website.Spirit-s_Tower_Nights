@@ -109,9 +109,6 @@ const TYPE_OUT = 'output_tokens';
 const TYPE_REQ = 'request_count';
 
 const byDate = new Map();
-const byModel = new Map();
-/** api_key_name 的合计 —— 导出里就这一个能区分「哪台机器 / 哪个中转站」用的 */
-const byKeyName = new Map();
 
 function dayOf(date) {
 	if (!byDate.has(date)) {
@@ -129,23 +126,28 @@ function dayOf(date) {
 			byKey: new Map(),
 			/** 合并中转站时用的「来源 · 模型」分段表 */
 			bySource: new Map(),
+			/** 当天「来源 · 模型」各自的账单 —— 按天记，覆盖某天时才不会残留旧值 */
+			costByLabel: new Map(),
 		});
 	}
 	return byDate.get(date);
 }
 
+/** 某一天整体清零：多份平台导出按日期覆盖时用（后来的那份更全） */
+function resetDay(date) {
+	byDate.delete(date);
+	dayOf(date);
+}
+
 /** 有中转站数据时，官方那几段的标签要加前缀，不然和图上的模型混在一起 */
 let officialPrefix = '';
-/** 「来源 · 模型」的全局合计，合并时按它出 series */
-const bySourceTotal = new Map();
-/** 「来源 · 模型」各自的账单，图上那句「Claude 花了我 xx 元」用它 */
-const costByLabel = new Map();
 /** 中转站可能给多份导出（日期段不同、有重叠），按 时间戳+模型 去重，避免同一笔算两次 */
 const relaySeen = new Set();
 
-function addCost(label, cost) {
+/** 记一条「来源 · 模型」的账单（按天存，覆盖某天时会跟着清零） */
+function addCost(day, label, cost) {
 	if (!Number.isFinite(cost) || cost <= 0) return;
-	costByLabel.set(label, (costByLabel.get(label) ?? 0) + cost);
+	day.costByLabel.set(label, (day.costByLabel.get(label) ?? 0) + cost);
 }
 
 /**
@@ -191,8 +193,7 @@ function ingestRelay(text) {
 		day.cost += cost;
 		day.requests += 1;
 		day.bySource.set(label, (day.bySource.get(label) ?? 0) + tokens);
-		bySourceTotal.set(label, (bySourceTotal.get(label) ?? 0) + tokens);
-		addCost(label, cost);
+		addCost(day, label, cost);
 	}
 }
 
@@ -228,13 +229,10 @@ function ingestAmount(text) {
 		if (counted > 0) {
 			const model = (row.model ?? '未知').trim();
 			const key = (row.api_key_name ?? '未知').trim();
-			byModel.set(model, (byModel.get(model) ?? 0) + counted);
-			byKeyName.set(key, (byKeyName.get(key) ?? 0) + counted);
 			day.byModel.set(model, (day.byModel.get(model) ?? 0) + counted);
 			day.byKey.set(key, (day.byKey.get(key) ?? 0) + counted);
 			const sourceLabel = `${officialPrefix}${model}`;
 			day.bySource.set(sourceLabel, (day.bySource.get(sourceLabel) ?? 0) + counted);
-			bySourceTotal.set(sourceLabel, (bySourceTotal.get(sourceLabel) ?? 0) + counted);
 		}
 	}
 }
@@ -244,11 +242,22 @@ function ingestCost(text) {
 		const bucket = bucketOf(row);
 		if (!bucket) continue;
 		const cost = Number.parseFloat(row.cost ?? '0') || 0;
-		dayOf(bucket.date).cost += cost;
+		const day = dayOf(bucket.date);
+		day.cost += cost;
 		// 官方账单里也有 model 列，顺手记一份「官方 · 模型」的花费
 		const model = (row.model ?? '未知').trim();
-		addCost(`${officialPrefix}${model}`, cost);
+		addCost(day, `${officialPrefix}${model}`, cost);
 	}
+}
+
+/** 这份 amount CSV 覆盖了哪几天 —— 多份平台导出按天覆盖时，先据此清掉旧值 */
+function datesIn(text) {
+	const out = new Set();
+	for (const row of parseCsv(text).rows) {
+		const bucket = bucketOf(row);
+		if (bucket) out.add(bucket.date);
+	}
+	return out;
 }
 
 const CSV_RE = /^(amount|cost)-(.+)\.csv$/i;
@@ -323,6 +332,21 @@ function normalize(raw) {
 }
 
 function writeOut(labels, source) {
+	/**
+	 * 全局聚合在这里重算，而不是边导入边累加 ——
+	 * 因为多份平台导出是「按天覆盖」的（后来的那份更全），累加会把同一天算两次。
+	 */
+	const bySourceTotal = new Map();
+	const byModel = new Map();
+	const byKeyName = new Map();
+	const costByLabel = new Map();
+	for (const day of byDate.values()) {
+		for (const [label, v] of day.bySource) bySourceTotal.set(label, (bySourceTotal.get(label) ?? 0) + v);
+		for (const [label, v] of day.byModel) byModel.set(label, (byModel.get(label) ?? 0) + v);
+		for (const [label, v] of day.byKey) byKeyName.set(label, (byKeyName.get(label) ?? 0) + v);
+		for (const [label, v] of day.costByLabel) costByLabel.set(label, (costByLabel.get(label) ?? 0) + v);
+	}
+
 	/**
 	 * 拆分成几段画堆叠图：
 	 *   · 合并了中转站 → 按「来源 · 模型」拆（官方 deepseek-flash + 中转站各家模型）
@@ -459,36 +483,34 @@ function writeOut(labels, source) {
 }
 
 async function main() {
-	const zipPath = argOf('zip');
+	/** --zip 可以给多份：每份导出先清掉它覆盖的那几天再写，所以**后面的覆盖前面的**（把最新的放最后） */
+	const zipPaths = argAll('zip');
 	const dirPath = argOf('dir');
-	/** --relay 可以给多份（不同日期段的导出），重叠的行会按时间戳去重 */
 	const relayPaths = argAll('relay');
 
-	for (const p of relayPaths) {
+	for (const p of [...zipPaths, ...relayPaths]) {
 		if (!fs.existsSync(p)) {
-			console.error(`找不到中转站表格：${p}`);
+			console.error(`找不到文件：${p}`);
 			process.exit(2);
 		}
+	}
+	if (dirPath && !fs.existsSync(dirPath)) {
+		console.error(`找不到目录：${dirPath}`);
+		process.exit(2);
 	}
 	// 合并中转站时，官方那几段的标签加前缀，避免和图上模型名混淆
 	officialPrefix = relayPaths.length ? '官方 · ' : '';
 
-	let pairs;
-	let labels;
+	/** 每一份平台导出：{ label, pairs }，按给的顺序依次覆盖 */
+	const groups = [];
 	let source;
 
-	if (zipPath || dirPath) {
-		if (zipPath && !fs.existsSync(zipPath)) {
-			console.error(`找不到文件：${zipPath}`);
-			process.exit(2);
+	if (zipPaths.length || dirPath) {
+		if (dirPath) groups.push({ label: dirPath, pairs: collectFrom(dirPath) });
+		for (const z of zipPaths) {
+			console.log(`读本地导出：${z}`);
+			groups.push({ label: z, pairs: collectFromZip(z) });
 		}
-		if (dirPath && !fs.existsSync(dirPath)) {
-			console.error(`找不到目录：${dirPath}`);
-			process.exit(2);
-		}
-		console.log(`读本地导出：${zipPath || dirPath}`);
-		pairs = zipPath ? collectFromZip(zipPath) : collectFrom(dirPath);
-		labels = [...new Set(pairs.map((p) => p.label))];
 		source = 'platform.deepseek.com/usage（页面导出）';
 	} else {
 		const monthsArg = process.argv.find((a) => a.startsWith('--months='));
@@ -502,19 +524,26 @@ async function main() {
 			);
 			process.exit(2);
 		}
-		pairs = await collectFromApi(token, months);
-		labels = [`最近 ${months} 个月`];
+		groups.push({ label: `最近 ${months} 个月`, pairs: await collectFromApi(token, months) });
 		source = 'platform.deepseek.com/api/v0/usage/export';
 	}
 
-	if (!pairs || pairs.length === 0) {
-		console.error('包里没找到 amount-*.csv / cost-*.csv —— 确认导的是用量表，不是别的文件');
-		process.exit(2);
-	}
+	const labels = [];
+	for (const group of groups) {
+		if (!group.pairs || group.pairs.length === 0) {
+			console.error(`没在 ${group.label} 里找到 amount-*.csv / cost-*.csv —— 确认导的是用量表`);
+			process.exit(2);
+		}
+		labels.push(...group.pairs.map((p) => p.label));
 
-	for (const pair of pairs) {
-		if (pair.kind === 'amount') ingestAmount(pair.text);
-		else ingestCost(pair.text);
+		// 按天覆盖：先清掉这份导出覆盖的日子，再写进去
+		const amount = group.pairs.filter((p) => p.kind === 'amount');
+		const cost = group.pairs.filter((p) => p.kind === 'cost');
+		const dates = new Set();
+		for (const a of amount) for (const d of datesIn(a.text)) dates.add(d);
+		for (const d of dates) resetDay(d);
+		for (const a of amount) ingestAmount(a.text);
+		for (const c of cost) ingestCost(c.text);
 	}
 
 	// 中转站的用量不在官方账单里，合并就是直接相加；两边的 token 口径一致（输入+输出+缓存）
@@ -524,7 +553,7 @@ async function main() {
 	}
 	if (relayPaths.length) source = `${source} + 中转站导出`;
 
-	writeOut(labels, source);
+	writeOut([...new Set(labels)], source);
 }
 
 await main();
