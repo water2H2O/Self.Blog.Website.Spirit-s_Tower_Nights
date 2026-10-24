@@ -91,31 +91,35 @@ const stack = (() => {
 	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW };
 })();
 
-/** 每日花费：细柱 */
+/** 每日花费：折线。颜色按高度取（userSpaceOnUse 渐变，底部青、中段金、顶部红），越贵越红 */
 const costChart = (() => {
 	if (days.length === 0) return null;
 	const W = 960;
-	const H = 150;
+	const H = 190;
 	const PL = 10;
 	const PR = 76;
-	const PT = 12;
+	const PT = 26;
 	const PB = 26;
 	const plotW = W - PL - PR;
 	const plotH = H - PT - PB;
+	const base = PT + plotH;
 	const max = Math.max(...days.map((d) => d.cost), 0.01);
-	const y = (v: number) => PT + plotH - (v / max) * plotH;
+	const y = (v: number) => base - (v / max) * plotH;
 	const slot = plotW / days.length;
-	const barW = Math.max(5, Math.min(26, slot * 0.55));
 	const labelEvery = Math.max(1, Math.ceil(days.length / 8));
-	const bars = days.map((d, i) => ({
-		cx: PL + slot * i + slot / 2,
+	const points = days.map((d, i) => ({
+		x: PL + slot * i + slot / 2,
 		y: y(d.cost),
-		h: Math.max(0.6, PT + plotH - y(d.cost)),
 		date: d.date,
 		cost: d.cost,
 		label: i === 0 || i === days.length - 1 || i % labelEvery === 0,
+		peak: priciest !== null && d.date === priciest.date,
 	}));
-	return { W, H, PL, PR, PT, PB, plotW, plotH, max, bars, barW };
+	const line = points.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+	const area = `${line} L${points.at(-1)!.x.toFixed(1)} ${base} L${points[0].x.toFixed(1)} ${base} Z`;
+	const peak = points.find((p) => p.peak) ?? null;
+	const peakAnchor = !peak ? 'middle' : peak.x > PL + plotW * 0.88 ? 'end' : peak.x < PL + plotW * 0.12 ? 'start' : 'middle';
+	return { W, H, PL, PR, PT, PB, plotW, plotH, base, max, points, line, area, peak, peakAnchor };
 })();
 
 /** 表格：倒序，最近的在上面 */
@@ -228,6 +232,15 @@ const rows = [...days].reverse();
 			.grid {
 				stroke: rgba(175, 255, 255, 10%);
 				stroke-dasharray: 3 5;
+			}
+			/* 花费折线上的点：描一圈底色，压在线上也看得清 */
+			.cost-dot {
+				stroke: var(--surface);
+				stroke-width: 1.4;
+			}
+			.cost-peak {
+				fill: #f3a3ad;
+				font-weight: 600;
 			}
 			.legend {
 				display: flex;
@@ -423,7 +436,15 @@ const rows = [...days].reverse();
 			<div class="card">
 				{
 					costChart && (
-						<svg class="chart" viewBox={`0 0 ${costChart.W} ${costChart.H}`} role="img" aria-label="每日花费柱状图">
+						<svg class="chart" viewBox={`0 0 ${costChart.W} ${costChart.H}`} role="img" aria-label="每日花费折线图，线越高颜色越红">
+							<defs>
+								{/* 按画布坐标铺的竖向渐变：同一高度永远同一种颜色，平线段也能正常上色 */}
+								<linearGradient id="cost-line" gradientUnits="userSpaceOnUse" x1="0" y1={costChart.base} x2="0" y2={costChart.PT}>
+									<stop offset="0%" stop-color="#7fe9f0" />
+									<stop offset="55%" stop-color="#ffd68a" />
+									<stop offset="100%" stop-color="#e06a7a" />
+								</linearGradient>
+							</defs>
 							{[0, 0.5, 1].map((r) => (
 								<line
 									class="grid"
@@ -439,31 +460,34 @@ const rows = [...days].reverse();
 							<text class="axis" x={costChart.W - 6} y={costChart.PT + costChart.plotH} text-anchor="end">
 								0
 							</text>
-							{costChart.bars.map((bar) => (
+							<path d={costChart.area} fill="url(#cost-line)" fill-opacity="0.12" />
+							<path
+								d={costChart.line}
+								fill="none"
+								stroke="url(#cost-line)"
+								stroke-width="2.4"
+								stroke-linejoin="round"
+								stroke-linecap="round"
+							/>
+							{costChart.points.map((p) => (
 								<g>
-									<rect
-										x={bar.cx - costChart.barW / 2}
-										y={bar.y}
-										width={costChart.barW}
-										height={bar.h}
-										fill="url(#cost-grad)"
-										rx="1.5"
-									>
-										<title>{`${bar.date} · ${fmtYuan(bar.cost)}`}</title>
-									</rect>
-									{bar.label && (
-										<text class="axis" x={bar.cx} y={costChart.H - 8} text-anchor="middle">
-											{bar.date.slice(5).replace('-', '/')}
+									<circle class="cost-dot" cx={p.x} cy={p.y} r={p.peak ? 4.5 : 2.6} fill="url(#cost-line)" />
+									{/* 透明的大圈只负责悬停提示，点很小也好停 */}
+									<circle cx={p.x} cy={p.y} r="10" fill="transparent">
+										<title>{`${p.date} · ${fmtYuan(p.cost)}`}</title>
+									</circle>
+									{p.label && (
+										<text class="axis" x={p.x} y={costChart.H - 8} text-anchor="middle">
+											{p.date.slice(5).replace('-', '/')}
 										</text>
 									)}
 								</g>
 							))}
-							<defs>
-								<linearGradient id="cost-grad" x1="0" y1="0" x2="0" y2="1">
-									<stop offset="0%" stop-color="#ffd68a" />
-									<stop offset="100%" stop-color="#e06a7a" />
-								</linearGradient>
-							</defs>
+							{costChart.peak && (
+								<text class="axis cost-peak" x={costChart.peak.x} y={costChart.peak.y - 10} text-anchor={costChart.peakAnchor}>
+									{fmtYuan(costChart.peak.cost)}
+								</text>
+							)}
 						</svg>
 					)
 				}
