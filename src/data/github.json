@@ -1,15 +1,37 @@
 {
-  "fetchedAt": "2026-10-23T00:37:19.535Z",
+  "fetchedAt": "2026-10-24T00:36:12.870Z",
   "user": {
     "login": "water2H2O",
     "name": "",
     "url": "https://github.com/water2H2O",
     "avatar": "https://avatars.githubusercontent.com/u/189988544?v=4",
-    "publicRepos": 6,
+    "publicRepos": 5,
     "followers": 1,
     "createdAt": "2024-11-28T12:20:28Z"
   },
   "repos": [
+    {
+      "name": "dsh-model-probe",
+      "description": "给 DSH 里配置的模型做体检：可用性 + 延迟 + 客观题正确率。便宜、可复现、不用 LLM 当裁判。",
+      "language": "JavaScript",
+      "url": "https://github.com/water2H2O/dsh-model-probe",
+      "stars": 0,
+      "pushedAt": "2026-10-23T20:29:10Z",
+      "createdAt": "2026-10-23T20:28:21Z",
+      "sizeKb": 10,
+      "empty": false
+    },
+    {
+      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
+      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
+      "language": "Astro",
+      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
+      "stars": 1,
+      "pushedAt": "2026-10-23T18:54:25Z",
+      "createdAt": "2026-10-09T07:50:22Z",
+      "sizeKb": 56779,
+      "empty": false
+    },
     {
       "name": "Spirit-s_Tower_Nights-Elemental_Verse",
       "description": "《水塔夜谈》世界观的 Minecraft 模组：水塔夜谈，元素之诗",
@@ -22,28 +44,6 @@
       "empty": false
     },
     {
-      "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
-      "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
-      "language": "Astro",
-      "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
-      "stars": 1,
-      "pushedAt": "2026-10-22T18:43:22Z",
-      "createdAt": "2026-10-09T07:50:22Z",
-      "sizeKb": 56416,
-      "empty": false
-    },
-    {
-      "name": "RecursionTrainingQuestion_ByDeepseek",
-      "description": "大肥鱼出的递归（recursion）训练题目",
-      "language": "Java",
-      "url": "https://github.com/water2H2O/RecursionTrainingQuestion_ByDeepseek",
-      "stars": 0,
-      "pushedAt": "2026-10-20T07:30:58Z",
-      "createdAt": "2026-10-20T05:47:51Z",
-      "sizeKb": 11,
-      "empty": false
-    },
-    {
       "name": "Spirit-s_Tower_Nights-Tales_of_the_Elemental_Aftermath",
       "description": "包含水水个人世界观《水塔夜谈》的大部分可公开资料",
       "language": "",
@@ -52,17 +52,6 @@
       "pushedAt": "2026-10-13T15:58:55Z",
       "createdAt": "2026-09-22T06:45:40Z",
       "sizeKb": 322828,
-      "empty": false
-    },
-    {
-      "name": "COMP2056-2627PA1-25226177",
-      "description": "【截止日期已经过了，已开源】COMP2056很潦草的第一次Assignment……",
-      "language": "Java",
-      "url": "https://github.com/water2H2O/COMP2056-2627PA1-25226177",
-      "stars": 0,
-      "pushedAt": "2026-10-11T02:54:02Z",
-      "createdAt": "2026-09-29T09:21:47Z",
-      "sizeKb": 116,
       "empty": false
     },
     {
@@ -79,8 +68,8 @@
   ],
   "contributions": {
     "from": "2025-10-19",
-    "to": "2026-10-23",
-    "total": 385,
+    "to": "2026-10-24",
+    "total": 396,
     "weeks": [
       "0000010",
       "1100010",
@@ -118,7 +107,7 @@
       "0000000",
       "0000000",
       "0000000",
-      "0011000",
+      "0000000",
       "0000000",
       "0000000",
       "0000000",
@@ -134,7 +123,7 @@
       "0110010",
       "0110014",
       "2331114",
-      "3232210"
+      "3232221"
     ]
   }
 }
