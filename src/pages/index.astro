@@ -864,7 +864,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				margin: 0.9em 0 0;
 				padding: 0;
 			}
-			.cn-seats li {
+			.cn-seats > li {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
@@ -908,6 +908,20 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
             .cn-row-title b { font-size: 1.2em; font-weight: 600; color: var(--glow); font-variant-numeric: tabular-nums; }
             .cn-row-meta { font-size: 0.72em; color: rgb(var(--gray)); opacity: 0.85; }
             .cn-row-cost { font-size: 0.72em; color: var(--accent); font-variant-numeric: tabular-nums; }
+            /* 同家族多型号：总数留在上面当标题，下面每个型号一张小票，单价各算各的 */
+            .cn-variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(8.5em, 100%), 1fr)); gap: 0.4em; width: 100%; max-width: 21em; list-style: none; margin: 0.45em 0 0; padding: 0; }
+            .cn-variants li { display: flex; flex-direction: column; gap: 0.1em; padding: 0.4em 0.55em; border-radius: 8px; text-align: left; background: rgba(175, 255, 255, 4%); border: 1px solid rgba(175, 255, 255, 11%); }
+            .cn-v-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4em; }
+            .cn-v-name { font-size: 0.68em; color: rgb(var(--gray)); overflow-wrap: anywhere; }
+            .cn-v-head b { font-size: 0.8em; font-weight: 600; color: var(--glow); font-variant-numeric: tabular-nums; white-space: nowrap; }
+            .cn-v-meta { font-size: 0.64em; color: rgb(var(--gray)); opacity: 0.85; }
+            .cn-v-cost { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 0.4em; font-size: 0.68em; color: var(--accent); font-variant-numeric: tabular-nums; }
+            .cn-v-cost small { font-size: 0.92em; opacity: 0.8; }
+            /* GLM 是唯一有专属立绘的加桌客人：放大头像、紫色描边和微光，让她从一排小字里跳出来 */
+            .cn-row-seats li.is-glm { position: relative; padding: 0.55em 1em 0.55em 0.6em; border-radius: 12px; background: linear-gradient(100deg, rgba(186, 156, 255, 14%), rgba(127, 233, 240, 5%) 70%); border: 1px solid rgba(196, 170, 255, 38%); box-shadow: 0 0 18px rgba(170, 140, 255, 14%); }
+            .cn-row-seats li.is-glm .cn-row-art { width: 78px; margin: -0.6em 0 -0.35em; filter: drop-shadow(0 0 8px rgba(196, 170, 255, 40%)); }
+            .cn-row-seats li.is-glm .cn-row-title { font-size: 0.88em; color: #e6dcff; }
+            .cn-row-seats li.is-glm .cn-row-title b { color: #d6c6ff; }
 			.tk-stats {
 				display: grid;
 				grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -972,6 +986,12 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				}
 				.cn-row-art {
 					width: 44px;
+				}
+				.cn-row-seats li.is-glm .cn-row-art {
+					width: 62px;
+				}
+				.cn-variants li {
+					padding: 0.35em 0.4em;
 				}
 			}
 		</style>
@@ -1312,8 +1332,33 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 									<span class="cn-name">{seat.shortName}</span>
 									<span class="cn-share">{seat.empty ? '暂未开饭' : seat.share > 0 ? `${seat.share}%` : '<0.1%'}</span>
 									<span class="cn-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
-									{seat.cost ? <span class="cn-cost">¥{seat.cost.toFixed(2)}</span> : null}
-                                    {seat.unitPrice !== null && <span class="cn-price">¥{seat.unitPrice.toFixed(3)} / 百万 tokens</span>}
+									{seat.variants?.length ? (
+										<>
+											{seat.cost ? <span class="cn-cost">合计 ¥{seat.cost.toFixed(2)}</span> : null}
+											<ul class="cn-variants">
+												{seat.variants.map((v) => (
+													<li>
+														<span class="cn-v-head">
+															<span class="cn-v-name">{v.shortName}</span>
+															<b>{v.share > 0 ? `${v.share}%` : '<0.1%'}</b>
+														</span>
+														<span class="cn-v-meta">{fmtTokens(v.tokens)} · 来了 {v.days} 天</span>
+														{v.cost !== null && (
+															<span class="cn-v-cost">
+																¥{v.cost < 1 ? v.cost.toFixed(3) : v.cost.toFixed(2)}
+																{v.unitPrice !== null && <small>¥{v.unitPrice.toFixed(3)} / 百万</small>}
+															</span>
+														)}
+													</li>
+												))}
+											</ul>
+										</>
+									) : (
+										<>
+											{seat.cost ? <span class="cn-cost">¥{seat.cost.toFixed(2)}</span> : null}
+											{seat.unitPrice !== null && <span class="cn-price">¥{seat.unitPrice.toFixed(3)} / 百万 tokens</span>}
+										</>
+									)}
 								</li>
 							))}
 						</ul>
@@ -1322,7 +1367,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                 <p class="cn-row-label">加桌</p>
                                 <ul class="cn-row-seats">
                                     {guestSeats.map((seat) => (
-                                        <li>
+                                        <li class:list={[{ 'is-glm': seat.isGlm }]}>
                                             <div class="cn-row-art" aria-hidden="true">
                                                 {seat.isGlm ? (
                                                     <Image

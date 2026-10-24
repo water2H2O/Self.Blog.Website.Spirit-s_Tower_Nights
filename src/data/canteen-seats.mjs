@@ -20,6 +20,8 @@ export function arrangeCanteen(series = [], daily = []) {
       tokens, cost, share: sumTokens > 0 ? Math.round(tokens / sumTokens * 1000) / 10 : 0,
       days: dates.size, unitPrice: hasCost ? perMillion(tokens, cost) : null,
       isGlm: members.some(s => /glm/i.test(s.label)),
+      // Same-family seats also list each model, so per-model prices are not blurred into one average.
+      variants: members.length > 1 ? [...members].sort((a, b) => b.tokens - a.tokens).map(s => decorate([s], family)) : [],
     };
   };
   return {

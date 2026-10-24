@@ -17,6 +17,11 @@ assert.equal(seats[1].empty, true); // no shifting Claude under GPT art
 assert.equal(seats[2].tokens, 30);
 assert.equal(seats[2].cost, 3);
 assert.equal(seats[2].days, 2); // unique days, not sum of variant days
+assert.deepEqual(seats[2].variants.map(v => v.shortName), ['claude-opus-5-5', 'claude-opus-5']); // split, biggest first
+assert.equal(seats[2].variants[0].unitPrice, 2 / 20 * 1e6);
+assert.equal(seats[2].variants[1].days, 2);
+assert.equal(seats[2].variants.reduce((s, v) => s + v.tokens, 0), seats[2].tokens);
+assert.equal(seats[0].variants.length, 0); // single model keeps the plain seat
 assert.equal(guests.length, 1);
 assert.equal(guests[0].isGlm, true);
 assert.equal(guests[0].days, 1);
