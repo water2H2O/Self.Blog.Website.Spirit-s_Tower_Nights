@@ -9,6 +9,7 @@
  */
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { pinyin } from 'pinyin-pro';
 import { blogCodes } from '../lib/blog-code';
 
 /** 一个集合对应一个栏目：分类名、路由前缀、正文取哪个字段当摘要 */
@@ -54,7 +55,18 @@ export const GET: APIRoute = async () => {
 	const codes = blogCodes(blogEntries.map((entry) => entry.id));
 	sources.push({ collection: 'blog', category: '随笔', href: (id) => `/blog/${codes.get(id) ?? id}/` });
 
-	type Item = { title: string; summary: string; tags: string[]; category: string; url: string; text: string };
+	type Item = {
+		title: string;
+		summary: string;
+		tags: string[];
+		category: string;
+		url: string;
+		text: string;
+		/** 标题 + 标签的拼音（无声调、连写），给「jingmai」这种输入用 */
+		py: string;
+		/** 标题 + 标签的拼音首字母，给「jm」这种输入用 */
+		ini: string;
+	};
 	const items: Item[] = [];
 
 	for (const source of sources) {
@@ -72,6 +84,8 @@ export const GET: APIRoute = async () => {
 			const summary = asText(data.summary) || asText(data.description);
 			const tags = Array.isArray(data.tags) ? (data.tags as unknown[]).map(String) : [];
 			const text = plain(entry.body ?? '');
+			// 拼音只做标题和标签：专名基本都在这里，正文全拼会让索引从 1.3 MB 涨到 4 MB
+			const spoken = [title, ...tags].join(' ');
 			items.push({
 				title,
 				summary,
@@ -79,6 +93,12 @@ export const GET: APIRoute = async () => {
 				category: source.category,
 				url: source.href(entry.id),
 				text,
+				// 只留 a-z：标题里的引号、间隔号会被 pinyin-pro 原样带出来，留着没用还占体积
+				py: pinyin(spoken, { toneType: 'none', type: 'array' }).join('').toLowerCase().replace(/[^a-z]/g, ''),
+				ini: pinyin(spoken, { pattern: 'first', toneType: 'none', type: 'array' })
+					.join('')
+					.toLowerCase()
+					.replace(/[^a-z]/g, ''),
 			});
 		}
 	}

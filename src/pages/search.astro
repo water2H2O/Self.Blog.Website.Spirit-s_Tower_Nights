@@ -192,6 +192,9 @@ import Header from '../components/Header.astro';
 				category: string;
 				url: string;
 				text: string;
+				/** 标题 + 标签的拼音与首字母，构建时算好；只在纯字母查询时用得上 */
+				py: string;
+				ini: string;
 			};
 			type Prepared = Item & {
 				titleL: string;
@@ -345,11 +348,19 @@ import Header from '../components/Header.astro';
 						const inTags = item.tagsL.includes(term);
 						const inSummary = item.summaryL.includes(term);
 						const inText = hitCount(item.textL, term);
-						if (!inTitle && !inTags && !inSummary && inText === 0) {
+						// 纯字母查询再多看一眼拼音：「jingmai」「jm」也能找到「晶裔 / 奥法联合」
+						const ascii = /^[a-z0-9]+$/.test(term);
+						const inPinyin = ascii && (item.py.includes(term) || item.ini.includes(term));
+						if (!inTitle && !inTags && !inSummary && inText === 0 && !inPinyin) {
 							all = false;
 							break;
 						}
-						score += (inTitle ? 40 : 0) + (inTags ? 16 : 0) + (inSummary ? 10 : 0) + Math.min(inText, 30);
+						score +=
+							(inTitle ? 40 : 0) +
+							(inTags ? 16 : 0) +
+							(inSummary ? 10 : 0) +
+							Math.min(inText, 30) +
+							(inPinyin ? 18 : 0);
 					}
 					if (!all) continue;
 					scored.push({ item, score });
