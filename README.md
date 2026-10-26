@@ -725,6 +725,29 @@ pnpm run github:build       # 抓完再跑一次构建
 
 ### 一、平台用量导出（带花费，站上现在用这条）
 
+**最省事的办法：一条命令全自动** —— 它自己去导出目录把文件找齐、排好次序、合并、构建、提交、推送、
+再等线上生效：
+
+```sh
+node tools/refresh-usage.mjs          # 只更新 src/data/token-usage.json，并打印前后差异
+node tools/refresh-usage.mjs --dry    # 只列出会用到哪些文件
+node tools/refresh-usage.mjs --build  # 另外跑构建 + site-health
+node tools/refresh-usage.mjs --all    # 再往下：提交、pull --rebase、推送、等线上出现新数字
+node tools/refresh-usage.mjs --dir=D:\某目录   # 导出不在 Downloads 时
+```
+
+它认两种文件名并据此排序：
+
+| 文件 | 排序 | 覆盖规则 |
+| --- | --- | --- |
+| `usage_data_<起>_<止>.zip` | 按「止」升序（同「止」按「起」升序） | **后一份按天覆盖前一份**：最后那份最全 |
+| `usage_<起>_to_<止>.csv` | 按「起」升序 | 重叠的请求按时间戳去重，多给几份不会翻倍 |
+
+所以平时只要把新导出的文件丢进 Downloads，跑一次 `--all` 就行，不用记参数、不用挑文件。
+（导出目录里的旧文件留着没关系，它们只会被更新的那份覆盖。）
+
+下面是要手动指定文件时的原始用法。
+
 官网上能直接导出，不需要 token：
 
 1. 登录 <https://platform.deepseek.com/usage>
