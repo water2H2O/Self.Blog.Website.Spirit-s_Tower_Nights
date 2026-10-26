@@ -1334,7 +1334,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 									<span class="cn-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
 									{seat.variants?.length ? (
 										<>
-											{seat.cost ? <span class="cn-cost">合计 ¥{seat.cost.toFixed(2)}</span> : null}
+											{seat.multi && seat.cost ? <span class="cn-cost">合计 ¥{seat.cost.toFixed(2)}</span> : null}
 											<ul class="cn-variants">
 												{seat.variants.map((v) => (
 													<li>

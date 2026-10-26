@@ -9,7 +9,7 @@ export const familyOf = (label) => TABLE_FAMILIES.find(name => label.toLowerCase
 export function arrangeCanteen(series = [], daily = []) {
   const active = series.filter(s => s.tokens > 0);
   const sumTokens = active.reduce((sum, s) => sum + s.tokens, 0);
-  const decorate = (members, family = null) => {
+  const decorate = (members, family = null, withVariants = true) => {
     const tokens = members.reduce((sum, s) => sum + s.tokens, 0);
     const hasCost = members.every(s => typeof s.cost === 'number' && Number.isFinite(s.cost));
     const cost = hasCost ? members.reduce((sum, s) => sum + s.cost, 0) : null;
@@ -20,8 +20,13 @@ export function arrangeCanteen(series = [], daily = []) {
       tokens, cost, share: sumTokens > 0 ? Math.round(tokens / sumTokens * 1000) / 10 : 0,
       days: dates.size, unitPrice: hasCost ? perMillion(tokens, cost) : null,
       isGlm: members.some(s => /glm/i.test(s.label)),
-      // Same-family seats also list each model, so per-model prices are not blurred into one average.
-      variants: members.length > 1 ? [...members].sort((a, b) => b.tokens - a.tokens).map(s => decorate([s], family)) : [],
+      /** 多型号时上面那行写「合计」，单型号时合计就是他自己，别再重复一遍 */
+      multi: members.length > 1,
+      // 每个型号都给一张小票 —— 单型号的家族也一样，不然三席里只有它没有框，看着不齐
+      // （小票自己不再往下展开，否则单型号会无限递归）
+      variants: withVariants
+        ? [...members].sort((a, b) => b.tokens - a.tokens).map(s => decorate([s], family, false))
+        : [],
     };
   };
   return {

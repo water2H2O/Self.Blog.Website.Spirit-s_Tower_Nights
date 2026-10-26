@@ -21,7 +21,9 @@ assert.deepEqual(seats[2].variants.map(v => v.shortName), ['claude-opus-5-5', 'c
 assert.equal(seats[2].variants[0].unitPrice, 2 / 20 * 1e6);
 assert.equal(seats[2].variants[1].days, 2);
 assert.equal(seats[2].variants.reduce((s, v) => s + v.tokens, 0), seats[2].tokens);
-assert.equal(seats[0].variants.length, 0); // single model keeps the plain seat
+assert.equal(seats[0].variants.length, 1); // 单型号家族也给一张小票，三席才齐
+assert.equal(seats[0].variants[0].shortName, 'deepseek-flash');
+assert.equal(seats[0].variants[0].variants.length, 0); // 小票不再往下展开，防无限递归
 assert.equal(guests.length, 1);
 assert.equal(guests[0].isGlm, true);
 assert.equal(guests[0].days, 1);
