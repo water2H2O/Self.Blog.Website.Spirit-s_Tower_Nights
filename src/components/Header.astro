@@ -209,10 +209,35 @@ if (inWorldview) {
 					</a>
 				))
 			}
+			{/* 手机上搜索框收进汉堡菜单，这里补一个入口 */}
+			<a class="nav-search-entry" href="/search/">搜索全站</a>
 		</div>
 		<div class="social-links">
-			{/* 搜索入口：不占一级菜单，放成和 GitHub 并排的小图标；全局按 / 也能直接聚焦搜索框 */}
-			<a href="/search/" class:list={[{ active: isActive('/search/') }]} aria-label="搜索全站">
+			{/*
+				搜索：桌面直接给一个输入框（回车跳 /search/?q=），窄屏退回图标链接。
+				表单是 GET，没脚本也能用。
+			*/}
+			<form class="nav-search" action="/search/" method="get" role="search">
+				<svg viewBox="0 0 24 24" aria-hidden="true" width="15" height="15">
+					<circle cx="10.5" cy="10.5" r="6.4" fill="none" stroke="currentColor" stroke-width="2"></circle>
+					<path
+						d="M15.4 15.4 20 20"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"></path>
+				</svg>
+				<input
+					type="search"
+					name="q"
+					placeholder="搜世界观、故事…"
+					aria-label="搜索全站"
+					autocomplete="off"
+					spellcheck="false"
+				/>
+				<kbd aria-hidden="true">/</kbd>
+			</form>
+			<a class="nav-search-btn" href="/search/" aria-label="搜索全站">
 				<svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22">
 					<circle cx="10.5" cy="10.5" r="6.4" fill="none" stroke="currentColor" stroke-width="2"></circle>
 					<path
@@ -223,7 +248,7 @@ if (inWorldview) {
 						stroke-linecap="round"></path>
 				</svg>
 			</a>
-			<a href={GITHUB_URL} target="_blank" rel="noreferrer">
+			<a class="gh-link" href={GITHUB_URL} target="_blank" rel="noreferrer">
 				<span class="sr-only">GitHub</span>
 				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24">
 					<path
@@ -235,6 +260,30 @@ if (inWorldview) {
 		</div>
 	</nav>
 </header>
+
+<script>
+	/*
+	 * 全局按 / 聚焦页头搜索框。窄屏那个输入框是隐藏的，此时直接跳去 /search/。
+	 * 搜索页自带一个输入框（#q）和同样的快捷键，那里交给它自己，这里让位。
+	 */
+	(() => {
+		const input = document.querySelector<HTMLInputElement>('.nav-search input');
+		if (!input) return;
+		if (document.getElementById('q')) return;
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
+			const active = document.activeElement as HTMLElement | null;
+			const tag = active?.tagName;
+			if (tag === 'INPUT' || tag === 'TEXTAREA' || active?.isContentEditable) return;
+			event.preventDefault();
+			if (input.offsetParent === null) {
+				location.href = '/search/';
+				return;
+			}
+			input.focus();
+		});
+	})();
+</script>
 
 {
 	/*
@@ -366,6 +415,75 @@ if (inWorldview) {
 	.internal-links {
 		display: flex;
 		flex-wrap: wrap;
+	}
+	/* 搜索框：桌面上直接能打字，回车带着 ?q= 跳到 /search/ */
+	.nav-search {
+		display: flex;
+		align-items: center;
+		gap: 0.42em;
+		flex: none;
+		margin-right: 0.15em;
+		padding: 0.3em 0.55em 0.3em 0.62em;
+		border: 1px solid rgb(var(--gray-light));
+		border-radius: 999px;
+		background: rgba(175, 255, 255, 4%);
+		transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+	}
+	.nav-search:focus-within {
+		border-color: rgba(175, 255, 255, 45%);
+		background: rgba(175, 255, 255, 8%);
+		box-shadow: 0 0 0 3px rgba(175, 255, 255, 8%);
+	}
+	.nav-search :global(svg) {
+		flex: none;
+		color: rgb(var(--gray));
+	}
+	.nav-search input {
+		width: 11em;
+		min-width: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: 0.8em;
+		color: rgb(var(--gray-dark));
+		outline: none;
+	}
+	.nav-search input::placeholder {
+		color: rgb(var(--gray));
+	}
+	.nav-search kbd {
+		flex: none;
+		font: inherit;
+		font-size: 0.68em;
+		line-height: 1.5;
+		padding: 0 0.32em;
+		color: rgb(var(--gray));
+		border: 1px solid rgb(var(--gray-light));
+		border-radius: 4px;
+	}
+	/* 窄屏改回图标按钮；手机上（≤640）连图标一起收进汉堡菜单 */
+	.social-links a.nav-search-btn {
+		display: none;
+	}
+	.nav-search-entry {
+		display: none;
+	}
+	@media (max-width: 1080px) {
+		.nav-search {
+			display: none;
+		}
+		.social-links a.gh-link {
+			display: none;
+		}
+		.social-links a.nav-search-btn {
+			display: flex;
+			padding: 0.95em 0.5em;
+			color: rgb(var(--black));
+			border-bottom: 3px solid transparent;
+		}
+		.nav-search-btn:hover {
+			color: var(--glow);
+		}
 	}
 	.social-links,
 	.social-links a {
@@ -506,7 +624,8 @@ if (inWorldview) {
 		nav.main {
 			justify-content: flex-start;
 		}
-		.social-links {
+		/* GitHub 图标在这个宽度会让菜单位移，收起来；搜索图标留着 */
+		.gh-link {
 			display: none;
 		}
 	}
@@ -599,6 +718,22 @@ if (inWorldview) {
 			border-bottom: none;
 			border-left-color: var(--glow);
 			background: rgba(175, 255, 255, 10%);
+		}
+		/* 搜索框在手机上放不下，菜单里给一行文字入口 */
+		nav.main .internal-links a.nav-search-entry {
+			display: flex;
+			align-items: center;
+			gap: 0.4em;
+			color: var(--accent);
+		}
+		/* 这一宽度下顶栏只有 logo + 汉堡，搜索和 GitHub 都进菜单 */
+		.social-links {
+			display: none;
+		}
+		nav.main .internal-links a.nav-search-entry::before {
+			content: '⌕';
+			font-size: 1.15em;
+			line-height: 1;
 		}
 	}
 
