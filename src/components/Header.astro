@@ -211,6 +211,18 @@ if (inWorldview) {
 			}
 		</div>
 		<div class="social-links">
+			{/* 搜索入口：不占一级菜单，放成和 GitHub 并排的小图标；全局按 / 也能直接聚焦搜索框 */}
+			<a href="/search/" class:list={[{ active: isActive('/search/') }]} aria-label="搜索全站">
+				<svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22">
+					<circle cx="10.5" cy="10.5" r="6.4" fill="none" stroke="currentColor" stroke-width="2"></circle>
+					<path
+						d="M15.4 15.4 20 20"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"></path>
+				</svg>
+			</a>
 			<a href={GITHUB_URL} target="_blank" rel="noreferrer">
 				<span class="sr-only">GitHub</span>
 				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24">

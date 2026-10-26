@@ -1,0 +1,396 @@
+---
+/**
+ * /search —— 全站搜索。
+ *
+ * 索引是构建时生成的 /search-index.json（见 src/pages/search-index.json.ts），
+ * 这个页面只在第一次输入时才去请求它，首页和别的页都不背这个体积。
+ * 匹配用的是「字面子串」：中文不需要分词，专名（晶脉、瘴素、奥法联合）能直接命中。
+ */
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="搜一搜"
+			description="在《水塔夜谈》的世界观、故事、角色与随笔里找东西。"
+		/>
+		<style is:global>
+			main {
+				width: 880px;
+			}
+			.search-head {
+				margin-bottom: 1.6em;
+			}
+			.search-head h1 {
+				margin: 0.9em 0 0.3em;
+			}
+			.search-head p {
+				margin: 0;
+				font-size: 0.9em;
+				color: rgb(var(--gray));
+			}
+			.search-box {
+				position: relative;
+				margin: 1.4em 0 0.6em;
+			}
+			.search-box input {
+				width: 100%;
+				box-sizing: border-box;
+				padding: 0.85em 3.2em 0.85em 1em;
+				border-radius: 12px;
+				border: 1px solid rgb(var(--gray-light));
+				background: var(--surface);
+				color: rgb(var(--gray-dark));
+				font-size: 1.02em;
+				font-family: inherit;
+				outline: none;
+				transition: border-color 0.18s ease, box-shadow 0.18s ease;
+			}
+			.search-box input:focus {
+				border-color: rgba(175, 255, 255, 42%);
+				box-shadow: 0 0 0 3px rgba(175, 255, 255, 8%);
+			}
+			.search-box input::placeholder {
+				color: rgb(var(--gray));
+			}
+			.search-hint {
+				position: absolute;
+				right: 0.9em;
+				top: 50%;
+				transform: translateY(-50%);
+				font-size: 0.72em;
+				letter-spacing: 0.08em;
+				color: rgb(var(--gray));
+				border: 1px solid rgb(var(--gray-light));
+				border-radius: 5px;
+				padding: 0.15em 0.45em;
+				pointer-events: none;
+			}
+			.search-status {
+				min-height: 1.6em;
+				margin: 0 0 1.2em;
+				font-size: 0.8em;
+				color: rgb(var(--gray));
+			}
+			.search-results {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 0.75em;
+			}
+			.search-results li {
+				padding: 0.95em 1.1em;
+				border-radius: 12px;
+				border: 1px solid rgb(var(--gray-light));
+				background: var(--surface);
+				transition: border-color 0.16s ease, transform 0.16s ease;
+			}
+			.search-results li:hover {
+				border-color: rgba(175, 255, 255, 34%);
+				transform: translateY(-1px);
+			}
+			.search-results a {
+				text-decoration: none;
+				color: inherit;
+			}
+			.result-top {
+				display: flex;
+				align-items: baseline;
+				flex-wrap: wrap;
+				gap: 0.6em;
+			}
+			.result-title {
+				font-size: 1em;
+				color: var(--glow);
+			}
+			.result-cat {
+				font-size: 0.7em;
+				letter-spacing: 0.06em;
+				padding: 0.1em 0.5em;
+				border-radius: 999px;
+				border: 1px solid rgba(175, 255, 255, 26%);
+				color: var(--accent);
+			}
+			.result-snippet {
+				display: block;
+				margin: 0.45em 0 0;
+				font-size: 0.84em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+			}
+			.result-snippet mark,
+			.result-title mark {
+				background: rgba(175, 255, 255, 18%);
+				color: var(--glow);
+				border-radius: 3px;
+				padding: 0 0.1em;
+			}
+			.search-empty {
+				padding: 2.2em 1.4em;
+				border-radius: 14px;
+				border: 1px dashed rgb(var(--gray-light));
+				text-align: center;
+				color: rgb(var(--gray));
+				font-size: 0.92em;
+				line-height: 2;
+			}
+			.search-empty a {
+				color: var(--accent);
+			}
+			@media (max-width: 640px) {
+				.search-box input {
+					font-size: 0.96em;
+				}
+				.search-hint {
+					display: none;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="search-head">
+				<h1>搜一搜</h1>
+				<p>世界观、故事、角色、教材、随笔 —— 全部正文都能搜。</p>
+			</div>
+
+			<form class="search-box" role="search" onsubmit="return false">
+				<input
+					id="q"
+					type="search"
+					name="q"
+					placeholder="试试：晶脉、瘴素、奥法联合、水塔…"
+					autocomplete="off"
+					spellcheck="false"
+					aria-label="搜索关键词"
+				/>
+				<span class="search-hint">/</span>
+			</form>
+
+			<p class="search-status" id="status">输入关键词开始搜索。</p>
+			<ol class="search-results" id="search-results"></ol>
+			<div class="search-empty" id="search-empty" hidden>
+				没找到。换个说法试试？<br />
+				也可以直接从 <a href="/worldview/">世界观总览</a>、
+				<a href="/worldview/stories/">故事目录</a>、<a href="/blog/">随笔</a> 翻起。
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			type Item = {
+				title: string;
+				summary: string;
+				tags: string[];
+				category: string;
+				url: string;
+				text: string;
+			};
+			type Prepared = Item & {
+				titleL: string;
+				summaryL: string;
+				tagsL: string;
+				textL: string;
+			};
+
+			const input = document.getElementById('q') as HTMLInputElement;
+			const list = document.getElementById('search-results') as HTMLOListElement;
+			const status = document.getElementById('status') as HTMLParagraphElement;
+			const empty = document.getElementById('search-empty') as HTMLDivElement;
+
+			let cache: Prepared[] | null = null;
+			let loading: Promise<Prepared[]> | null = null;
+
+			function prepare(item: Item): Prepared {
+				return {
+					...item,
+					titleL: item.title.toLowerCase(),
+					summaryL: item.summary.toLowerCase(),
+					tagsL: item.tags.join(' ').toLowerCase(),
+					textL: item.text.toLowerCase(),
+				};
+			}
+
+			async function ensureIndex(): Promise<Prepared[]> {
+				if (cache) return cache;
+				if (!loading) {
+					loading = fetch('/search-index.json')
+						.then((res) => res.json())
+						.then((data: { items: Item[] }) => {
+							cache = data.items.map(prepare);
+							return cache;
+						});
+				}
+				return loading;
+			}
+
+			/** 命中了哪些字；高亮和计数共用这一份判断 */
+			const hitCount = (hay: string, term: string): number => {
+				let count = 0;
+				let from = 0;
+				for (;;) {
+					const at = hay.indexOf(term, from);
+					if (at < 0) break;
+					count++;
+					from = at + term.length;
+					if (count > 50) break;
+				}
+				return count;
+			};
+
+			/** 把文本按关键词切成「普通片段 + 高亮片段」，交给 DOM 拼，避免手写 innerHTML */
+			function highlight(text: string, terms: string[]): DocumentFragment {
+				const frag = document.createDocumentFragment();
+				const lower = text.toLowerCase();
+				const marks: { start: number; end: number }[] = [];
+				for (const term of terms) {
+					let from = 0;
+					for (;;) {
+						const at = lower.indexOf(term, from);
+						if (at < 0) break;
+						marks.push({ start: at, end: at + term.length });
+						from = at + term.length;
+					}
+				}
+				marks.sort((a, b) => a.start - b.start);
+				let cursor = 0;
+				for (const mark of marks) {
+					const start = Math.max(mark.start, cursor);
+					const end = Math.max(mark.end, cursor);
+					if (start > cursor) frag.append(text.slice(cursor, start));
+					if (end > start) {
+						const el = document.createElement('mark');
+						el.textContent = text.slice(start, end);
+						frag.append(el);
+					}
+					cursor = end;
+				}
+				if (cursor < text.length) frag.append(text.slice(cursor));
+				return frag;
+			}
+
+			function snippet(item: Prepared, terms: string[]): string {
+				const source = item.summary || item.text;
+				const lower = source.toLowerCase();
+				let at = -1;
+				for (const term of terms) {
+					const found = lower.indexOf(term);
+					if (found >= 0 && (at < 0 || found < at)) at = found;
+				}
+				if (at < 0) return source.slice(0, 120);
+				const start = Math.max(0, at - 40);
+				const end = Math.min(source.length, at + 110);
+				return `${start > 0 ? '…' : ''}${source.slice(start, end).trim()}${end < source.length ? '…' : ''}`;
+			}
+
+			function render(items: Prepared[], terms: string[], query: string) {
+				list.replaceChildren();
+				const found = items.length;
+				empty.hidden = found > 0;
+				status.textContent =
+					found === 0
+						? `「${query}」没有结果。`
+						: `找到 ${found} 条${items.length > 0 && cache ? `（索引 ${cache.length} 篇）` : ''}。`;
+
+				for (const item of items.slice(0, 60)) {
+					const li = document.createElement('li');
+					const a = document.createElement('a');
+					a.href = item.url;
+
+					const top = document.createElement('span');
+					top.className = 'result-top';
+					const title = document.createElement('span');
+					title.className = 'result-title';
+					title.append(highlight(item.title, terms));
+					const cat = document.createElement('span');
+					cat.className = 'result-cat';
+					cat.textContent = item.category;
+					top.append(title, cat);
+
+					const snip = document.createElement('span');
+					snip.className = 'result-snippet';
+					snip.append(highlight(snippet(item, terms), terms));
+
+					a.append(top, snip);
+					li.append(a);
+					list.append(li);
+				}
+			}
+
+			async function run(raw: string) {
+				const query = raw.trim();
+				if (query.length === 0) {
+					list.replaceChildren();
+					empty.hidden = true;
+					status.textContent = '输入关键词开始搜索。';
+					return;
+				}
+				status.textContent = '正在检索…';
+				const items = await ensureIndex();
+				const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+
+				const scored: { item: Prepared; score: number }[] = [];
+				for (const item of items) {
+					let score = 0;
+					let all = true;
+					for (const term of terms) {
+						const inTitle = item.titleL.includes(term);
+						const inTags = item.tagsL.includes(term);
+						const inSummary = item.summaryL.includes(term);
+						const inText = hitCount(item.textL, term);
+						if (!inTitle && !inTags && !inSummary && inText === 0) {
+							all = false;
+							break;
+						}
+						score += (inTitle ? 40 : 0) + (inTags ? 16 : 0) + (inSummary ? 10 : 0) + Math.min(inText, 30);
+					}
+					if (!all) continue;
+					scored.push({ item, score });
+				}
+				scored.sort((a, b) => b.score - a.score || a.item.title.length - b.item.title.length);
+				render(
+					scored.map((s) => s.item),
+					terms,
+					query,
+				);
+
+				const url = new URL(location.href);
+				url.searchParams.set('q', query);
+				history.replaceState(null, '', url);
+			}
+
+			let timer: number | undefined;
+			input.addEventListener('input', () => {
+				window.clearTimeout(timer);
+				timer = window.setTimeout(() => void run(input.value), 130);
+			});
+			input.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape') {
+					input.value = '';
+					void run('');
+				}
+			});
+			document.addEventListener('keydown', (event) => {
+				if (event.key === '/' && document.activeElement !== input) {
+					event.preventDefault();
+					input.focus();
+				}
+			});
+
+			const initial = new URL(location.href).searchParams.get('q') ?? '';
+			if (initial) {
+				input.value = initial;
+				void run(initial);
+			} else {
+				input.focus();
+			}
+		</script>
+	</body>
+</html>
