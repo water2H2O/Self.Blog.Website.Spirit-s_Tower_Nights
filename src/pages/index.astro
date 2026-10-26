@@ -213,11 +213,35 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				letter-spacing: 0.2em;
 				transform: rotate(-7deg);
 			}
+			/* 声明标题做成「公告横幅」：衬线体 + 宽字距 + 左侧红线 + 渐隐底，和正文小字拉开层级。
+			   右边留出位置给那枚「无 PHP」印章，别让底衬压住它 */
 			.notice-lead {
-				margin: 0 0 0.8em;
-				font-size: 0.74em;
-				letter-spacing: 0.34em;
-				color: rgb(var(--gray));
+				display: flex;
+				align-items: center;
+				gap: 0.9em;
+				margin: -0.15em 0 1.05em;
+				padding: 0.42em 0.85em 0.42em 0.75em;
+				border-left: 3px solid rgba(224, 106, 122, 72%);
+				border-radius: 0 8px 8px 0;
+				background: linear-gradient(90deg, rgba(224, 106, 122, 12%), transparent 78%);
+				font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+				font-size: 1.04em;
+				font-weight: 600;
+				letter-spacing: 0.3em;
+				color: var(--glow);
+				text-shadow: 0 0 16px rgba(224, 106, 122, 38%);
+			}
+			.notice-lead::after {
+				content: '';
+				flex: 1;
+				height: 1px;
+				background: linear-gradient(90deg, rgba(224, 106, 122, 45%), transparent);
+			}
+			@media (max-width: 640px) {
+				.notice-lead {
+					font-size: 0.98em;
+					letter-spacing: 0.22em;
+				}
 			}
 			.notice-list {
 				margin: 0;
@@ -1203,7 +1227,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 			*/}
 			<aside class="notice">
 				<span class="notice-stamp" aria-hidden="true">无 PHP</span>
-				<p class="notice-lead">郑 重 声 明</p>
+				<p class="notice-lead">不 · 郑 重 申 明</p>
 				<ul class="notice-list">
 					<li>本站<strong>无任何 PHP 内容</strong>，没有漏洞危害的可能 ——</li>
 					<li>所以你可以<strong>放心地把 API key 交给我</strong>；</li>
