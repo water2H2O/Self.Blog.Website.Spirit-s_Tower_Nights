@@ -873,7 +873,8 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 - 其余路径保持资源优先；若请求进入 Worker，则用 `env.ASSETS.fetch(request)` 回落到静态资源。
 - `wrangler deploy --dry-run` 可验证配置、打包与 ASSETS 绑定，不会发布；它不能替代线上状态码检查。
 - 没命中时再补一层：HTML 请求回落 `404.html`（保持 `not_found_handling` 的行为），图片之类仍然纯 404
-- 页面上的入口藏在首页「不 · 郑重申明」最后一行（`/teapot/`）
+- 首页「不 · 郑重申明」最后一句的「来一杯蔚蓝」是普通链接，点击或键盘回车进入 `/teapot/`；不需要连点或悬停，触屏也能发现。
+- 首页不展示 RFC / curl 术语；这些内容收在彩蛋页默认折叠的「给懂行的：RFC 2324 合规声明」中。
 - `tools/site-health.mjs` 的 `WORKER_ROUTES` 列了 `/teapot` —— 它不是 dist 里的文件，别报成死链
 - 站内链接**一律带尾斜杠**（`/worldview/`）：页面都是「目录 + index.html」，
   少写一个斜杠就会先吃一次 307，每次点导航多一个来回

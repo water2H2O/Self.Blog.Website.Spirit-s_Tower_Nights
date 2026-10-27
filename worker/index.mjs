@@ -76,7 +76,13 @@ const TEAPOT_HTML = `<!doctype html>
     font: 0.74em/1.9 ui-monospace, SFMono-Regular, Menlo, monospace;
     color: #7e93a5;
   }
-  .meta code { color: #9fb6c7; }
+  .meta code { color: #9fb6c7; overflow-wrap: anywhere; }
+  .technical { margin: 1.5em auto 0; max-width: 32em; text-align: left; }
+  .technical summary { cursor: pointer; text-align: center; color: #9fb6c7; padding: 0.5em; }
+  .technical[open] { padding: 0.8em 1em; border: 1px solid rgba(175,255,255,16%); border-radius: 12px; }
+  .technical p { margin: 0.8em 0 0; }
+  .technical pre { overflow-x: auto; padding: 0.8em; background: #08121a; border-radius: 8px; font-size: 0.95em; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid #afffff; outline-offset: 4px; }
   a {
     display: inline-block;
     margin-top: 2em;
@@ -123,10 +129,14 @@ const TEAPOT_HTML = `<!doctype html>
     处理啥的太麻烦啦，<strong>你要先来一杯蔚蓝吗？</strong>
   </p>
 
-  <p class="meta">
-    晶体网络协议 · SVC 应用层 · 记忆存取协议（MAP）· 418<br />
-    <code>curl -I https://water2h2o.com/teapot</code> → <code>x-teapot: true</code>
-  </p>
+  <p class="meta">先歇一会儿，水塔还在这里。</p>
+
+  <details class="meta technical">
+    <summary>给懂行的：RFC 2324 合规声明</summary>
+    <p>这里真的返回 HTTP 418 I'm a teapot，响应头里还有 <code>x-teapot: true</code>。</p>
+    <pre><code>curl -I https://water2h2o.com/teapot</code></pre>
+    <p>茶壶梗来自 RFC 2324；蔚蓝版的状态码来自伊甸园的晶体网络协议：SVC 应用层 · 记忆存取协议（MAP）中的 <code>418 STOP AND HAVE A CUP OF WEILAN</code>。</p>
+  </details>
 
   <a href="/">← 回水塔</a>
 </main>
