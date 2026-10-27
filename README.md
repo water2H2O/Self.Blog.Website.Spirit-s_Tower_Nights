@@ -869,8 +869,9 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 `/teapot` 返回真正的 **HTTP 418**（RFC 2324）+ `x-teapot: true`，顺便对上《晶体网络协议》§6.3 的
 `418 STOP AND HAVE A CUP OF WEILAN`。为什么非要有脚本：静态托管只能返 200/404，状态码是服务端才给得出的。
 
-- **其余请求一律 `env.ASSETS.fetch(request)`** —— 静态资源优先的路由下，Worker 只在「没命中任何文件」
-  时才会被调用，所以它出问题最多影响 404，不会拖垮整站
+- `assets.run_worker_first` 精确列出 `/teapot` 与 `/teapot/`，确保浏览器导航和 GET/HEAD 都进入 Worker；否则 `404-page` 的导航处理可能直接返回 404。
+- 其余路径保持资源优先；若请求进入 Worker，则用 `env.ASSETS.fetch(request)` 回落到静态资源。
+- `wrangler deploy --dry-run` 可验证配置、打包与 ASSETS 绑定，不会发布；它不能替代线上状态码检查。
 - 没命中时再补一层：HTML 请求回落 `404.html`（保持 `not_found_handling` 的行为），图片之类仍然纯 404
 - 页面上的入口藏在首页「不 · 郑重申明」最后一行（`/teapot/`）
 - `tools/site-health.mjs` 的 `WORKER_ROUTES` 列了 `/teapot` —— 它不是 dist 里的文件，别报成死链

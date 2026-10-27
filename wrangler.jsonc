@@ -17,7 +17,9 @@
 		// 找不到的路径交给 dist/404.html（Astro 会生成）
 		"not_found_handling": "404-page",
 		// 脚本里用 env.ASSETS.fetch() 回落到静态资源，必须有这个 binding
-		"binding": "ASSETS"
+		"binding": "ASSETS",
+		// 浏览器导航不能被 404-page 提前接走；仅这两个路径优先执行 Worker。
+		"run_worker_first": ["/teapot", "/teapot/"]
 	},
 
 	"observability": {
