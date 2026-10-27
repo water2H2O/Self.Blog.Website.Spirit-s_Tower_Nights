@@ -294,6 +294,26 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 			.notice-foot strong {
 				color: var(--accent);
 			}
+			/* 418 彩蛋的入口：藏在声明最后一行，不抢眼但要找得到 */
+			.notice-teapot {
+				margin: 0.7em 0 0;
+				font-size: 0.76em;
+				line-height: 1.8;
+				color: rgb(var(--gray));
+				opacity: 0.85;
+			}
+			.notice-teapot a {
+				color: var(--accent);
+				text-decoration: underline dotted rgba(127, 233, 240, 45%);
+				text-underline-offset: 0.25em;
+			}
+			.notice-teapot a:hover {
+				color: var(--glow);
+				text-decoration-color: currentColor;
+			}
+			.notice-teapot .teapot-hint {
+				opacity: 0.6;
+			}
 			@media (max-width: 640px) {
 				.notice {
 					padding: 3.2em 1.1em 1.1em;
@@ -1240,6 +1260,10 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				</p>
 				<p class="notice-foot">
 					以上纯属玩梗。<strong>API key 请自己收好</strong> —— 守护好你的钱包，不要发给任何人，或者上传到仓库！
+				</p>
+				<p class="notice-teapot">
+					不过说真的，本站确实是个茶壶 —— <a href="/teapot/">RFC 2324 合规声明</a>
+					<span class="teapot-hint">（curl -I 一下）</span>
 				</p>
 			</aside>
 

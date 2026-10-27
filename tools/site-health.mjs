@@ -59,6 +59,12 @@ function targetFile(href) {
 	return fs.existsSync(indexed) ? indexed : null;
 }
 
+/**
+ * 这些路径不在 dist 里 —— 由 worker/index.mjs 在运行时接管（比如 /teapot 要返 418）。
+ * 静态检查看不到它们，所以单独列出来，别当成死链。
+ */
+const WORKER_ROUTES = new Set(['/teapot', '/teapot/']);
+
 // ---------------------------------------------------------------- 1) 死链
 const deadLinks = new Map();
 const missingAssets = new Map();
@@ -67,6 +73,7 @@ for (const page of pages) {
 	for (const match of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
 		const ref = match[1];
 		if (ref.startsWith('//')) continue;
+		if (WORKER_ROUTES.has(ref)) continue;
 		if (refExists(ref)) continue;
 		const bucket = /\.(?:webp|png|jpe?g|gif|svg|mp3|ogg|zip|ico)$/i.test(ref) ? missingAssets : deadLinks;
 		if (!bucket.has(ref)) bucket.set(ref, []);

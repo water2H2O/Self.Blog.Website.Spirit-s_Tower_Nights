@@ -862,6 +862,18 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 - **404 页由 `src/pages/404.astro` 产出**：`wrangler.jsonc` 的 `not_found_handling: "404-page"`
   就是靠 `dist/404.html` 兜底，删了那个文件访客输错地址只会看到 Cloudflare 的默认错误页
   （`node tools/site-health.mjs` 会检查它还在不在）
+
+### 唯一的 Worker 脚本：`/teapot`
+
+`wrangler.jsonc` 里有 `main: ./worker/index.mjs` —— 全站唯一的服务端逻辑，只干一件事：
+`/teapot` 返回真正的 **HTTP 418**（RFC 2324）+ `x-teapot: true`，顺便对上《晶体网络协议》§6.3 的
+`418 STOP AND HAVE A CUP OF WEILAN`。为什么非要有脚本：静态托管只能返 200/404，状态码是服务端才给得出的。
+
+- **其余请求一律 `env.ASSETS.fetch(request)`** —— 静态资源优先的路由下，Worker 只在「没命中任何文件」
+  时才会被调用，所以它出问题最多影响 404，不会拖垮整站
+- 没命中时再补一层：HTML 请求回落 `404.html`（保持 `not_found_handling` 的行为），图片之类仍然纯 404
+- 页面上的入口藏在首页「不 · 郑重申明」最后一行（`/teapot/`）
+- `tools/site-health.mjs` 的 `WORKER_ROUTES` 列了 `/teapot` —— 它不是 dist 里的文件，别报成死链
 - 站内链接**一律带尾斜杠**（`/worldview/`）：页面都是「目录 + index.html」，
   少写一个斜杠就会先吃一次 307，每次点导航多一个来回
 
