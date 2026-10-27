@@ -322,6 +322,21 @@ const rows = [...days].reverse();
 			tbody tr:hover {
 				background: rgba(175, 255, 255, 4%);
 			}
+			.daily .unit {
+				display: none;
+			}
+			.daily .part {
+				white-space: nowrap;
+			}
+			.daily .part + .part::before {
+				content: '+ ';
+				white-space: normal;
+				opacity: 0.6;
+			}
+			.daily .part:not(:last-child)::after {
+				content: ' ';
+				white-space: normal;
+			}
 			.note {
 				margin: 1em 0 0;
 				font-size: 0.76em;
@@ -336,9 +351,76 @@ const rows = [...days].reverse();
 				.kpis {
 					grid-template-columns: repeat(2, minmax(0, 1fr));
 				}
+				/* 占比行：三列在手机上会把数字挤出卡片、把模型名拆成两截。
+				   改成上面一行「名字 …… 数字」，下面整行一根条 */
 				.share-row {
-					grid-template-columns: 8em 1fr 5.5em;
-					gap: 0.6em;
+					grid-template-columns: minmax(0, 1fr) auto;
+					grid-template-areas: 'name num' 'bar bar';
+					gap: 0.4em 0.8em;
+					padding: 0.6em 0;
+				}
+				.share-name {
+					grid-area: name;
+					min-width: 0;
+					overflow-wrap: anywhere;
+				}
+				.share-num {
+					grid-area: num;
+				}
+				.share-bar {
+					grid-area: bar;
+				}
+				.card {
+					padding: 1.1em 1em 1em;
+				}
+				/* 逐日明细：五列在手机上挤不下，「构成」会被压成一字一行把表格撑出卡片。
+				   改成一天一块：上面一行日期 / tokens / 请求 / 花费，下面整行放构成 */
+				.daily thead {
+					position: absolute;
+					width: 1px;
+					height: 1px;
+					overflow: hidden;
+					clip: rect(0 0 0 0);
+					white-space: nowrap;
+				}
+				.daily,
+				.daily tbody {
+					display: block;
+				}
+				.daily tr {
+					display: grid;
+					grid-template-columns: auto 1fr auto auto;
+					align-items: baseline;
+					gap: 0.25em 0.9em;
+					padding: 0.7em 0.2em;
+					border-bottom: 1px solid rgb(var(--gray-light));
+				}
+				.daily tbody tr:hover {
+					background: none;
+				}
+				.daily td {
+					padding: 0;
+					border: 0;
+					white-space: nowrap;
+				}
+				.daily td:first-child {
+					color: var(--glow);
+				}
+				.daily td:nth-child(2) {
+					text-align: left;
+				}
+				.daily .unit {
+					display: inline;
+					font-size: 0.85em;
+					color: rgb(var(--gray));
+				}
+				.daily td.parts {
+					grid-column: 1 / -1;
+					text-align: left;
+					white-space: normal;
+					font-size: 0.88em;
+					line-height: 1.6;
+					color: rgb(var(--gray));
 				}
 			}
 		</style>
@@ -502,12 +584,12 @@ const rows = [...days].reverse();
 				{
 					colored.map((s) => (
 						<div class="share-row">
-							<span>{s.label}</span>
+							<span class="share-name">{s.label}</span>
 							<span class="share-bar">
 								<i style={`width:${Math.max(1, s.share ?? 0)}%;background:${s.color}`} />
 							</span>
 							<span class="share-num">
-								{s.share ?? 0}% · {fmt(s.tokens)}
+								{(s.share ?? 0) > 0 ? `${s.share}%` : '<0.1%'} · {fmt(s.tokens)}
 							</span>
 						</div>
 					))
@@ -519,7 +601,7 @@ const rows = [...days].reverse();
 
 			<h2>逐日明细</h2>
 			<div class="card">
-				<table>
+				<table class="daily">
 					<thead>
 						<tr>
 							<th>日期</th>
@@ -535,13 +617,20 @@ const rows = [...days].reverse();
 								<tr>
 									<td>{d.date}</td>
 									<td>{fmt(d.tokens)}</td>
-									<td>{d.requests}</td>
-									<td>{d.cost ? fmtYuan(d.cost) : '—'}</td>
 									<td>
+										{d.requests}
+										<span class="unit"> 次</span>
+									</td>
+									<td>{d.cost ? fmtYuan(d.cost) : '—'}</td>
+									<td class="parts">
+										{/* 每段单独一个不换行的 span：窄屏只在「+」之间折行，不把模型名拆成两截 */}
 										{Object.entries(d.parts ?? {})
 											.sort((a, b) => b[1] - a[1])
-											.map(([label, v]) => `${label.replace(/^官方 · |^中转站 · /, '')} ${fmt(v)}`)
-											.join(' + ')}
+											.map(([label, v]) => (
+												<span class="part">
+													{label.replace(/^官方 · |^中转站 · /, '')} {fmt(v)}
+												</span>
+											))}
 									</td>
 								</tr>
 							))
