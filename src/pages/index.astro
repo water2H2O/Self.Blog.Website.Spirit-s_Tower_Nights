@@ -373,10 +373,10 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				color: transparent;
 				filter: drop-shadow(0 0 22px rgba(175, 255, 255, 26%));
 			}
-			/* 定位语：给第一次来的人一句「这是谁的站、讲什么的」。排在名字下面、身份行上面 */
+			/* 定位语：给第一次来的人一句「这是谁的站、讲什么的」。排在名字上面，当引导句 */
 			.intro .tagline {
 				max-width: 32em;
-				margin: 0.7em 0 1.1em;
+				margin: 0 0 0.5em;
 				font-size: 1.02em;
 				line-height: 1.7;
 				letter-spacing: 0.02em;
@@ -386,7 +386,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 			@media (max-width: 640px) {
 				.intro .tagline {
 					font-size: 0.94em;
-					margin: 0.6em 0 1em;
+					margin: 0 0 0.4em;
 				}
 			}
 			.intro .aka {
@@ -1093,8 +1093,8 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 
 			<section class="intro">
 				<div class="intro-text">
-					<h1>水水</h1>
 					<p class="tagline">欢迎来到水塔——一个属于水水的，原创的 OC 世界观</p>
+					<h1>水水</h1>
 					<p class="aka">淼渺_Water2H2O · 一只狐狸（？）</p>
 
 					<p class="bio">
