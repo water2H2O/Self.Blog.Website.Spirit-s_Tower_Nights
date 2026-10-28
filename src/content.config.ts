@@ -118,6 +118,11 @@ const characters = defineCollection({
 			themeColor: themeColor.default('#AFFFFF'),
 			portrait: z.optional(image()),
 			/**
+			 * 设定图：带部件标注、色板的那种设定稿。
+			 * 和 portrait 分开存 —— 立绘做封面与列表缩略图，设定图排在封面下面当参考。
+			 */
+			sheet: z.optional(image()),
+			/**
 			 * 是否进「抽签」的签筒。
 			 * 默认 false（自己的 OC 一般不放进去），朋友家的孩子与想放进去的角色手动标 true。
 			 */

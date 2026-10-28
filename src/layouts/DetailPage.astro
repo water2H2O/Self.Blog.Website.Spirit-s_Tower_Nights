@@ -21,6 +21,9 @@ interface Props {
 	summary: string;
 	themeColor: string;
 	cover?: ImageMetadata;
+	/** 设定图（部件标注那种）：排在封面下面，只做参考，不参与列表缩略图 */
+	sheet?: ImageMetadata;
+	sheetNote?: string;
 	/** 纯文字档案可关闭整个配图区域；不影响页面分享图。 */
 	showCover?: boolean;
 	tags?: string[];
@@ -48,6 +51,8 @@ const {
 	summary,
 	themeColor,
 	cover,
+	sheet,
+	sheetNote,
 	showCover = true,
 	tags = [],
 	meta = [],
@@ -128,6 +133,24 @@ const CANON = {
 				width: 100%;
 				border-radius: 14px;
 				box-shadow: var(--box-shadow);
+			}
+			/* 设定图：纸本色，和深色页面拉开一点；标题小字压在下面 */
+			.sheet {
+				margin: 1em 0 0;
+			}
+			.sheet :global(img) {
+				display: block;
+				width: 100%;
+				border-radius: 14px;
+				box-shadow: var(--box-shadow);
+				background: #fff;
+			}
+			.sheet figcaption {
+				margin: 0.5em 0 0;
+				font-size: 0.76em;
+				letter-spacing: 0.08em;
+				color: rgb(var(--gray));
+				text-align: center;
 			}
 			/*
 			 * 还没有立绘时的占位框：虚线框 + 一行 #NO INFO。
@@ -251,6 +274,15 @@ const CANON = {
 							<span class="none-text">可以先看看下面的文字。</span>
 						</div>
 					))
+				}
+				{/* 设定图：带部件标注的稿子，放在立绘下面当参考；白底直接当纸张用 */}
+				{
+					sheet && (
+						<figure class="sheet">
+							<Image src={sheet} alt={`${title} 设定图`} width={1020} />
+							<figcaption>{sheetNote ?? '设定图 · 部件与配色说明'}</figcaption>
+						</figure>
+					)
 				}
 			</header>
 			{
