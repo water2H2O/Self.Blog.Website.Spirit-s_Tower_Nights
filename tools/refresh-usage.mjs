@@ -166,7 +166,38 @@ if (DRY) {
 const before = readJson();
 console.log(`\n刷新前：${describe(before)}`);
 
-const args = [FETCH, ...zips.map((z) => `--zip=${z.file}`), ...relays.map((r) => `--relay=${r.file}`)];
+/**
+ * 先剔掉解不开的 zip：导出目录里常有几个月前导坏的文件（tar 直接报 "not a tar archive"），
+ * 一个坏文件不该让整次刷新失败。解压失败的文件只警告，其余照常合并。
+ *
+ * Windows 上必须用系统自带的 bsdtar（C:\Windows\System32\tar.exe）：它能读 zip，
+ * 而 PATH 上先命中的 GNU tar 会把 `C:/…` 当成「远程主机 C」，直接报 resolve 失败。
+ */
+const TAR = process.platform === 'win32' && fs.existsSync('C:/Windows/System32/tar.exe')
+	? 'C:/Windows/System32/tar.exe'
+	: 'tar';
+const nativePath = (p) => (process.platform === 'win32' ? p.replace(/\//g, '\\') : p);
+
+function usableZip(file) {
+	try {
+		execFileSync(TAR, ['-tf', nativePath(file)], { stdio: 'ignore' });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+const goodZips = [];
+for (const z of zips) {
+	if (usableZip(z.file)) goodZips.push(z);
+	else console.warn(`  ⚠ 跳过打不开的压缩包：${z.name}（删掉或重新导一份就行）`);
+}
+if (goodZips.length === 0) {
+	console.error('没有可用的平台导出，放弃刷新。');
+	process.exit(2);
+}
+
+const args = [FETCH, ...goodZips.map((z) => `--zip=${z.file}`), ...relays.map((r) => `--relay=${r.file}`)];
 node(args);
 
 const after = readJson();

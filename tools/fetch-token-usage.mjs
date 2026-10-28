@@ -273,10 +273,20 @@ function collectFrom(dir) {
 		}));
 }
 
+/**
+ * 解 zip 用哪个 tar：Windows 上必须用系统自带的 bsdtar（C:\Windows\System32	ar.exe）。
+ * PATH 上先命中的往往是 Git Bash / DSH 自带的 GNU tar —— 它读不了 zip，
+ * 还会把 `C:/…` 当成「远程主机 C」，报 "Cannot connect to C"。
+ */
+const TAR = process.platform === 'win32' && fs.existsSync('C:/Windows/System32/tar.exe')
+	? 'C:/Windows/System32/tar.exe'
+	: 'tar';
+const nativePath = (p) => (process.platform === 'win32' ? p.replace(/\//g, '\\') : p);
+
 function collectFromZip(zipPath) {
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dsu-'));
 	try {
-		execFileSync('tar', ['-xf', zipPath, '-C', dir], { stdio: 'ignore' });
+		execFileSync(TAR, ['-xf', nativePath(zipPath), '-C', nativePath(dir)], { stdio: 'ignore' });
 		return collectFrom(dir);
 	} catch (e) {
 		throw new Error(`解压失败：${zipPath}\n  ${e.message}`);
@@ -301,7 +311,7 @@ async function collectFromApi(token, months) {
 		const zip = path.join(dir, 'export.zip');
 		fs.writeFileSync(zip, buf);
 		try {
-			execFileSync('tar', ['-xf', zip, '-C', dir], { stdio: 'ignore' });
+			execFileSync(TAR, ['-xf', nativePath(zip), '-C', nativePath(dir)], { stdio: 'ignore' });
 			out.push(...collectFrom(dir));
 		} finally {
 			fs.rmSync(dir, { recursive: true, force: true });
