@@ -355,6 +355,24 @@ const guestCards = series
 				font-variant-numeric: tabular-nums;
 				color: var(--glow);
 			}
+			@media (max-width: 900px) {
+				.roster {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+			}
+			@media (max-width: 640px) {
+				.roster,
+				.roster.guests {
+					grid-template-columns: minmax(0, 1fr);
+				}
+				.hero-art :global(img) {
+					max-height: 17em;
+				}
+				.hero-models li {
+					grid-template-columns: minmax(0, 1fr) auto auto auto;
+					gap: 0.55em;
+				}
+			}
 			.m-tokens {
 				text-align: right;
 				white-space: nowrap;
