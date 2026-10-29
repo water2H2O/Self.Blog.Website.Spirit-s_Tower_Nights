@@ -132,12 +132,7 @@ const tokenSeries: TokenSeries[] = (tokenData.series ?? []).filter((s) => s.toke
  * 台词已经画在画里了，所以座位上只补数据：谁吃掉了多少、来了几天、要付多少钱。
  * 三格按 DeepSeek / GPT / Claude 家族合并；其余模型单独加座，不挤进立绘下方。
  */
-const { seats: canteenSeats, guests: guestSeatsAll } = arrangeCanteen(tokenSeries, tokenDaily);
-/**
- * 首页只留对话模型的加桌；生图那种「一张多少钱」的账放在 /token 的角色面板里，
- * 挤在首页这一排会把「烧 token」的语义弄乱。
- */
-const guestSeats = guestSeatsAll.filter((seat) => !seat.isImage);
+const { seats: canteenSeats, guests: guestSeats } = arrangeCanteen(tokenSeries, tokenDaily);
 const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? null;
 ---
 
