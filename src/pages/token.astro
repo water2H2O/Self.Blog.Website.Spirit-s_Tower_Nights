@@ -88,7 +88,7 @@ const stack = (() => {
 			label: i === 0 || i === days.length - 1 || i % labelEvery === 0,
 		};
 	});
-	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW };
+	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW, slot };
 })();
 
 /** 每日花费：折线。颜色按高度取（userSpaceOnUse 渐变，底部青、中段金、顶部红），越贵越红 */
@@ -119,8 +119,20 @@ const costChart = (() => {
 	const area = `${line} L${points.at(-1)!.x.toFixed(1)} ${base} L${points[0].x.toFixed(1)} ${base} Z`;
 	const peak = points.find((p) => p.peak) ?? null;
 	const peakAnchor = !peak ? 'middle' : peak.x > PL + plotW * 0.88 ? 'end' : peak.x < PL + plotW * 0.12 ? 'start' : 'middle';
-	return { W, H, PL, PR, PT, PB, plotW, plotH, base, max, points, line, area, peak, peakAnchor };
+	return { W, H, PL, PR, PT, PB, plotW, plotH, base, max, points, line, area, peak, peakAnchor, slot };
 })();
+
+/** 逐日明细喂给悬停浮层：颜色和数字都在这里，前端只负责排版 */
+const tipData = {
+	colors: Object.fromEntries(colored.map((s) => [s.label, s.color])),
+	days: days.map((d) => ({
+		date: d.date,
+		tokens: d.tokens,
+		cost: d.cost,
+		requests: d.requests,
+		parts: d.parts ?? {},
+	})),
+};
 
 /** 表格：倒序，最近的在上面 */
 const rows = [...days].reverse();
@@ -224,6 +236,17 @@ const rows = [...days].reverse();
 				width: 100%;
 				height: auto;
 				overflow: visible;
+			}
+			/* 悬停热区：透明、不吃鼠标样式变化，但能接住指针 */
+			svg.chart .hit {
+				cursor: crosshair;
+			}
+			/* 悬停时压暗其余柱子，被指到的那根保持原样 */
+			svg.chart.is-hovering > g {
+				opacity: 0.4;
+			}
+			svg.chart.is-hovering > g:has(.is-active) {
+				opacity: 1;
 			}
 			.axis {
 				fill: rgb(var(--gray));
@@ -424,6 +447,82 @@ const rows = [...days].reverse();
 				}
 			}
 		</style>
+		<style is:global>
+			/* 浮层内容由脚本动态创建，拿不到 Astro 的 scoped 属性，只能全局生效 */
+			/* 悬停浮层：跟手的小卡片，深色底 + 细描边 */
+			.tk-tip {
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 40;
+				min-width: 15em;
+				max-width: 22em;
+				padding: 0.7em 0.85em;
+				border-radius: 10px;
+				border: 1px solid rgba(175, 255, 255, 26%);
+				background: rgba(10, 24, 34, 96%);
+				box-shadow: 0 12px 30px rgba(0, 0, 0, 45%);
+				backdrop-filter: blur(6px);
+				pointer-events: none;
+				font-size: 0.82em;
+				color: rgb(var(--gray-dark));
+			}
+			.tip-head {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				gap: 1em;
+				padding-bottom: 0.45em;
+				margin-bottom: 0.45em;
+				border-bottom: 1px solid rgba(175, 255, 255, 14%);
+			}
+			.tip-date {
+				font-variant-numeric: tabular-nums;
+				color: rgb(var(--gray));
+			}
+			.tip-total {
+				font-weight: 600;
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+			}
+			.tip-rows {
+				display: flex;
+				flex-direction: column;
+				gap: 0.28em;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.tip-rows li {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+			.tip-rows i {
+				flex: none;
+				width: 8px;
+				height: 8px;
+				border-radius: 2px;
+			}
+			.tip-name {
+				flex: 1 1 auto;
+				min-width: 0;
+				overflow-wrap: anywhere;
+				color: rgb(var(--gray));
+			}
+			.tip-rows b {
+				margin-left: 0.7em;
+				font-weight: 600;
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+				white-space: nowrap;
+			}
+			.tip-foot {
+				margin: 0.5em 0 0;
+				font-size: 0.9em;
+				color: rgb(var(--gray));
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
@@ -460,7 +559,13 @@ const rows = [...days].reverse();
 			<div class="card">
 				{
 					stack && (
-						<svg class="chart" viewBox={`0 0 ${stack.W} ${stack.H}`} role="img" aria-label="每日 token 用量堆叠柱状图">
+						<svg
+							class="chart"
+							viewBox={`0 0 ${stack.W} ${stack.H}`}
+							role="img"
+							aria-label="每日 token 用量堆叠柱状图"
+							data-chart="tokens"
+						>
 							{[0, 0.25, 0.5, 0.75, 1].map((r) => (
 								<line
 									class="grid"
@@ -487,10 +592,19 @@ const rows = [...days].reverse();
 											fill={seg.color}
 											fill-opacity="0.85"
 											rx="1.5"
-										>
-											<title>{`${bar.date} · ${seg.label} · ${fmt(seg.value)}`}</title>
-										</rect>
+										/>
 									))}
+									{/* 整根柱子的悬停热区：比柱子宽一点，细日子也好指中 */}
+									<rect
+										class="hit"
+										x={bar.cx - stack.slot / 2}
+										y={stack.PT}
+										width={stack.slot}
+										height={stack.plotH}
+										fill="transparent"
+										data-chart="tokens"
+										data-date={bar.date}
+									/>
 									{bar.label && (
 										<text class="axis" x={bar.cx} y={stack.H - 8} text-anchor="middle">
 											{bar.date.slice(5).replace('-', '/')}
@@ -518,7 +632,13 @@ const rows = [...days].reverse();
 			<div class="card">
 				{
 					costChart && (
-						<svg class="chart" viewBox={`0 0 ${costChart.W} ${costChart.H}`} role="img" aria-label="每日花费折线图，线越高颜色越红">
+						<svg
+							class="chart"
+							viewBox={`0 0 ${costChart.W} ${costChart.H}`}
+							role="img"
+							aria-label="每日花费折线图，线越高颜色越红"
+							data-chart="cost"
+						>
 							<defs>
 								{/* 按画布坐标铺的竖向渐变：同一高度永远同一种颜色，平线段也能正常上色 */}
 								<linearGradient id="cost-line" gradientUnits="userSpaceOnUse" x1="0" y1={costChart.base} x2="0" y2={costChart.PT}>
@@ -555,9 +675,17 @@ const rows = [...days].reverse();
 								<g>
 									<circle class="cost-dot" cx={p.x} cy={p.y} r={p.peak ? 4.5 : 2.6} fill="url(#cost-line)" />
 									{/* 透明的大圈只负责悬停提示，点很小也好停 */}
-									<circle cx={p.x} cy={p.y} r="10" fill="transparent">
-										<title>{`${p.date} · ${fmtYuan(p.cost)}`}</title>
-									</circle>
+									<circle class="cost-hit" cx={p.x} cy={p.y} r="10" fill="transparent" data-chart="cost" data-date={p.date} />
+									<rect
+										class="hit"
+										x={p.x - costChart.slot / 2}
+										y={costChart.PT}
+										width={costChart.slot}
+										height={costChart.plotH}
+										fill="transparent"
+										data-chart="cost"
+										data-date={p.date}
+									/>
 									{p.label && (
 										<text class="axis" x={p.x} y={costChart.H - 8} text-anchor="middle">
 											{p.date.slice(5).replace('-', '/')}
@@ -646,5 +774,104 @@ const rows = [...days].reverse();
 			</p>
 		</main>
 		<Footer />
+
+		{/* 图表悬停浮层：内容由下面那段脚本按 data-date 查表填 */}
+		<div class="tk-tip" id="tk-tip" role="tooltip" hidden>
+			<div class="tip-head">
+				<span class="tip-date"></span>
+				<span class="tip-total"></span>
+			</div>
+			<ul class="tip-rows"></ul>
+			<p class="tip-foot"></p>
+		</div>
+
+		<script type="application/json" id="tk-days" set:html={JSON.stringify(tipData)} />
+
+		<script>
+			type Day = {
+				date: string;
+				tokens: number;
+				cost: number;
+				requests: number;
+				parts: Record<string, number>;
+			};
+			const raw = document.getElementById('tk-days')?.textContent ?? '{}';
+			const tip = JSON.parse(raw) as { colors: Record<string, string>; days: Day[] };
+			const byDate = new Map(tip.days.map((d) => [d.date, d]));
+
+			const box = document.getElementById('tk-tip') as HTMLDivElement;
+			const elDate = box.querySelector('.tip-date') as HTMLElement;
+			const elTotal = box.querySelector('.tip-total') as HTMLElement;
+			const elRows = box.querySelector('.tip-rows') as HTMLUListElement;
+			const elFoot = box.querySelector('.tip-foot') as HTMLElement;
+
+			const fmtTokens = (n: number) =>
+				n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(Math.round(n));
+			const fmtYuan = (n: number) => `¥${n.toFixed(2)}`;
+
+			/** 哪张图悬停，浮层就写什么口径 */
+			function fill(chart: string, day: Day) {
+				const entries = Object.entries(day.parts ?? {}).sort((a, b) => b[1] - a[1]);
+				elDate.textContent = day.date;
+				elTotal.textContent = chart === 'cost' ? fmtYuan(day.cost) : fmtTokens(day.tokens);
+				elRows.replaceChildren();
+
+				const shown = chart === 'cost' ? entries.slice(0, 3) : entries;
+				for (const [label, value] of shown) {
+					const li = document.createElement('li');
+					const dot = document.createElement('i');
+					dot.style.background = tip.colors[label] ?? '#7fe9f0';
+					const name = document.createElement('span');
+					name.className = 'tip-name';
+					name.textContent = label;
+					const num = document.createElement('b');
+					// 花费图没有「每天每模型」的账单，只给这个模型当天占的量，不能编个价钱出来
+					num.textContent = chart === 'cost' ? fmtTokens(value) : fmtTokens(value);
+					li.append(dot, name, num);
+					elRows.append(li);
+				}
+
+				elFoot.textContent =
+					chart === 'cost'
+						? `${day.requests} 次请求 · 下面按当天 token 量排序`
+						: `${day.requests} 次请求 · 合计 ${fmtYuan(day.cost)}`;
+			}
+
+			/** 浮层跟着指针，但默认摆在指针上方 —— 免得盖住正被指着的那根柱子 */
+			function place(event: PointerEvent) {
+				const pad = 12;
+				const rect = box.getBoundingClientRect();
+				let x = event.clientX + pad;
+				let y = event.clientY - rect.height - pad;
+				if (x + rect.width > window.innerWidth - 8) x = event.clientX - rect.width - pad;
+				if (y < 8 + window.scrollY) y = event.clientY + pad + 18;
+				box.style.transform = `translate(${Math.max(8, x)}px, ${Math.max(8, y + window.scrollY)}px)`;
+			}
+
+			const charts = document.querySelectorAll<SVGSVGElement>('svg.chart[data-chart]');
+			for (const svg of charts) {
+				const chart = svg.dataset.chart ?? 'tokens';
+				const bars = svg.querySelectorAll<SVGGraphicsElement>('rect.hit');
+				bars.forEach((hit) => {
+					hit.addEventListener('pointerenter', (event) => {
+						const day = byDate.get(hit.dataset.date ?? '');
+						if (!day) return;
+						fill(chart, day);
+						box.hidden = false;
+						place(event as PointerEvent);
+						svg.classList.add('is-hovering');
+						hit.classList.add('is-active');
+					});
+					hit.addEventListener('pointermove', (event) => {
+						if (!box.hidden) place(event as PointerEvent);
+					});
+					hit.addEventListener('pointerleave', () => {
+						box.hidden = true;
+						svg.classList.remove('is-hovering');
+						hit.classList.remove('is-active');
+					});
+				});
+			}
+		</script>
 	</body>
 </html>
