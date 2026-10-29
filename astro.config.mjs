@@ -3,6 +3,7 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
+import searchPages from './tools/search-pages-integration.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,7 +14,8 @@ export default defineConfig({
 	 * GitHub Pages 的子路径部署（…github.io/<仓库名>/），再补上 `base`。
 	 */
 	site: 'https://water2h2o.com',
-	integrations: [mdx(), sitemap()],
+	// searchPages 在构建结束时把首页、关于、列表页等独立页面补进 search-index.json
+	integrations: [mdx(), sitemap(), searchPages()],
 	vite: {
 		resolve: {
 			// Vite 在 Windows 上会调用 `exec("net use")` 来挑选 realpath 实现。
