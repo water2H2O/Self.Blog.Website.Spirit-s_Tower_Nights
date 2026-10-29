@@ -55,7 +55,9 @@ Node 的 HTTP 服务默认 `maxHeaderSize = 16384` 字节。超过这个体积�
 
 既然规律是「每次启动 +228 字节」，那就可以提前量。
 
-我写了个小工具（`cookie-guard`）读浏览器的 cookie 库，数一下这个 host 前缀下有多少条：
+我写了个小工具（`cookie-guard`），常驻在屏幕右下角，读浏览器的 cookie 库，数一下这个 host 前缀下有多少条：
+
+![Cookie 守护浮窗：环形仪表显示请求头占用 46%，下面三格是 33 条 cookie / 7.3K 请求头字节 / 还能启动 38 次](../../assets/oc/blog-cookie-guard.webp)
 
 ```json
 {
@@ -68,7 +70,7 @@ Node 的 HTTP 服务默认 `maxHeaderSize = 16384` 字节。超过这个体积�
 }
 ```
 
-33 条、7524 字节、用掉 45.9%，**还能启动约 38 次**。
+33 条、7524 字节、用掉 45.9%，**还能启动约 38 次**。（浮窗上写 46% / 7.3K / 上限 71 条 —— 那是抹掉小数、按 KiB 显示的口径，同一份数据。）
 
 这里「`mode: borrowed-handle`」是另一件事：Chromium 开着的时候 `Cookies` 这个 SQLite 库是**独占锁**的，直接复制会失败。所以要借句柄 —— 用 `NtQuerySystemInformation` 拿到全系统的句柄表，找到持有这个文件的进程，再 `DuplicateHandle` 复制一份出来读。听起来很重，其实就是「不关浏览器也能读」。
 
