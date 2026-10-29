@@ -276,6 +276,11 @@ const guestCards = series
 				object-fit: cover;
 				object-position: center 30%;
 			}
+			/* 加桌那两位是透明底的切图，contain 才不会被裁掉 */
+			.hero.guest .hero-art :global(img) {
+				object-fit: contain;
+				max-height: 12em;
+			}
 			.hero-body {
 				display: flex;
 				flex-direction: column;
