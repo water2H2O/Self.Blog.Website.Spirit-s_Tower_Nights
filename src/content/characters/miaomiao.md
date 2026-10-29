@@ -9,8 +9,7 @@ pronouns: 女
 height: 145cm
 age: 不详（精灵寿命漫长，心理年龄与外表均显稚嫩）
 themeColor: '#AFFFFF'
-portrait: '../../assets/oc/characters/miaomiao-portrait.webp'
-sheet: '../../assets/oc/characters/miaomiao-sheet.webp'
+portrait: '../../assets/oc/characters/miaomiao-portrait-2026.webp'
 drawable: true
 lore: ['miasma', 'artifacts', 'elf-arc']
 relations:

@@ -87,6 +87,73 @@ const CANON = {
 			.back:hover {
 				color: var(--entry-color);
 			}
+			/* ---------- 百科式词条排版：正文在左，信息框（立绘）在右 ---------- */
+			.entry-top {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) minmax(15em, 34%);
+				gap: 1.6em 2em;
+				align-items: start;
+				margin-top: 1em;
+			}
+			.entry-intro {
+				min-width: 0;
+			}
+			.entry-intro .hero {
+				margin-top: 0;
+			}
+			/* 立绘卡：像词条右侧的信息框，图片按 4:5 裁切，标题压在图下面 */
+			.entry-figure {
+				position: sticky;
+				top: 1.5em;
+			}
+			.entry-figure .cover {
+				margin: 0;
+				overflow: hidden;
+				border-radius: 14px;
+				border: 1px solid color-mix(in srgb, var(--entry-color) 28%, transparent);
+				background: color-mix(in srgb, var(--entry-color) 6%, var(--surface));
+				box-shadow: var(--box-shadow);
+			}
+			.entry-figure .cover :global(img) {
+				display: block;
+				width: 100%;
+				aspect-ratio: 4 / 5;
+				object-fit: cover;
+				object-position: center 22%;
+				border-radius: 0;
+				box-shadow: none;
+			}
+			.entry-figure .cover figcaption {
+				padding: 0.5em 0.7em;
+				font-size: 0.78em;
+				text-align: center;
+				color: rgb(var(--gray));
+				border-top: 1px solid color-mix(in srgb, var(--entry-color) 20%, transparent);
+			}
+			.entry-figure .cover.none {
+				aspect-ratio: 4 / 5;
+			}
+			/* 提要句：原来只在 <meta> 里，现在正文顶上直接读得到 */
+			.hero .summary {
+				margin: 0.6em 0 0;
+				font-size: 0.95em;
+				line-height: 1.95;
+				color: rgb(var(--gray-dark));
+			}
+			@media (max-width: 860px) {
+				.entry-top {
+					grid-template-columns: minmax(0, 1fr);
+					gap: 1.2em;
+				}
+				.entry-figure {
+					position: static;
+					order: -1;
+				}
+				.entry-figure .cover :global(img) {
+					aspect-ratio: 3 / 2;
+					object-position: center 18%;
+				}
+			}
 			.hero {
 				margin: 1em 0 1.6em;
 				padding-bottom: 1.2em;
@@ -256,55 +323,62 @@ const CANON = {
 		<Header />
 		<main style={`--entry-color:${themeColor}`}>
 			<a class="back" href={backHref}>← {backLabel}</a>
-			<header class="hero">
-				<h1>{title}</h1>
-				{subtitle && <p class="subtitle">{subtitle}</p>}
-				{canon && <p class="canon" data-level={canon} title={CANON[canon].hint}>{CANON[canon].label}</p>}
-				<SpoilerNote level={spoiler} />
-				<TagList tags={tags} color={themeColor} />
-				{
-					showCover && (cover ? (
-						<div class="cover">
-							<Image src={cover} alt={title} width={1020} />
-						</div>
-					) : (
-						/* 还没有图：占位框，明说「暂无」而不是留一片空白 */
-						<div class="cover none" data-no-info>
-							<span class="none-mark">暂无配图</span>
-							<span class="none-text">可以先看看下面的文字。</span>
-						</div>
-					))
-				}
-				{/* 设定图：带部件标注的稿子，放在立绘下面当参考；白底直接当纸张用 */}
-				{
-					sheet && (
-						<figure class="sheet">
-							<Image src={sheet} alt={`${title} 设定图`} width={1020} />
-							<figcaption>{sheetNote ?? '设定图 · 部件与配色说明'}</figcaption>
-						</figure>
-					)
-				}
-			</header>
+			{/* 百科式词条：左边标题 + 提要 + 事实表，右边信息框（立绘）。窄屏自动叠成一列 */}
+			<div class="entry-top">
+				<div class="entry-intro">
+					<header class="hero">
+						<h1>{title}</h1>
+						{subtitle && <p class="subtitle">{subtitle}</p>}
+						{canon && <p class="canon" data-level={canon} title={CANON[canon].hint}>{CANON[canon].label}</p>}
+						<SpoilerNote level={spoiler} />
+						<TagList tags={tags} color={themeColor} />
+						<p class="summary">{summary}</p>
+					</header>
+					{
+						meta.length > 0 && (
+							<table class="facts-table meta">
+								<tbody>
+									{meta.map((item) => (
+										<tr>
+											<th scope="row">{item.label}</th>
+											<td>
+												{item.href ? (
+													<a href={item.href} target="_blank" rel="noreferrer">
+														{item.value}
+													</a>
+												) : (
+													item.value
+												)}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						)
+					}
+				</div>
+				<aside class="entry-figure">
+					{
+						showCover && (cover ? (
+							<figure class="cover">
+								<Image src={cover} alt={title} width={640} />
+								<figcaption>{title}</figcaption>
+							</figure>
+						) : (
+							<div class="cover none" data-no-info>
+								<span class="none-mark">暂无配图</span>
+								<span class="none-text">可以先看看下面的文字。</span>
+							</div>
+						))
+					}
+				</aside>
+			</div>
 			{
-				meta.length > 0 && (
-					<table class="facts-table meta">
-						<tbody>
-							{meta.map((item) => (
-								<tr>
-									<th scope="row">{item.label}</th>
-									<td>
-										{item.href ? (
-											<a href={item.href} target="_blank" rel="noreferrer">
-												{item.value}
-											</a>
-										) : (
-											item.value
-										)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+				sheet && (
+					<figure class="sheet">
+						<Image src={sheet} alt={title} width={1020} />
+						<figcaption>{sheetNote ?? '设定图 · 部件与配色说明'}</figcaption>
+					</figure>
 				)
 			}
 			<div class="prose">
