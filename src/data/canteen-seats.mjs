@@ -16,7 +16,8 @@ export const familyOf = (label) => {
  * 出勤按日期并集计算，不能把多个型号同一天的出勤加两次。
  */
 export function arrangeCanteen(series = [], daily = []) {
-  const active = series.filter(s => s.tokens > 0);
+  // 生图模型的 token 可能极少甚至为 0，别让它因为「token 为 0」被整条丢掉
+  const active = series.filter(s => s.tokens > 0 || s.image || s.perImage != null);
   const sumTokens = active.reduce((sum, s) => sum + s.tokens, 0);
   const decorate = (members, family = null, withVariants = true) => {
     const tokens = members.reduce((sum, s) => sum + s.tokens, 0);
@@ -24,13 +25,21 @@ export function arrangeCanteen(series = [], daily = []) {
     const cost = hasCost ? members.reduce((sum, s) => sum + s.cost, 0) : null;
     const dates = new Set(daily.filter(day => members.some(s => (day.parts?.[s.label] ?? 0) > 0)).map(day => day.date));
     const ranked = [...members].sort((a, b) => b.tokens - a.tokens || a.label.localeCompare(b.label));
+    const requests = members.reduce((sum, s) => sum + (s.requests ?? 0), 0);
+    const image = members.some(s => isImageModel(s.label));
+    // 生图按张计费：单价 = 这个模型花的钱 ÷ 出了几张，按百万 tokens 算没有意义
+    const perImage = image && hasCost && requests > 0 ? cost / requests : null;
     return {
       family, label: members.map(s => s.label).join('、'),
       shortName: members.length === 1 ? members[0].label.split('·').pop().trim() : `${family === 'gpt' ? 'GPT' : family === 'claude' ? 'Claude' : 'DeepSeek'} · ${members.length} 个型号`,
       tokens, cost, share: sumTokens > 0 ? Math.round(tokens / sumTokens * 1000) / 10 : 0,
-      days: dates.size, unitPrice: hasCost ? perMillion(tokens, cost) : null,
+      days: dates.size,
+      requests,
+      perImage,
+      // 生图不给「每百万 tokens」—— 那个数会大得离谱且没有解释力
+      unitPrice: hasCost && !image ? perMillion(tokens, cost) : null,
       isGlm: members.some(s => /glm/i.test(s.label)),
-      isImage: members.some(s => isImageModel(s.label)),
+      isImage: image,
       multi: members.length > 1,
       // 单型号也有小卡，但小卡不能继续递归。合计行由页面统一保留，三列起点才对齐。
       variants: withVariants

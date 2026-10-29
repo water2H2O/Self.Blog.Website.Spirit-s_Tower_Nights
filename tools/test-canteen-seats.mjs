@@ -34,14 +34,17 @@ assert.equal(arrangeCanteen().guests.length, 0);
 
 // 生图模型算「另一种用途」：哪怕名字里带 gpt，也不进 GPT 主桌
 const withImage = arrangeCanteen([
-  { label: '中转站 · gpt-6.1-sol', tokens: 100, cost: 1 },
-  { label: '中转站 · gpt-image-2', tokens: 30, cost: 2 },
+  { label: '中转站 · gpt-6.1-sol', tokens: 100, cost: 1, requests: 10 },
+  { label: '中转站 · gpt-image-2', tokens: 30, cost: 2, requests: 20 },
 ], []);
 const gptSeat = withImage.seats.find(s => s.family === 'gpt');
 assert.equal(gptSeat.tokens, 100); // 主桌只算对话模型
 assert.deepEqual(withImage.guests.map(g => g.shortName), ['gpt-image-2']);
 assert.equal(withImage.guests[0].isImage, true);
 assert.equal(withImage.guests[0].variants.length, 0); // 加桌不再套小卡
+assert.equal(withImage.guests[0].unitPrice, null); // 生图不按百万 tokens 报价
+assert.equal(withImage.guests[0].perImage, 2 / 20); // 单张均价 = 花费 ÷ 张数
+assert.equal(withImage.guests[0].requests, 20);
 
 // 主桌最多展开两个型号，其余计入合计并留一句说明
 const crowded = arrangeCanteen([

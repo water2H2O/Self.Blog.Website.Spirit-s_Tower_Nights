@@ -128,6 +128,8 @@ function dayOf(date) {
 			bySource: new Map(),
 			/** 当天「来源 · 模型」各自的账单 —— 按天记，覆盖某天时才不会残留旧值 */
 			costByLabel: new Map(),
+			/** 当天「来源 · 模型」各自的请求数（生图就是张数） */
+			countByLabel: new Map(),
 		});
 	}
 	return byDate.get(date);
@@ -150,6 +152,14 @@ function addCost(day, label, cost) {
 	day.costByLabel.set(label, (day.costByLabel.get(label) ?? 0) + cost);
 }
 
+/** 生图模型：按张计价，token 常常是 0，不能被「tokens <= 0 就跳过」筛掉 */
+const IMAGE_LABEL_RE = /(?:^|[-_/\s·])image(?:[-_/\s]|$)/i;
+const isImageLabel = (label) => IMAGE_LABEL_RE.test(label.split('·').pop() ?? label);
+
+function addCount(day, label, n = 1) {
+	day.countByLabel.set(label, (day.countByLabel.get(label) ?? 0) + n);
+}
+
 /**
  * 同一个家族的不同叫法并到一条线上。
  * 作者 2026-10-24：新出现的 claude-opus-5 与原来的 claude-opus-5-5 算一家，不单独占一席。
@@ -168,6 +178,7 @@ function ingestRelay(text) {
 	const iCR = col('Cache Read Tokens');
 	const iCC = col('Cache Creation Tokens');
 	const iCost = col('Billed Cost');
+	const iType = col('Type');
 	if (iTime < 0 || iModel < 0) throw new Error('中转站 CSV 里找不到 Time / Model 列');
 
 	for (const row of rows) {
@@ -182,17 +193,21 @@ function ingestRelay(text) {
 		const ccTok = Number.parseInt(row[header[iCC]], 10) || 0;
 		const tokens = inTok + outTok + crTok + ccTok;
 		const cost = Number.parseFloat(row[header[iCost]]) || 0;
-		if (tokens <= 0) continue;
+		const rowType = iType >= 0 ? (row[header[iType]] ?? '').trim() : '';
+		const label = `中转站 · ${model}`;
+		// 生图那一行的 token 通常是 0（按张计费），只靠 tokens 筛会把整张图漏掉
+		const imageRow = /^image$/i.test(rowType) || isImageLabel(label);
+		if (tokens <= 0 && !imageRow) continue;
 		// 同一笔在多份导出里重复出现时只算一次
-		const dedupeKey = `${time}|${model}|${inTok}|${outTok}|${crTok}|${ccTok}`;
+		const dedupeKey = `${time}|${model}|${inTok}|${outTok}|${crTok}|${ccTok}|${cost}`;
 		if (relaySeen.has(dedupeKey)) continue;
 		relaySeen.add(dedupeKey);
-		const label = `中转站 · ${model}`;
 		const day = dayOf(date);
 		day.tokens += tokens;
 		day.cost += cost;
 		day.requests += 1;
 		day.bySource.set(label, (day.bySource.get(label) ?? 0) + tokens);
+		addCount(day, label);
 		addCost(day, label, cost);
 	}
 }
@@ -207,6 +222,9 @@ function ingestAmount(text) {
 		let counted = 0;
 		if (type === TYPE_REQ) {
 			day.requests += amount;
+			// 请求数按模型也记一份：官方这边同样要算「每次多少钱」
+			const reqLabel = `${officialPrefix}${(row.model ?? '未知').trim()}`;
+			if (amount > 0) addCount(day, reqLabel, amount);
 		} else if (type === TYPE_MISS) {
 			day.input += amount;
 			day.tokens += amount;
@@ -350,11 +368,14 @@ function writeOut(labels, source) {
 	const byModel = new Map();
 	const byKeyName = new Map();
 	const costByLabel = new Map();
+	/** 「来源 · 模型」各自的请求数：生图按张计价，token 比价没意义，要靠它算单张均价 */
+	const countByLabel = new Map();
 	for (const day of byDate.values()) {
 		for (const [label, v] of day.bySource) bySourceTotal.set(label, (bySourceTotal.get(label) ?? 0) + v);
 		for (const [label, v] of day.byModel) byModel.set(label, (byModel.get(label) ?? 0) + v);
 		for (const [label, v] of day.byKey) byKeyName.set(label, (byKeyName.get(label) ?? 0) + v);
 		for (const [label, v] of day.costByLabel) costByLabel.set(label, (costByLabel.get(label) ?? 0) + v);
+		for (const [label, v] of day.countByLabel) countByLabel.set(label, (countByLabel.get(label) ?? 0) + v);
 	}
 
 	/**
@@ -381,6 +402,13 @@ function writeOut(labels, source) {
 		s.share = Number(((s.tokens / totalSeries) * 100).toFixed(1));
 		const cost = costByLabel.get(s.label);
 		if (cost) s.cost = Number(cost.toFixed(4));
+		const count = countByLabel.get(s.label);
+		if (count) s.requests = count;
+		// 生图按张计费：一张多少钱才是有意义的单价，token 单价在这儿是噪声
+		if (isImageLabel(s.label) && count > 0 && cost) {
+			s.image = true;
+			s.perImage = Number((cost / count).toFixed(4));
+		}
 	}
 
 	/**

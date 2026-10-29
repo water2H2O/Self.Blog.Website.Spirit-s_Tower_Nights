@@ -1491,11 +1491,15 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                                     {seat.shortName}
                                                     <b>{seat.share > 0 ? `${seat.share}%` : '<0.1%'}</b>
                                                 </span>
-                                                <span class="cn-row-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
+                                                <span class="cn-row-meta">{seat.isImage ? `出了 ${seat.requests} 张` : `${fmtTokens(seat.tokens)} · 来了 ${seat.days} 天`}</span>
                                                 {seat.cost !== null && (
                                                     <span class="cn-row-cost">
                                                         <span>¥{seat.cost < 1 ? seat.cost.toFixed(3) : seat.cost.toFixed(2)}</span>
-                                                        {seat.unitPrice !== null && <span>¥{seat.unitPrice.toFixed(3)}/百万</span>}
+                                                        {seat.perImage !== null ? (
+                                                            <span>单张 ¥{seat.perImage.toFixed(3)}</span>
+                                                        ) : seat.unitPrice !== null && (
+                                                            <span>¥{seat.unitPrice.toFixed(3)}/百万</span>
+                                                        )}
                                                     </span>
                                                 )}
                                             </div>
