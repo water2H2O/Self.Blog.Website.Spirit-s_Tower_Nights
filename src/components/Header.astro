@@ -391,6 +391,23 @@ if (inWorldview) {
 		gap: 0.8em;
 		flex-wrap: wrap;
 	}
+	/*
+	 * 宽屏：三栏网格，栏目正对页面中线。
+	 * flex + space-between 会把栏目夹在 logo（128px）和搜索框（~260px）正中间，
+	 * 两侧宽度不等，于是整排偏左约 60px。两边 1fr 等宽，中间 auto，就不受左右内容宽度影响。
+	 */
+	@media (min-width: 1081px) {
+		nav.main {
+			display: grid;
+			grid-template-columns: 1fr auto 1fr;
+		}
+		nav.main > .brand {
+			justify-self: start;
+		}
+		nav.main > .social-links {
+			justify-self: end;
+		}
+	}
 	nav.main a {
 		padding: 0.95em 0.5em;
 		font-size: 0.98em;

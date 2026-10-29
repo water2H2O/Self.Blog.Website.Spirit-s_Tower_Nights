@@ -299,7 +299,11 @@ const CANON = {
 				margin: 0 0 1.6em;
 				padding: 0;
 			}
-			.prose :global(.related a) {
+			/*
+			 * 关联条目的小胶囊链接。必须排除 .res-card（数字资源卡）：
+			 * 否则 999px 圆角和 0.25em 内边距会盖掉卡片自己的样式，方形预览图左上角被弧线切出去。
+			 */
+			.prose :global(.related a:not(.res-card)) {
 				display: inline-block;
 				padding: 0.4em 0.85em;
 				border-radius: 999px;
@@ -309,7 +313,7 @@ const CANON = {
 				background: color-mix(in srgb, var(--entry-color) 10%, var(--surface));
 				border: 1px solid color-mix(in srgb, var(--entry-color) 30%, transparent);
 			}
-			.prose :global(.related a:hover) {
+			.prose :global(.related a:not(.res-card):hover) {
 				background: color-mix(in srgb, var(--entry-color) 20%, var(--surface));
 			}
 			@media (max-width: 720px) {
