@@ -6,10 +6,17 @@
  * 都在这页。数据还是 src/data/token-usage.json（tools/fetch-token-usage.mjs 生成）。
  * 全部是构建时算好的静态 SVG，页面不带前端 JS。
  */
+import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
+import aiDeepseek from '../assets/oc/ai-deepseek.webp';
+import aiGpt from '../assets/oc/ai-gpt.webp';
+import aiClaude from '../assets/oc/ai-claude.webp';
+import glmGuest from '../assets/oc/glm-guest.webp';
+import imageGuest from '../assets/oc/image-guest.webp';
 import tokenUsage from '../data/token-usage.json';
+import { familyOf, isImageModel } from '../data/canteen-seats.mjs';
 
 type Day = {
 	date: string;
@@ -136,6 +143,50 @@ const tipData = {
 
 /** 表格：倒序，最近的在上面 */
 const rows = [...days].reverse();
+
+/**
+ * 角色面板：像二游那样，一位 AI 一张卡 —— 左边立绘，右边是它自己的全部账。
+ * 立绘暂用三联画切出来的三格（`ai-*.webp`），换新图时同名覆盖即可。
+ */
+const ROSTER = [
+	{ key: 'deepseek', name: 'DeepSeek', role: '常驻那位', line: '抱着鲸鱼碗喊「再来一碗」', art: aiDeepseek, hue: '#7fe9f0' },
+	{ key: 'gpt', name: 'GPT', role: '外援那位', line: '趴在一摞本子上说「终于干完了」', art: aiGpt, hue: '#c9a8ff' },
+	{ key: 'claude', name: 'Claude', role: '结账那位', line: '举着账单，一脸困惑', art: aiClaude, hue: '#ffd68a' },
+] as const;
+
+const rosterCards = ROSTER.map((meta) => {
+	const members = series
+		.filter((s) => familyOf(s.label) === meta.key)
+		.sort((a, b) => b.tokens - a.tokens);
+	const tokens = members.reduce((sum, s) => sum + s.tokens, 0);
+	const costs = members.map((s) => s.cost ?? 0);
+	const cost = costs.reduce((sum, c) => sum + c, 0);
+	const activeDays = new Set(
+		days.filter((d) => members.some((s) => (d.parts?.[s.label] ?? 0) > 0)).map((d) => d.date),
+	).size;
+	return { ...meta, members, tokens, cost, days: activeDays };
+});
+
+/** 加桌那两位：同样一张卡，只是没有三联画里的小图 */
+const guestCards = series
+	.filter((s) => !familyOf(s.label))
+	.sort((a, b) => b.tokens - a.tokens)
+	.map((s) => {
+		const image = isImageModel(s.label);
+		const dayCount = days.filter((d) => (d.parts?.[s.label] ?? 0) > 0).length;
+		return {
+			label: s.label,
+			name: s.label.split('·').pop()?.trim() ?? s.label,
+			tokens: s.tokens,
+			cost: s.cost ?? 0,
+			days: dayCount,
+			requests: (s as { requests?: number }).requests ?? 0,
+			perImage: image && (s as { requests?: number }).requests ? (s.cost ?? 0) / (s as { requests: number }).requests : null,
+			image,
+			art: image ? imageGuest : /glm/i.test(s.label) ? glmGuest : null,
+			hue: image ? '#7fe9f0' : '#c6a6ff',
+		};
+	});
 ---
 
 <!doctype html>
@@ -190,6 +241,125 @@ const rows = [...days].reverse();
 				flex: 1;
 				height: 1px;
 				background: linear-gradient(90deg, rgba(175, 255, 255, 30%), transparent 70%);
+			}
+			/* ---------- 角色面板：一位 AI 一张卡 ---------- */
+			.roster {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 0.9em;
+			}
+			.roster.guests {
+				grid-template-columns: repeat(auto-fit, minmax(min(19em, 100%), 1fr));
+				margin-bottom: 0.6em;
+			}
+			.hero {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+				border-radius: 16px;
+				border: 1px solid color-mix(in srgb, var(--hue) 32%, transparent);
+				background:
+					radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--hue) 16%, transparent), transparent 62%),
+					var(--surface);
+				box-shadow: 0 10px 26px rgba(0, 0, 0, 32%);
+			}
+			.hero-art {
+				position: relative;
+				background: linear-gradient(180deg, rgba(8, 18, 26, 46%), transparent);
+			}
+			.hero-art :global(img) {
+				display: block;
+				width: 100%;
+				height: auto;
+				max-height: 15em;
+				object-fit: cover;
+				object-position: center 30%;
+			}
+			.hero-body {
+				display: flex;
+				flex-direction: column;
+				gap: 0.35em;
+				padding: 0.9em 1em 1em;
+			}
+			.hero-role {
+				margin: 0;
+				font-size: 0.7em;
+				letter-spacing: 0.16em;
+				color: color-mix(in srgb, var(--hue) 80%, white 20%);
+			}
+			.hero-name {
+				margin: 0;
+				font-size: 1.25em;
+				line-height: 1.2;
+				color: var(--glow);
+			}
+			.hero-line {
+				margin: 0 0 0.4em;
+				font-size: 0.76em;
+				line-height: 1.7;
+				color: rgb(var(--gray));
+			}
+			.hero-stats {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 0.4em;
+				margin: 0;
+			}
+			.hero.guest .hero-stats {
+				grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr));
+			}
+			.hero-stats div {
+				padding: 0.32em 0.4em;
+				border-radius: 8px;
+				background: rgba(175, 255, 255, 5%);
+				border: 1px solid rgba(175, 255, 255, 12%);
+			}
+			.hero-stats dt {
+				font-size: 0.64em;
+				letter-spacing: 0.08em;
+				color: rgb(var(--gray));
+			}
+			.hero-stats dd {
+				white-space: nowrap;
+				font-size: 0.86em;
+				font-weight: 600;
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+				}
+			.hero-models {
+				display: flex;
+				flex-direction: column;
+				gap: 0.22em;
+				margin: 0.5em 0 0;
+				padding: 0;
+				list-style: none;
+				font-size: 0.68em;
+			}
+			.hero-models li {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 3.2em 5.4em 5.4em;
+				gap: 0.4em;
+				align-items: baseline;
+				padding: 0.3em 0.45em;
+				border-radius: 7px;
+				background: rgba(0, 0, 0, 18%);
+			}
+			.m-name {
+				color: rgb(var(--gray));
+				overflow-wrap: anywhere;
+			}
+			.m-share,
+			.m-cost {
+				text-align: right;
+				font-variant-numeric: tabular-nums;
+				color: var(--glow);
+			}
+			.m-tokens {
+				text-align: right;
+				white-space: nowrap;
+				font-variant-numeric: tabular-nums;
+				color: rgb(var(--gray));
 			}
 			.card {
 				padding: 1.4em 1.5em 1.2em;
@@ -554,6 +724,90 @@ const rows = [...days].reverse();
 					>
 				</li>
 			</ul>
+
+			<h2>角色面板</h2>
+			<div class="roster">
+				{
+					rosterCards.map((card) => (
+						<article class="hero" style={`--hue:${card.hue}`}>
+							<div class="hero-art">
+								<Image src={card.art} alt={`${card.name} 的立绘`} width={640} loading="lazy" />
+							</div>
+							<div class="hero-body">
+								<p class="hero-role">{card.role}</p>
+								<h3 class="hero-name">{card.name}</h3>
+								<p class="hero-line">{card.line}</p>
+								<dl class="hero-stats">
+									<div>
+										<dt>占比</dt>
+										<dd>{(card.tokens / (totalTokens || 1)) * 100 >= 0.1 ? `${((card.tokens / (totalTokens || 1)) * 100).toFixed(1)}%` : '<0.1%'}</dd>
+									</div>
+									<div>
+										<dt>总量</dt>
+										<dd>{fmt(card.tokens)}</dd>
+									</div>
+									<div>
+										<dt>花费</dt>
+										<dd>{fmtYuan(card.cost)}</dd>
+									</div>
+									<div>
+										<dt>出勤</dt>
+										<dd>{card.days} 天</dd>
+									</div>
+								</dl>
+								<ul class="hero-models">
+									{card.members.map((m) => (
+										<li>
+											<span class="m-name">{m.label.split('·').pop()?.trim()}</span>
+											<span class="m-share">{(m.share ?? 0) > 0 ? `${m.share}%` : '<0.1%'}</span>
+											<span class="m-tokens">{fmt(m.tokens)}</span>
+											<span class="m-cost">{fmtYuan(m.cost ?? 0)}</span>
+										</li>
+									))}
+								</ul>
+							</div>
+						</article>
+					))
+				}
+			</div>
+
+			<h2>加桌</h2>
+			<div class="roster guests">
+				{
+					guestCards.map((card) => (
+						<article class="hero guest" style={`--hue:${card.hue}`}>
+							{card.art ? (
+								<div class="hero-art">
+									<Image src={card.art} alt={`${card.name} 的形象`} width={420} loading="lazy" />
+								</div>
+							) : null}
+							<div class="hero-body">
+								<h3 class="hero-name">{card.name}</h3>
+								<dl class="hero-stats">
+									<div>
+										<dt>量</dt>
+										<dd>{fmt(card.tokens)}</dd>
+									</div>
+									<div>
+										<dt>花费</dt>
+										<dd>{fmtYuan(card.cost)}</dd>
+									</div>
+									<div>
+										<dt>{card.image ? '张数' : '出勤'}</dt>
+										<dd>{card.image ? `${card.requests} 张` : `${card.days} 天`}</dd>
+									</div>
+									{card.perImage !== null && (
+										<div>
+											<dt>单张</dt>
+											<dd>{fmtYuan(card.perImage)}</dd>
+										</div>
+									)}
+								</dl>
+							</div>
+						</article>
+					))
+				}
+			</div>
 
 			<h2>每天烧多少（按来源 · 模型）</h2>
 			<div class="card">
