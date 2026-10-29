@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import canteenTrio from '../assets/oc/canteen-trio.webp';
 import glmGuest from '../assets/oc/glm-guest.webp';
+import imageGuest from '../assets/oc/image-guest.webp';
 import githubData from '../data/github.json';
 import tokenUsage from '../data/token-usage.json';
 import { summarizeTokens, fmtYi } from '../data/token-stats.mjs';
@@ -961,11 +962,11 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
             .cn-row-art img,
             .cn-row-art svg { display: block; width: 100%; height: auto; }
             .cn-row-text { display: flex; flex-direction: column; gap: 0.1em; min-width: 0; }
-            .cn-row-title { display: flex; align-items: baseline; gap: 0.45em; font-size: 0.8em; color: rgb(var(--gray)); overflow-wrap: anywhere; }
+            .cn-row-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 0.45em; font-size: 0.8em; color: rgb(var(--gray)); overflow-wrap: anywhere; }
             .cn-row-title b { font-size: 1.2em; font-weight: 600; color: var(--glow); font-variant-numeric: tabular-nums; }
             .cn-row-meta { font-size: 0.72em; color: rgb(var(--gray)); opacity: 0.85; }
-            .cn-row-cost { font-size: 0.72em; color: var(--accent); font-variant-numeric: tabular-nums; }
-            /* 同家族多型号：总数留在上面当标题，下面每个型号一张小票，单价各算各的 */
+            .cn-row-cost { display: flex; flex-wrap: wrap; gap: 0.2em 0.7em; font-size: 0.72em; color: var(--accent); font-variant-numeric: tabular-nums; }
+            /* 主桌只展开用量最高的两个型号，其余仍在家族合计与 /token/ 中。 */
             .cn-variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(8.5em, 100%), 1fr)); gap: 0.4em; width: 100%; max-width: 21em; list-style: none; margin: 0.45em 0 0; padding: 0; }
             .cn-variants li { display: flex; flex-direction: column; gap: 0.1em; padding: 0.4em 0.55em; border-radius: 8px; text-align: left; background: rgba(175, 255, 255, 4%); border: 1px solid rgba(175, 255, 255, 11%); }
             .cn-v-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4em; }
@@ -974,6 +975,28 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
             .cn-v-meta { font-size: 0.64em; color: rgb(var(--gray)); opacity: 0.85; }
             .cn-v-cost { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 0.4em; font-size: 0.68em; color: var(--accent); font-variant-numeric: tabular-nums; }
             .cn-v-cost small { font-size: 0.92em; opacity: 0.8; }
+            /* 主桌只展开前两个型号，剩下的在这里交代一句：合计里有，明细在 /token/ */
+            .cn-variant-more { display: block; margin-top: 0.3em; font-size: 0.64em; line-height: 1.6; color: rgb(var(--gray)); opacity: 0.72; }
+            /* 生图模型：给的是一整幅画（3:2、白底），当小照片贴在加桌上，不抠图 */
+            .cn-row-seats li.is-image {
+                align-items: center;
+                padding: 0.5em 0.95em 0.5em 0.55em;
+                border-radius: 12px;
+                background: linear-gradient(100deg, rgba(127, 233, 240, 11%), rgba(255, 214, 138, 6%) 72%);
+                border: 1px solid rgba(175, 255, 255, 30%);
+                box-shadow: 0 0 16px rgba(127, 233, 240, 12%);
+            }
+            .cn-row-seats li.is-image .cn-row-art {
+                width: 118px;
+                aspect-ratio: 3 / 2;
+                margin: 0;
+                border-radius: 8px;
+                overflow: hidden;
+                background: #fff;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 38%);
+            }
+            .cn-row-seats li.is-image .cn-row-art img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+            .cn-row-seats li.is-image .cn-row-title { font-size: 0.84em; color: var(--glow); }
             /* GLM 是唯一有专属立绘的加桌客人：放大头像、紫色描边和微光，让她从一排小字里跳出来 */
             .cn-row-seats li.is-glm { position: relative; padding: 0.55em 1em 0.55em 0.6em; border-radius: 12px; background: linear-gradient(100deg, rgba(186, 156, 255, 14%), rgba(127, 233, 240, 5%) 70%); border: 1px solid rgba(196, 170, 255, 38%); box-shadow: 0 0 18px rgba(170, 140, 255, 14%); }
             .cn-row-seats li.is-glm .cn-row-art { width: 78px; margin: -0.6em 0 -0.35em; filter: drop-shadow(0 0 8px rgba(196, 170, 255, 40%)); }
@@ -1046,6 +1069,9 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				}
 				.cn-row-seats li.is-glm .cn-row-art {
 					width: 62px;
+				}
+				.cn-row-seats li.is-image .cn-row-art {
+					width: 96px;
 				}
 				.cn-variants li {
 					padding: 0.35em 0.4em;
@@ -1414,6 +1440,9 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 													</li>
 												))}
 											</ul>
+											{seat.hiddenVariantCount > 0 && (
+												<span class="cn-variant-more">另有 {seat.hiddenVariantCount} 个型号，已计入合计 · 详细图表查看 →</span>
+											)}
 										</>
 									) : (
 										<>
@@ -1429,9 +1458,16 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                 <p class="cn-row-label">加桌</p>
                                 <ul class="cn-row-seats">
                                     {guestSeats.map((seat) => (
-                                        <li class:list={[{ 'is-glm': seat.isGlm }]}>
+                                        <li data-guest-model={seat.shortName} class:list={[{ 'is-glm': seat.isGlm, 'is-image': seat.isImage }]}>
                                             <div class="cn-row-art" aria-hidden="true">
-                                                {seat.isGlm ? (
+                                                {seat.isImage ? (
+                                                    <Image
+                                                        src={imageGuest}
+                                                        alt=""
+                                                        width={240}
+                                                        loading="lazy"
+                                                    />
+                                                ) : seat.isGlm ? (
                                                     <Image
                                                         src={glmGuest}
                                                         alt=""
@@ -1458,8 +1494,8 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                                 <span class="cn-row-meta">{fmtTokens(seat.tokens)} · 来了 {seat.days} 天</span>
                                                 {seat.cost !== null && (
                                                     <span class="cn-row-cost">
-                                                        ¥{seat.cost < 1 ? seat.cost.toFixed(3) : seat.cost.toFixed(2)}
-                                                        {seat.unitPrice !== null && ` · ¥${seat.unitPrice.toFixed(3)}/百万`}
+                                                        <span>¥{seat.cost < 1 ? seat.cost.toFixed(3) : seat.cost.toFixed(2)}</span>
+                                                        {seat.unitPrice !== null && <span>¥{seat.unitPrice.toFixed(3)}/百万</span>}
                                                     </span>
                                                 )}
                                             </div>
