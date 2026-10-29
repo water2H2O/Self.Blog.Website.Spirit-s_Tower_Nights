@@ -40,8 +40,9 @@ const DO_BUILD = flag('build') || flag('all');
 const DO_PUBLISH = flag('all');
 
 /** 文件名里那两段日期；认不出就返回 null，这种文件直接跳过 */
-const ZIP_RE = /^usage_data_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})\.zip$/i;
-const RELAY_RE = /^usage_(\d{4}-\d{2}-\d{2})_to_(\d{4}-\d{2}-\d{2})\.csv$/i;
+/** 浏览器重复下载会加「 (1)」后缀，这里一并认掉 */
+const ZIP_RE = /^usage_data_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})(?:\s*\(\d+\))?\.zip$/i;
+const RELAY_RE = /^usage_(\d{4}-\d{2}-\d{2})_to_(\d{4}-\d{2}-\d{2})(?:\s*\(\d+\))?\.csv$/i;
 
 function scan() {
 	if (!fs.existsSync(DIR)) {
@@ -56,18 +57,18 @@ function scan() {
 		if (!fs.statSync(full).isFile()) continue;
 		let m = ZIP_RE.exec(name);
 		if (m) {
-			zips.push({ file: full, name, start: m[1], end: m[2] });
+			zips.push({ file: full, name, start: m[1], end: m[2], mtime: fs.statSync(full).mtimeMs });
 			continue;
 		}
 		m = RELAY_RE.exec(name);
 		if (m) {
-			relays.push({ file: full, name, start: m[1], end: m[2] });
+			relays.push({ file: full, name, start: m[1], end: m[2], mtime: fs.statSync(full).mtimeMs });
 			continue;
 		}
 		if (/^usage/i.test(name)) ignored.push(name);
 	}
-	zips.sort((a, b) => a.end.localeCompare(b.end) || a.start.localeCompare(b.start));
-	relays.sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
+	zips.sort((a, b) => a.end.localeCompare(b.end) || a.start.localeCompare(b.start) || a.mtime - b.mtime);
+	relays.sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end) || a.mtime - b.mtime);
 	return { zips, relays, ignored };
 }
 
