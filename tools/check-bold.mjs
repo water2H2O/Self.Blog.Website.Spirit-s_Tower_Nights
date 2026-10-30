@@ -34,6 +34,15 @@ const COLLECTIONS = {
 	draw: ['draw', 'entry'],
 };
 
+/**
+ * 随笔的网址取自 frontmatter 的 `urlSlug`，文件名只用于生成旧地址跳转页。
+ * `dist/blog/<文件名>/` 那张 meta refresh 页里有 0 处 <strong>，拿它对照会把
+ * 每篇随笔都误报成「粗体全丢」—— 所以 blog 集合要先读出 slug 再拼产物路径。
+ */
+const BLOG_SLUG = /^urlSlug:\s*['"]?([a-z0-9-]+)['"]?\s*$/m;
+/** 兜底：产物是跳转页时不当成正文页 */
+const REDIRECT_STUB = /http-equiv=["']?refresh/i;
+
 const walk = (dir) =>
 	readdirSync(dir).flatMap((name) => {
 		const full = join(dir, name);
@@ -56,14 +65,21 @@ for (const [collection, prefix] of Object.entries(COLLECTIONS)) {
 	for (const file of walk(base)) {
 		if (!file.endsWith('.md') && !file.endsWith('.mdx')) continue;
 		const id = relative(base, file).replace(/\.mdx?$/, '');
-		const htmlPath = join(DIST, ...prefix, id, 'index.html');
+		const source = readFileSync(file, 'utf8');
+		// 只有 blog 的网址与文件名不一致（见上面 BLOG_SLUG 的说明）
+		const urlId = collection === 'blog' ? (source.match(BLOG_SLUG)?.[1] ?? id) : id;
+		const htmlPath = join(DIST, ...prefix, urlId, 'index.html');
 		if (!existsSync(htmlPath)) {
 			skipped.push(`${collection}/${id}（没有产物页面，可能是 draft）`);
 			continue;
 		}
 
-		const src = stripCode(readFileSync(file, 'utf8'));
+		const src = stripCode(source);
 		const html = readFileSync(htmlPath, 'utf8');
+		if (REDIRECT_STUB.test(html)) {
+			skipped.push(`${collection}/${id}（产物是跳转页，不是正文页）`);
+			continue;
+		}
 		pages += 1;
 
 		const marks = (src.match(/\*\*/g) ?? []).length;
