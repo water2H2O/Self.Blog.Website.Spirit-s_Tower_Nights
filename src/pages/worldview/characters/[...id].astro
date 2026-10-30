@@ -115,6 +115,8 @@ const artworks = myItems
 	.filter((item) => item.kind !== '指针')
 	.map((item) => ({
 		url: `/gallery/${encodeURIComponent(item.file)}`,
+		width: Number(item.w) || 0,
+		height: Number(item.h) || 0,
 		ar: item.w && item.h ? Number((item.w / item.h).toFixed(3)) : 1,
 		ownership: item.ownership ?? '其他',
 		owner: item.owner ?? '',

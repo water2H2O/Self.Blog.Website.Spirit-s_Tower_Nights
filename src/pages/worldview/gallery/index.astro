@@ -27,6 +27,8 @@ const items = fs
 		const h = Number(info.h) || 0;
 		return {
 			url: `/gallery/${encodeURIComponent(file)}`,
+			width: w,
+			height: h,
 			ar: w > 0 && h > 0 ? Number((w / h).toFixed(3)) : 1,
 			ownership: String(info.ownership ?? '其他'),
 			owner: String(info.owner ?? ''),

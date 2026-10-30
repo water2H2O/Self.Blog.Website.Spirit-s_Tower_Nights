@@ -12,6 +12,9 @@ import { SITE_AUTHOR, SITE_TITLE } from '../consts';
 
 export interface WallItem {
 	url: string;
+	/** 原图尺寸；只用来声明比例，不缩放或重新编码文件 */
+	width: number;
+	height: number;
 	/** 宽高比（宽 / 高），决定格子高度 */
 	ar: number;
 	ownership: string;
@@ -89,7 +92,9 @@ const filters = showFilters
 
 			<div class="wall">
 				{items.map((item) => (
-					<figure
+					<a
+						href={item.url}
+						aria-label={`查看大图：${item.title || `${item.character}${item.kind}`}`}
 						class="tile hidden"
 						data-ownership={item.ownership}
 						data-ar={item.ar}
@@ -100,23 +105,32 @@ const filters = showFilters
 						data-title={item.title}
 						data-always={item.always ? '1' : undefined}
 					>
-						<img src={item.url} alt={item.title || `${item.character}${item.kind}`} loading="lazy" decoding="async" />
+						{/* 模板是惰性的：抽中后才挂载 img，未入选的原图不发请求。 */}
+						<template>
+							<img src={item.url} alt={item.title || `${item.character}${item.kind}`} width={item.width || undefined} height={item.height || undefined} loading="lazy" decoding="async" />
+						</template>
 						<span class="wm">{watermark}</span>
 						{item.ownership === '联动' && <span class="tag collab">联动</span>}
 						{item.ownership === '原创' && <span class="tag">原创</span>}
 						{item.ownership === '企划' && <span class="tag project">企划</span>}
-					</figure>
+					</a>
 				))}
 			</div>
+			<noscript>
+				<p>未启用 JavaScript，可直接打开原图查看：</p>
+				<ul>
+					{items.map((item) => <li><a href={item.url}>{item.title || `${item.character}${item.kind}`}</a></li>)}
+				</ul>
+			</noscript>
 		</div>
 	)
 }
 
-<div class="lightbox">
-	<button class="close" type="button" aria-label="关闭大图">✕</button>
-	<img src="" alt="" />
-	<p class="caption"></p>
-</div>
+<dialog class="lightbox" aria-label="画作大图">
+	<button class="close" type="button" aria-label="关闭大图" autofocus>✕</button>
+	<img alt="" />
+	<p class="caption" aria-live="polite"></p>
+</dialog>
 
 <style>
 	.wall-empty {
@@ -183,6 +197,10 @@ const filters = showFilters
 			box-shadow 0.18s ease,
 			border-color 0.18s ease;
 	}
+	.tile:focus-visible {
+		outline: 3px solid var(--glow);
+		outline-offset: -4px;
+	}
 	.tile:hover {
 		border-color: rgba(175, 255, 255, 45%);
 		box-shadow: var(--glow-shadow);
@@ -238,6 +256,13 @@ const filters = showFilters
 		position: fixed;
 		inset: 0;
 		z-index: 60;
+		box-sizing: border-box;
+		width: 100vw;
+		height: 100dvh;
+		max-width: none;
+		max-height: none;
+		margin: 0;
+		border: 0;
 		display: none;
 		align-items: center;
 		justify-content: center;
@@ -247,8 +272,11 @@ const filters = showFilters
 		background: rgba(3, 8, 14, 92%);
 		backdrop-filter: blur(6px);
 	}
-	.lightbox.open {
+	.lightbox[open] {
 		display: flex;
+	}
+	.lightbox::backdrop {
+		background: rgba(3, 8, 14, 80%);
 	}
 	.lightbox img {
 		max-width: 92vw;
@@ -279,6 +307,17 @@ const filters = showFilters
 		color: var(--glow);
 		background: rgba(175, 255, 255, 10%);
 		border: 1px solid rgba(175, 255, 255, 35%);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.wall, .tile, .filters button {
+			transition: none;
+		}
+	}
+	@media (scripting: none) {
+		.wall, .filters {
+			display: none;
+		}
 	}
 
 	/* 手机：筛选标签加大到好点的尺寸，灯箱留出安全边距 */
@@ -435,7 +474,12 @@ const filters = showFilters
 				tile.dataset.span = String(sizeOf(tile));
 			}
 			current = sample();
-			for (const tile of current) tile.classList.remove('hidden');
+			for (const tile of current) {
+				// 只实例化本次抽中的原图；以后筛选再次抽到它时复用已有节点。
+				const template = tile.querySelector('template');
+				if (template) template.replaceWith(template.content.cloneNode(true));
+				tile.classList.remove('hidden');
+			}
 			layout(current);
 		}
 
@@ -488,40 +532,48 @@ const filters = showFilters
 
 	/** 灯箱：整页共用一个（多个墙实例共用同一个灯箱） */
 	function setupLightbox() {
-		const lightbox = document.querySelector<HTMLElement>('.lightbox');
-		if (!lightbox) return;
+		const lightbox = document.querySelector<HTMLDialogElement>('.lightbox');
+		if (!lightbox || typeof lightbox.showModal !== 'function') return;
 		const img = lightbox.querySelector('img');
 		const caption = lightbox.querySelector<HTMLElement>('.caption');
-		const close = () => lightbox.classList.remove('open');
+		let opener: HTMLElement | null = null;
+		const close = () => lightbox.close();
+		lightbox.addEventListener('close', () => opener?.focus({ preventScroll: true }));
+		const escapeHTML = (text: string) => text.replace(/[&<>"']/g, (char) => ({
+			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+		})[char]!);
 
 		document.addEventListener('click', (event) => {
+			// 保留 Ctrl/Command 点击、另开标签页和右键另存原图的原生行为。
+			if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
 			const target = event.target as HTMLElement;
-			const tile = target.closest<HTMLElement>('.tile');
+			const tile = target.closest<HTMLElement>('.wall-wrap .tile');
 			if (!tile || !img || !caption) return;
+			event.preventDefault();
+			opener = tile;
 			const parts: string[] = [];
-			if (tile.dataset.title) parts.push(`<b>${tile.dataset.title}</b>`);
-			if (tile.dataset.character) parts.push(tile.dataset.character);
-			if (tile.dataset.kind) parts.push(tile.dataset.kind);
+			if (tile.dataset.title) parts.push(`<b>${escapeHTML(tile.dataset.title)}</b>`);
+			if (tile.dataset.character) parts.push(escapeHTML(tile.dataset.character));
+			if (tile.dataset.kind) parts.push(escapeHTML(tile.dataset.kind));
 			if (tile.dataset.ownership === '联动') {
-				parts.push(`联动设定 · 设主：${tile.dataset.owner || '待补'}`);
+				parts.push(`联动设定 · 设主：${escapeHTML(tile.dataset.owner || '待补')}`);
 			} else if (tile.dataset.ownership === '原创') {
 				parts.push('原创设定');
 			} else if (tile.dataset.ownership === '企划') {
 				// 企划里也有联动角色，设主知道就一并标出来
-				parts.push(tile.dataset.owner ? `企划 · 设主：${tile.dataset.owner}` : '企划');
+				parts.push(tile.dataset.owner ? `企划 · 设主：${escapeHTML(tile.dataset.owner)}` : '企划');
 			}
 			img.src = tile.dataset.url ?? '';
+			img.alt = tile.querySelector('img')?.alt || tile.dataset.character || '画作';
 			caption.innerHTML = parts.join(' · ');
-			lightbox.classList.add('open');
+			lightbox.showModal();
 		});
 
 		lightbox.querySelector('.close')?.addEventListener('click', close);
 		lightbox.addEventListener('click', (event) => {
 			if (event.target === lightbox) close();
 		});
-		document.addEventListener('keydown', (event) => {
-			if (event.key === 'Escape') close();
-		});
+		// Escape 与焦点圈定交给原生 dialog；关闭后焦点回到打开它的画作链接。
 	}
 
 	for (const wrap of document.querySelectorAll<HTMLElement>('.wall-wrap')) setupWall(wrap);
