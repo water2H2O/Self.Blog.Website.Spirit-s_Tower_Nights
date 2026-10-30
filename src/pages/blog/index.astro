@@ -8,8 +8,10 @@ import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION } from '../../consts';
 import { blogCodes } from '../../lib/blog-code';
 
+const coverId = 'site-changelog';
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+	(a, b) => Number(b.id === coverId) - Number(a.id === coverId)
+		|| b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 /** 列表链接用短码，和详情页路由同一份映射 */
 const codes = blogCodes(posts.map((post) => post.id));
@@ -117,7 +119,7 @@ const codes = blogCodes(posts.map((post) => post.id));
 									)}
 									<h4 class="title">{post.data.title}</h4>
 									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
+										<FormattedDate date={post.id === coverId ? post.data.updatedDate ?? post.data.pubDate : post.data.pubDate} />
 									</p>
 								</a>
 							</li>

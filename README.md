@@ -239,6 +239,7 @@ order: 21
   **改文件名 = 换短码**，所以定稿后别再重命名文件
 - 详情页、列表页、RSS 三处共用同一份映射，加新随笔不用改代码
 - 文章详情页标题区统一左对齐且紧凑排列：标题 → 标题样式的「最后更新于」日期 →「文章id: 文件名去后缀」（如 `文章id: birthday2026`）。日期优先取 `updatedDate`，缺省用 `pubDate`；不再单独显示发布日期。ID 从内容条目的 `filePath` 取文件名并去掉 `.md` / `.mdx` 后缀，不用 URL 短码，也不更改网址。布局在 `src/layouts/BlogPost.astro`，传参在 `src/pages/blog/[...slug].astro`；标题区不使用全局 `hr` 的大间距，ID 的段落间距也单独覆盖。构建后运行 `node tools/check-blog-headers.mjs` 检查所有文章的显示顺序、ID 与日期兜底。
+- 随笔页固定将 `site-changelog`（站点改动记录）放在最上方，沿用首张全宽封面大卡；日期显示其最后更新日期，其余文章仍按发布日期倒序。置顶仅影响随笔列表，不修改发布日期、RSS 或文章短码。专用封面为 `src/assets/oc/blog-site-changelog.webp`（AI 生成的夜间水塔与建站工作台插画，无角色委托图混用）。
 - 随笔列表封面默认 2:1 居中裁切；`birthday2026` 是竖图，单独用 3:2、`position="top"` 的构建时裁切，让帽子、头部和下巴完整保留。不能只改 CSS 的 `object-position`，因为 Astro 已在生成缩略图时裁掉了原图。
 - 换短码之前的旧地址（`/blog/site-changelog/` 这类）在 `public/_redirects` 里 301 到新地址；
   以后若再改文件名，记得补一行

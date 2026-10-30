@@ -44,4 +44,14 @@ const birthdayCard = index.match(/<a\b[^>]*href="\/blog\/[^"/]+\/"[^>]*>\s*(<img
 assert.ok(birthdayCard, 'Birthday list cover rendered');
 assert.match(birthdayCard, /width="720"/);
 assert.match(birthdayCard, /height="480"/); // 3:2 leaves enough room for the hat and chin.
-console.log(`Blog headers passed: ${seen.size} articles, ${explicitUpdates} updated dates, ${fallbackDates} publication fallbacks; title/date/article ID order and birthday cover ratio verified.`);
+const list = index.match(/<section\b[^>]*>\s*<ul\b[^>]*>([\s\S]*?)<\/ul>/)?.[1];
+assert.ok(list, 'Blog list exists');
+const cards = [...list.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map(match => match[1]);
+assert.equal(cards.length, seen.size, 'Every published article listed once');
+assert.match(cards[0], /站点改动记录<\/h4>/, 'Changelog is the cover card');
+assert.match(cards[0], /blog-site-changelog/, 'Changelog uses its dedicated new illustration');
+const changelogDate = readFileSync(sources.get('site-changelog.md'), 'utf8').match(/^updatedDate:\s*['"]?([^'"\r\n]+)/m)?.[1].trim();
+assert.equal(cards[0].match(/datetime="([^"]+)"/)[1], new Date(changelogDate).toISOString(), 'Cover date reflects last update');
+const remainingDates = cards.slice(1).map(card => new Date(card.match(/datetime="([^"]+)"/)[1]).valueOf());
+assert.ok(remainingDates.every((date, i) => i === 0 || remainingDates[i - 1] >= date), 'Other articles stay newest first');
+console.log(`Blog headers passed: ${seen.size} articles, ${explicitUpdates} updated dates, ${fallbackDates} publication fallbacks; header, birthday crop, pinned changelog cover and date ordering verified.`);
