@@ -938,6 +938,19 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
   就是靠 `dist/404.html` 兜底，删了那个文件访客输错地址只会看到 Cloudflare 的默认错误页
   （`node tools/site-health.mjs` 会检查它还在不在）
 
+### 静态资源的浏览器缓存
+
+`public/_headers` 随构建复制到 `dist/_headers`，由 Cloudflare Workers 静态资源服务应用：
+
+- 只有 `/_astro/*` 下内容哈希命名的 CSS、字体与图片使用 `max-age=31536000, immutable`。
+  改内容会生成新文件名，因此回访可直接复用缓存，不需要每次验证。
+- `gallery`、`audio` 的原文件名可能原位更新（例如换图或改水印），不套长缓存；
+  搜索索引与入场协议探测文件也明确保持 `max-age=0, must-revalidate`。
+- HTML、下载文件与图标不覆盖 Cloudflare 的默认验证策略；不要给 `/*` 全站套 `immutable`。
+- 这些规则只作用于静态资源，`/teapot` 的 Worker 响应不受影响。
+- 构建后运行 `node tools/check-asset-cache.mjs` 检查缓存边界与产物哈希命名；上线后实际检查
+  CSS / 字体、画作、搜索索引与 HTML 的 `Cache-Control`，不能用本地预览代替线上验证。
+
 ### 唯一的 Worker 脚本：`/teapot`
 
 `wrangler.jsonc` 里有 `main: ./worker/index.mjs` —— 全站唯一的服务端逻辑，只干一件事：
