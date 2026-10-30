@@ -65,7 +65,61 @@ DSH 写了一份脚本，让我完全退出应用，再在外面的 PowerShell �
 
 更重要的是，**文件能写进去，和应用能读懂写进去的状态，是两回事。**
 
-目录名、工作区登记、会话缓存，需要彼此对得上。第一版却是分步改：某个文件处理失败后可以继续，目标会话目录已经存在时也可能直接跳过。最后检查的主要是新目录是否存在、旧路径字符串是否还残留，并没有实际验证 DSH 能否加载这些工作区和会话。
+下面摘出两版脚本里与内部状态直接相关的代码。为了不让日志输出、编码处理和其他编辑器配置淹没重点，我用注释标出了省略的上下文；说明性注释是这次复盘补的。这些是分散在原文件里的片段，**不是可以拼起来运行的修复脚本**。它们能说明操作方式和风险，但不能单凭这些行，就锁定本次报错的唯一根因。
+
+### 把工作区状态加入普通文件替换清单
+
+第一版第 198–219 行，把工作区清单和部分会话缓存交给了同一个字符串替换函数。关键调用与函数内部的写回动作如下：
+
+```powershell
+# 第一版：外部文件清单中的 DSH 部分。
+# ……省略：$UserHome、$ext 初始化，缓存枚举，以及其他编辑器配置的收集……
+$dshWorkspace = Join-Path $UserHome '.dsh\storages\workspace.json'
+$ext.Add($dshWorkspace)
+
+foreach ($p in ($ext | Select-Object -Unique)) {
+    if (-not (Test-Path -LiteralPath $p)) { continue }
+    [void](Invoke-FileFix $p -Backup)
+}
+
+# ……跳到 Invoke-FileFix 函数内部（第 101–116 行）……
+# $text 是读入并解码后的整个文件，不是某个经过验证的 JSON 字段。
+$new = Get-ReplacedText $text ([ref]$hits)
+if ($hits -eq 0) { return 0 }
+
+# ……省略：把替换结果重新编码，生成待写回的 $out……
+if (-not $DryRun) {
+    # 有备份，但 -Force 允许覆盖之前的同名备份。
+    if ($Backup) { Copy-Item -LiteralPath $path -Destination "$path.bak-vibecoding" -Force }
+    [System.IO.File]::WriteAllBytes($path, $out)
+}
+```
+
+问题不在 `WriteAllBytes` 这个 API 本身，而在于传给它的对象已经包括应用的内部状态文件。这里检查的是“有没有命中旧路径字符串”，不是“这个字段应该如何迁移”。编码保住了，也不代表文件里的状态关系保住了。
+
+### 会话目录的改名，又是另一件独立的操作
+
+第一版第 224–238 行还单独处理了会话目录：
+
+```powershell
+$sessOld = Join-Path $UserHome '.dsh\sessions\--D-vibe~0020coding--'
+$sessNew = Join-Path $UserHome '.dsh\sessions\--D-vibe_coding--'
+
+# ……省略：外层对旧目录是否存在的检查，以及日志输出……
+if (Test-Path -LiteralPath $sessNew) {
+    # 新目录已经存在就跳过，不合并，也不核验两边会话是否完整。
+    Say "  DSH 会话目录目标已存在，跳过：$sessNew"
+} elseif ($DryRun) {
+    # 原脚本在这里只输出改名预览，不实际改目录。
+} else {
+    Rename-Item -LiteralPath $sessOld -NewName '--D-vibe_coding--'
+    # ……省略：完成提示……
+}
+```
+
+目录名、工作区登记、会话缓存，需要彼此对得上。这里却是分步改：前面的某个文件处理失败后可以继续，到了这一步，目标目录已经存在又可能直接跳过。两边有可能只改好了一部分。
+
+最后检查的主要是新目录是否存在、旧路径字符串是否还残留，并没有实际验证 DSH 能否加载这些工作区和会话。
 
 退出应用，避免的是运行期间的占用和并发写入；它并不会自动让一份外部脚本具备正确迁移内部状态的能力。
 
@@ -90,7 +144,67 @@ DSH 写了一份脚本，让我完全退出应用，再在外面的 PowerShell �
 
 回头看第二版，最值得警惕的，是它把“文件复制过来了”和“状态恢复好了”靠得太近了。
 
-比如，同名会话目录会整块跳过，不能保证里面原本就完整；工作区清单则按照脚本列出的字段重新组装，再把旧会话 ID 并进去。新生成的 JSON 会做一次解析检查，但那只能说明它在语法上是 JSON，不能证明它符合当前 DSH 的要求，也不能证明清单、缓存、会话和附件之间的引用都成立。
+### 目录存在，就跳过；ID 合并，又是另一轮
+
+第二版第 112–126 行复制会话时，先判断目标目录是否存在；第 195–197 行登记会话时，则直接合并新旧 ID。这是两段独立逻辑：
+
+```powershell
+# 第二版：会话复制循环中的片段。
+# ……省略：遍历暂存目录，$n 是当前会话目录名……
+$target = Join-Path $dstDir $n
+if (Test-Path -LiteralPath $target) { $skip++; continue }
+
+# ……省略：Copy-Item 复制、robocopy 兜底……
+# 对新复制的会话，这里检查的是主文件“在不在”。
+if (-not (Test-Path -LiteralPath (Join-Path $target 'session.v4.jsonl.zstd'))) {
+    # ……省略：报错日志……
+    $failedSess++
+    continue
+}
+
+# ……跳到后面合并 workspace.json 的已有工作区分支……
+# 下面去重的是 ID，并没有逐条核验对应会话是否已经完整复制、能被读取。
+$ids = @($tables[$existingKey].sessionIds) + @($old.sessionIds) | Select-Object -Unique
+$tables[$existingKey].sessionIds = @($ids)
+```
+
+一个目录即使只留下了一部分文件，下次运行时也可能因为“已经存在”被跳过。即便前面的复制有失败，后面的合并逻辑也没有把旧清单中的相关 ID 按复制结果过滤掉。
+
+所以，“ID 已登记”不等于“对应会话已经恢复”。后面还需要确认文件完整、内容可读，以及这些记录确实能被应用加载。
+
+### JSON 能解析，不代表 DSH 能用
+
+第二版第 232–249 行，则是重新组装整份工作区清单，再写回去：
+
+```powershell
+# ……省略：读取当前/旧清单，计算工作区、归档和置顶 ID 的集合……
+# 输出不是在原对象上只改一个路径，而是按这里列出的字段重新组装。
+$out = [ordered]@{
+    unit   = [ordered]@{ name = 'workspace'; version = 2 }
+    global = [ordered]@{
+        initialized        = $true
+        defaultWorkspaceId = $global.defaultWorkspaceId
+        workspaceIds       = @($wsIds)
+        archivedSessionIds = @($arch)
+        pinnedSessionIds   = @($pin)
+    }
+    tables = [ordered]@{ workspaces = $tables }
+}
+$json = $out | ConvertTo-Json -Depth 25
+
+# 原脚本的“校验”：证明 JSON 语法能解析，不是验证 DSH 的状态结构及跨文件引用。
+$null = $json | ConvertFrom-Json
+
+if (-not $DryRun) {
+    # ……省略：尝试额外备份原 workspace.json……
+    Set-Content -LiteralPath $liveWsPath -Value $json -Encoding UTF8
+    # ……省略：后续去除 BOM 的处理与完成日志……
+}
+```
+
+这里把 `unit.version` 固定写成了 `2`，输出字段也由脚本逐项列出。如果输入里还有未被列入的其他字段，重建时就不会自动保留下来。至于当前版本的 DSH 是否接受这份结构，`ConvertFrom-Json` 并不知道。
+
+它检查的只是“这是一份能解析的 JSON”，不是“它符合当前 DSH 的要求”，更不是“工作区、缓存、会话、附件之间的引用都成立”。
 
 备份也不是整个 `.dsh` 的完整快照。即使把备份文件复制回去，也不等于自动撤销合并时新增的一切。
 
@@ -141,7 +255,7 @@ DSH 写了一份脚本，让我完全退出应用，再在外面的 PowerShell �
 - 真要做迁移或恢复，先查官方支持的办法；需要试验，也应该在独立副本里验证，而不是直接写回正在使用的数据目录；
 - 第一轮已经失败，就先停下来保全现场，不把下一份“修复脚本”当成天然更安全的选择。
 
-我找 AI 是为了省事，不是为了在出事之后，接手一整套自己本来不需要懂的恢复工作。
+我找 AI 是为了省事，但如果不小心的话，还真不知道会捅出多大的娄子。
 
 说到底，真要弄坏了，承担后果的还是我。聊天记录回不来，要继续使用的环境得重搭，已经花掉的时间也不会有人替我补回来。这条操作红线，得在按下运行之前划好。
 
