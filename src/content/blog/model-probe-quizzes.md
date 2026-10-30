@@ -1,5 +1,6 @@
 ---
 title: '给手上的模型做个小体检'
+urlSlug: 'models'
 description: '线路能连上，不代表回答就正常。我用固定单选题做了一次轻量巡检，也顺便踩到了推理额度不足的坑。'
 pubDate: '2026-10-30'
 updatedDate: '2026-10-30'

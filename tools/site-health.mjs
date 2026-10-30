@@ -113,13 +113,17 @@ for (const page of pages) {
 	const url = pageUrl(page);
 	const where = url.replace(/\/$/, '') || '/';
 
+	// 多个旧地址跳到同一篇时，Astro 会生成相同的 Redirecting 标题；它们不是重复正文。
+	// 跳转页仍参与死链、canonical 和锚点检查，只不参与正文标题去重。
+	const redirect = html.match(/<meta http-equiv="refresh" content="\d+;url=(\/[^"\s]*)"/i)?.[1];
 	const title = (html.match(/<title>([\s\S]*?)<\/title>/) ?? [])[1]?.trim() ?? '';
-	if (!seenTitles.has(title)) seenTitles.set(title, []);
-	seenTitles.get(title).push(where);
+	if (!redirect) {
+		if (!seenTitles.has(title)) seenTitles.set(title, []);
+		seenTitles.get(title).push(where);
+	}
 
 	const canonical = (html.match(/<link rel="canonical" href="([^"]+)"/) ?? [])[1];
 	// Astro 的静态兼容跳转应以目标页为 canonical，而不是旧地址。
-	const redirect = html.match(/<meta http-equiv="refresh" content="\d+;url=(\/[^"\s]*)"/i)?.[1];
 	const expected = redirect
 		? new URL(redirect, 'https://water2h2o.com').href
 		: `https://water2h2o.com${where === '/' ? '/' : `${where}/`}`;

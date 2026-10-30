@@ -7,16 +7,16 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import LicenseBadge from '../../components/LicenseBadge.astro';
 import { FRIENDS } from '../../data/friends';
-import { blogCodes } from '../../lib/blog-code';
+import { blogSlugs } from '../../lib/blog-slug';
 import {
 	BILIBILI_NAME, BILIBILI_URL, EMAIL, GITHUB_NAME, GITHUB_URL,
 	PROJECT_TITLE, QQ_GROUP, QQ_GROUP_URL, QQ_GROUP_VISIBLE,
 	SITE_AUTHOR, X_NAME, X_URL,
 } from '../../consts';
 
-/** 「站点改动记录」这篇的短码 —— 页脚/正文里的链接跟着 URL 规则走，别再硬编码 */
+/** 「站点改动记录」这篇的语义短地址 —— 页脚/正文里的链接跟着 URL 规则走，别再硬编码 */
 const changelogCode =
-	blogCodes((await getCollection('blog')).map((post) => post.id)).get('site-changelog') ?? 'site-changelog';
+	blogSlugs(await getCollection('blog')).get('site-changelog') ?? 'site-changelog';
 
 const sections = [
 	{ href: '#me', label: '认识水水' },

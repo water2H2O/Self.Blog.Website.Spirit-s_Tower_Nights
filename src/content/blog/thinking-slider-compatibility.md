@@ -1,5 +1,6 @@
 ---
 title: Claude的推理强度控制在dsh中需要专门兼容
+urlSlug: 'thinking'
 description: '给 Claude 加上 DSH 的思考强度滑块，迎来的不是更多思考，而是一条 400。修到能调用以后，还得继续问：这个滑块真的生效了吗？'
 pubDate: '2026-10-30'
 updatedDate: '2026-10-30'

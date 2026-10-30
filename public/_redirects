@@ -1,11 +1,23 @@
-# 随笔的 URL 换成了短码（见 src/lib/blog-code.ts），旧地址 301 过去。
-# 格式：旧路径  新路径  状态码
-/blog/a-fish-rearranges-the-about-page/  /blog/1lrpd2/  301
-/blog/ai-dont-write-scripts/             /blog/tvodye/  301
-/blog/birthday-2026/                     /blog/uazfh2/  301
-/blog/birthday2026/                      /blog/uazfh2/  301
-/blog/build-log-01/                      /blog/coflxh/#built-20261010  301
-/blog/build-log-02/                      /blog/coflxh/#launched-20261011  301
-/blog/6nb90c/                            /blog/coflxh/#built-20261010  301
-/blog/7ha239/                            /blog/coflxh/#launched-20261011  301
-/blog/site-changelog/                    /blog/coflxh/  301
+# 博客语义短地址：旧文件名、旧短码均直接 301 到最终地址，避免多跳。
+# 与 tools/blog-redirects.mjs 的静态跳转表由 tools/check-blog-routes.mjs 校验一致。
+/blog/1lrpd2/                           /blog/about-page/  301
+/blog/a-fish-rearranges-the-about-page/  /blog/about-page/  301
+/blog/tvodye/                           /blog/scripts/  301
+/blog/ai-dont-write-scripts/             /blog/scripts/  301
+/blog/uazfh2/                           /blog/birthday/  301
+/blog/birthday-2026/                     /blog/birthday/  301
+/blog/birthday2026/                      /blog/birthday/  301
+/blog/499kcm/                           /blog/cookies/  301
+/blog/dsh-431-cookie-grave/              /blog/cookies/  301
+/blog/4eyisl/                           /blog/image-api/  301
+/blog/image-api-two-traps/               /blog/image-api/  301
+/blog/5uty1l/                           /blog/models/  301
+/blog/model-probe-quizzes/               /blog/models/  301
+/blog/coflxh/                           /blog/log/  301
+/blog/site-changelog/                    /blog/log/  301
+/blog/llc13c/                           /blog/thinking/  301
+/blog/thinking-slider-compatibility/     /blog/thinking/  301
+/blog/build-log-01/                      /blog/log/#built-20261010  301
+/blog/build-log-02/                      /blog/log/#launched-20261011  301
+/blog/6nb90c/                            /blog/log/#built-20261010  301
+/blog/7ha239/                            /blog/log/#launched-20261011  301

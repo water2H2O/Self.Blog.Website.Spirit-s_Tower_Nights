@@ -30,6 +30,8 @@ const blog = defineCollection({
 		z.object({
 			title: z.string(),
 			description: z.string(),
+			/** 1–2 个主题词构成的稳定语义地址，与文件名/标题解耦。 */
+			urlSlug: z.string().min(2).max(24).regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)?$/),
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
 			heroImage: z.optional(image()),

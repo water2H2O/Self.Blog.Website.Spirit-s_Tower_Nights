@@ -1,5 +1,6 @@
 ---
 title: 'GPT把「关于」收拾了一下'
+urlSlug: 'about-page'
 description: '一篇由 GPT-6.1-sol 写的改站随笔：少开两扇门，把介绍、联系和朋友们放回同一页。'
 pubDate: '2026-10-22'
 heroImage: '../../assets/oc/about-hero.webp'

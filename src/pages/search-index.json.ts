@@ -10,7 +10,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { pinyin } from 'pinyin-pro';
-import { blogCodes } from '../lib/blog-code';
+import { blogSlugs } from '../lib/blog-slug';
 
 /** 一个集合对应一个栏目：分类名、路由前缀、正文取哪个字段当摘要 */
 type Source = {
@@ -52,8 +52,8 @@ export const GET: APIRoute = async () => {
 	];
 
 	const blogEntries = (await getCollection('blog')).filter((entry) => !entry.data.draft);
-	const codes = blogCodes(blogEntries.map((entry) => entry.id));
-	sources.push({ collection: 'blog', category: '随笔', href: (id) => `/blog/${codes.get(id) ?? id}/` });
+	const slugs = blogSlugs(blogEntries);
+	sources.push({ collection: 'blog', category: '随笔', href: (id) => `/blog/${slugs.get(id) ?? id}/` });
 
 	type Item = {
 		title: string;

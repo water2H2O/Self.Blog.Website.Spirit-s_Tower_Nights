@@ -217,7 +217,7 @@ order: 21
 | `stories` | `src/content/stories/` | `/worldview/stories/文件名/` | 故事正文，按“幕 → 篇 → 话” |
 | `textbook` | `src/content/textbook/` | `/worldview/stories/textbook/文件名/` | **教材**：世界观里的书，一章一个文件 |
 | `music` | `src/content/music/` | `/worldview/music/文件名/` | 与曲师合作的曲目 |
-| `blog` | `src/content/blog/` | `/blog/<短码>/` | 随笔（个人区，不在 /worldview/ 下） |
+| `blog` | `src/content/blog/` | `/blog/<urlSlug>/` | 随笔（个人区，不在 /worldview/ 下） |
 | `eden` | `src/content/eden/` | `/project/eden/文件名/` | 群创企划「伊甸园」的稿件 |
 | `draw` | `src/content/draw/` | `/draw/entry/文件名/` | **签筒专用**：只出现在抽签区域的条目 |
 
@@ -230,19 +230,19 @@ order: 21
 > 抽签卡与签筒卡上会挂一个金色「限定」角标，抽到后右侧档案里也会多一行「限定」。
 > 这是纯展示标记，不影响概率 —— 限定角色照样按人数均分。
 
-### 随笔的网址用短码
+### 随笔的网址用简短语义名
 
-随笔的文件名照样是给人看的长名字（`a-fish-rearranges-the-about-page.md`），
-但**访问地址是 6 位短码**（`/blog/1lrpd2/`）—— 二十多字的 slug 贴在地址栏里又长又难抄。
+访问地址为 `/blog/<urlSlug>/`，不再使用随机短码，也不直接拿长文件名当网址。
 
-- 短码由文件名算出来（FNV-1a → base36 6 位），见 `src/lib/blog-code.ts`；
-  **改文件名 = 换短码**，所以定稿后别再重命名文件
-- 详情页、列表页、RSS 三处共用同一份映射，加新随笔不用改代码
+- 每篇 frontmatter 必填 `urlSlug`：**1–2 个能概括主题的英文词，小写，用连字符连接，2–24 个字符，以字母开头**。例如 `log`、`birthday`、`image-api`。不要用日期、编号或无意义随机串代替主题；系列同主题文章需要区分时选更具体的词。
+- `urlSlug` 与文章标题、源文件名、页面上的文章 ID 解耦；**发布后冻结网址**，修标题或改正文不会换链接。缺失、不合法、重复或占用历史地址/`index` 时直接阻止构建，不自动生成另一条地址。
+- 详情页、列表页、RSS、搜索索引、关于页共用 `src/lib/blog-slug.ts`。新文章只需填写 `urlSlug`，无需修改路由代码。
+- 当前地址：关于页整理 `about-page`、脚本事故 `scripts`、生日 `birthday`、认证故障 `cookies`、生图接口 `image-api`、模型体检 `models`、站点记录 `log`、推理强度 `thinking`。
 - 文章详情页标题区统一左对齐且紧凑排列：标题 → 标题样式的「最后更新于」日期 →「文章id: 文件名去后缀」（如 `文章id: birthday2026`）。日期优先取 `updatedDate`，缺省用 `pubDate`；不再单独显示发布日期。ID 从内容条目的 `filePath` 取文件名并去掉 `.md` / `.mdx` 后缀，不用 URL 短码，也不更改网址。布局在 `src/layouts/BlogPost.astro`，传参在 `src/pages/blog/[...slug].astro`；标题区不使用全局 `hr` 的大间距，ID 的段落间距也单独覆盖。构建后运行 `node tools/check-blog-headers.mjs` 检查所有文章的显示顺序、ID 与日期兜底。
 - 随笔页固定将 `site-changelog`（站点改动记录）放在最上方，沿用首张全宽封面大卡；日期显示其最后更新日期，其余文章仍按发布日期倒序。置顶仅影响随笔列表，不修改发布日期、RSS 或文章短码。专用封面为 `src/assets/oc/blog-site-changelog.webp`（AI 生成的夜间水塔与建站工作台插画，无角色委托图混用）。
 - 随笔列表封面默认 2:1 居中裁切；`birthday2026` 是竖图，单独用 3:2、`position="top"` 的构建时裁切，让帽子、头部和下巴完整保留。不能只改 CSS 的 `object-position`，因为 Astro 已在生成缩略图时裁掉了原图。
-- 换短码之前的旧地址（`/blog/site-changelog/` 这类）在 `public/_redirects` 里 301 到新地址；
-  以后若再改文件名，记得补一行
+- 历史短码和更早的长地址统一在 `public/_redirects` 中 **301 直达最终网址**，避免跳转链；`tools/blog-redirects.mjs` 供 Astro 生成静态跳转页，与 Cloudflare 表由回归检查确保一致，保留合并文章的章节锚点。不得复用旧地址。确实需要迁移时补跳转，而不是改标题后自动换网址。
+- 构建后运行 `node tools/check-blog-routes.mjs`：检查 8 篇 canonical、列表、RSS、搜索和 sitemap 全部使用语义网址；旧地址与锚点有效、slug 缺失/非法/重名/占保留地址时拒绝构建。
 
 > **设定（`lore`）的类目表在 `src/lib/lore.ts`**，索引页与侧栏目录都读它 ——
 > `LORE_CATEGORIES` 定顺序，`LORE_CATEGORY_NOTES` 是「这一类装什么」的一句话

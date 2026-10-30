@@ -1,5 +1,6 @@
 ---
 title: '陌生人，可以祝我生日快乐吗'
+urlSlug: 'birthday'
 description: '一年一次。今年想跟路过的人要一句祝福。'
 pubDate: '2026-10-20'
 heroImage: '../../assets/oc/blog-birthday-2026.webp'

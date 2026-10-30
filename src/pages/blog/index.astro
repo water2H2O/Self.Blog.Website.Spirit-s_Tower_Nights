@@ -6,15 +6,15 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION } from '../../consts';
-import { blogCodes } from '../../lib/blog-code';
+import { blogSlugs } from '../../lib/blog-slug';
 
 const coverId = 'site-changelog';
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => Number(b.id === coverId) - Number(a.id === coverId)
 		|| b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
-/** 列表链接用短码，和详情页路由同一份映射 */
-const codes = blogCodes(posts.map((post) => post.id));
+/** 列表链接用语义短地址，和详情页路由同一份映射 */
+const slugs = blogSlugs(posts);
 ---
 
 <!doctype html>
@@ -106,7 +106,7 @@ const codes = blogCodes(posts.map((post) => post.id));
 					{
 						posts.map((post) => (
 							<li>
-								<a href={`/blog/${codes.get(post.id) ?? post.id}/`}>
+								<a href={`/blog/${slugs.get(post.id) ?? post.id}/`}>
 									{post.data.heroImage && (
 										<Image
 											width={720}

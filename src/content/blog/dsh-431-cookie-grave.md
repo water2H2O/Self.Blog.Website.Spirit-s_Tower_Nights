@@ -1,5 +1,6 @@
 ---
 title: 'DSH 打不开了，最后查到一堆旧 cookie'
+urlSlug: 'cookies'
 description: '窗口能打开，认证却一直失败。查到最后，不是聊天记录丢了，而是请求头里攒了太多旧 cookie。'
 pubDate: '2026-10-30'
 updatedDate: '2026-10-30'

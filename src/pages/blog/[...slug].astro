@@ -2,14 +2,14 @@
 import { basename } from 'node:path';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
-import { blogCodes } from '../../lib/blog-code';
+import { blogSlugs } from '../../lib/blog-slug';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
-	// URL 用短码（/blog/k3m9d2/），文件名保持可读 —— 见 src/lib/blog-code.ts
-	const codes = blogCodes(posts.map((post) => post.id));
+	// URL 用 frontmatter 的语义短地址（/blog/log/），与源文件名分离。
+	const slugs = blogSlugs(posts);
 	return posts.map((post) => ({
-		params: { slug: codes.get(post.id) ?? post.id },
+		params: { slug: slugs.get(post.id) ?? post.id },
 		props: post,
 	}));
 }

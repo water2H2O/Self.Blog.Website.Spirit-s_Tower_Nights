@@ -4,6 +4,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
 import searchPages from './tools/search-pages-integration.mjs';
+import { blogRedirects } from './tools/blog-redirects.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,11 +15,8 @@ export default defineConfig({
 	 * GitHub Pages 的子路径部署（…github.io/<仓库名>/），再补上 `base`。
 	 */
 	site: 'https://water2h2o.com',
-	// 建站短文并入改动记录：静态预览也保留旧短码的跳转页。
-	redirects: {
-		'/blog/6nb90c/': '/blog/coflxh/#built-20261010',
-		'/blog/7ha239/': '/blog/coflxh/#launched-20261011',
-	},
+	// 与 Cloudflare 共用旧地址表：静态预览也能沿旧链接到达新地址和原章节。
+	redirects: blogRedirects,
 	// searchPages 在构建结束时把首页、关于、列表页等独立页面补进 search-index.json
 	integrations: [mdx(), sitemap(), searchPages()],
 	vite: {
