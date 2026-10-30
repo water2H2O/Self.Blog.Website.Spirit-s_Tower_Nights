@@ -18,6 +18,7 @@ interface Props {
 
 const { title, description, pubDate, updatedDate, heroImage, sourceFilename } = Astro.props;
 const lastUpdated = updatedDate ?? pubDate;
+const articleId = sourceFilename.replace(/\.mdx?$/i, '');
 ---
 
 <html lang="zh-CN">
@@ -49,24 +50,27 @@ const lastUpdated = updatedDate ?? pubDate;
 				color: rgb(var(--gray-dark));
 			}
 			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
+				margin-bottom: 0.85em;
+				padding: 0.35em 0 0.65em;
+				border-bottom: 1px solid rgb(var(--gray-light));
 				text-align: left;
 				line-height: 1.5;
 			}
 			.title h1 {
-				margin: 0 0 0.5em 0;
+				margin: 0 0 0.3em;
 			}
-			.date {
+			.title .date {
 				margin: 0;
-				font-size: 0.82em;
-				color: rgb(var(--gray));
+				font-size: 1em;
+				line-height: 1.4;
+				font-weight: 600;
+				color: var(--accent);
 			}
-			.source-filename {
-				margin: 0.35em 0 0;
+			.title .article-id {
+				margin: 0.2em 0 0;
 				font-family: var(--font-mono, monospace);
-				font-size: 0.72em;
-				line-height: 1.6;
+				font-size: 0.75em;
+				line-height: 1.5;
 				color: rgb(var(--gray));
 				overflow-wrap: anywhere;
 			}
@@ -80,9 +84,8 @@ const lastUpdated = updatedDate ?? pubDate;
 				<div class="prose">
 					<div class="title">
 						<h1>{title}</h1>
-						<p class="date">最后更新于 <FormattedDate date={lastUpdated} /></p>
-						<p class="source-filename">{sourceFilename}</p>
-						<hr />
+						<h2 class="date">最后更新于 <FormattedDate date={lastUpdated} /></h2>
+						<p class="article-id">文章id: {articleId}</p>
 					</div>
 					{/* 配图放在日期与标题**下面**，先见标题再见图 */}
 					{heroImage && (

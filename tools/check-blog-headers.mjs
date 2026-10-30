@@ -19,9 +19,11 @@ for (const path of walk(outputDir).filter(path => path.endsWith('.html'))) {
   const html = readFileSync(path, 'utf8');
   const header = html.match(/<div\b[^>]*class="title"[^>]*>([\s\S]*?)<\/div>/)?.[1];
   if (!header) continue;
-  assert.match(header, /^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*<p\b[^>]*class="date"[^>]*>最后更新于\s*<time\b[^>]*>[\s\S]*?<\/time><\/p>\s*<p\b[^>]*class="source-filename"[^>]*>[^<]+<\/p>\s*<hr\b/, path);
+  assert.match(header, /^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*<h2\b[^>]*class="date"[^>]*>最后更新于\s*<time\b[^>]*>[\s\S]*?<\/time><\/h2>\s*<p\b[^>]*class="article-id"[^>]*>文章id: [^<]+<\/p>\s*$/, path);
   assert.equal((header.match(/<time\b/g) ?? []).length, 1, `One header date: ${path}`);
-  const name = header.match(/class="source-filename"[^>]*>([^<]+)<\/p>/)[1];
+  const articleId = header.match(/class="article-id"[^>]*>文章id: ([^<]+)<\/p>/)[1];
+  const name = [...sources.keys()].find(name => name.replace(/\.mdx?$/i, '') === articleId);
+  assert.ok(name, `ID derived from source basename: ${articleId}`);
   assert.ok(sources.has(name), `Real source filename: ${name}`);
   assert.ok(!seen.has(name), `One canonical article per source: ${name}`);
   seen.add(name);
@@ -37,4 +39,9 @@ for (const [name, path] of sources) {
   const frontmatter = readFileSync(path, 'utf8').split('---')[1];
   if (!/^draft:\s*true\s*$/m.test(frontmatter)) assert.ok(seen.has(name), `Published article checked: ${name}`);
 }
-console.log(`Blog headers passed: ${seen.size} articles, ${explicitUpdates} updated dates, ${fallbackDates} publication fallbacks; title/date/source filename order verified.`);
+const index = readFileSync(join(outputDir, 'index.html'), 'utf8');
+const birthdayCard = index.match(/<a\b[^>]*href="\/blog\/[^"/]+\/"[^>]*>\s*(<img\b[^>]*blog-birthday-2026[^>]*>)/)?.[1];
+assert.ok(birthdayCard, 'Birthday list cover rendered');
+assert.match(birthdayCard, /width="720"/);
+assert.match(birthdayCard, /height="480"/); // 3:2 leaves enough room for the hat and chin.
+console.log(`Blog headers passed: ${seen.size} articles, ${explicitUpdates} updated dates, ${fallbackDates} publication fallbacks; title/date/article ID order and birthday cover ratio verified.`);

@@ -106,7 +106,14 @@ const codes = blogCodes(posts.map((post) => post.id));
 							<li>
 								<a href={`/blog/${codes.get(post.id) ?? post.id}/`}>
 									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
+										<Image
+											width={720}
+											height={post.id === 'birthday2026' ? 480 : 360}
+											fit="cover"
+											position={post.id === 'birthday2026' ? 'top' : 'center'}
+											src={post.data.heroImage}
+											alt=""
+										/>
 									)}
 									<h4 class="title">{post.data.title}</h4>
 									<p class="date">
