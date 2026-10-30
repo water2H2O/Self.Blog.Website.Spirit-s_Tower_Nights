@@ -912,7 +912,7 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 | 构建命令 | `pnpm run build` |
 | 部署命令 | `npx wrangler deploy` |
 | 输出目录 | `dist`（写在 `wrangler.jsonc` 的 `assets.directory`） |
-| Node 版本 | 仓库根的 `.node-version`（22.12.0），构建镜像会读它，不用在控制台设环境变量 |
+| Node 版本 | 仓库根的 `.node-version`（当前 22.23.4），构建镜像会读它，不用在控制台设环境变量 |
 
 `wrangler.jsonc` 的 `name` 必须和控制台里的项目名一致，否则会部署到另一个 Worker 上。
 连上仓库后每次 push 到 `main` 会自动构建部署。
@@ -950,7 +950,8 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 
 本地（DSH 内置）是 pnpm **11.7.0**，Cloudflare 构建镜像默认是 pnpm **9.10.0**。
 构建日志里那行 `Detected the following tools from environment: nodejs@22.12.0, pnpm@9.10.0`
-就是它 —— nodejs 那半截来自 `.node-version`，pnpm 那半截是镜像的默认值。
+就是它 —— nodejs 那半截来自 `.node-version`（当时文件里写的是 22.12.0，现在已升到 22.23.4，
+读法与结论都不受影响），pnpm 那半截是镜像的默认值。
 
 差异点：**pnpm 9 起，只要仓库里存在 `pnpm-workspace.yaml`，就要求里面有 `packages` 字段**。
 没有的话在「安装依赖」这一步直接中止，整个构建 16 秒结束，站点保持旧版本：
