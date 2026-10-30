@@ -25,8 +25,33 @@ import {
 	QQ_GROUP_VISIBLE,
 	SITE_AUTHOR,
 	SITE_DESCRIPTION,
+	SITE_TITLE,
 	X_URL,
 } from '../consts';
+
+const homeURL = new URL('/', Astro.site).href;
+const personId = new URL('/#person', Astro.site).href;
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'WebSite',
+			'@id': new URL('/#website', Astro.site).href,
+			url: homeURL,
+			name: SITE_TITLE,
+			description: SITE_DESCRIPTION,
+			inLanguage: 'zh-CN',
+			publisher: { '@id': personId },
+		},
+		{
+			'@type': 'Person',
+			'@id': personId,
+			name: SITE_AUTHOR,
+			url: new URL('/about/', Astro.site).href,
+			sameAs: [GITHUB_URL, BILIBILI_URL, X_URL],
+		},
+	],
+};
 
 const isPublic = (entry: { data: { draft?: boolean } }) => !entry.data.draft;
 const posts = (await getCollection('blog')).filter(isPublic);
@@ -139,7 +164,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 <!doctype html>
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={`${SITE_AUTHOR} · 个人站点`} description={SITE_DESCRIPTION} />
+		<BaseHead title={`${SITE_AUTHOR} · 个人站点`} description={SITE_DESCRIPTION} structuredData={structuredData} />
 		<style>
 			main {
 				width: 1000px;

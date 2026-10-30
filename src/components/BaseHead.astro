@@ -14,12 +14,20 @@ interface Props {
 	image?: ImageMetadata | string;
 	/** 关掉「随机表情包图标」（默认开启） */
 	fixedIcon?: boolean;
+	ogType?: 'website' | 'article';
+	/** 只传已核实的结构化数据；统一在此安全序列化。 */
+	structuredData?: Record<string, unknown>;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = '/og-default.png', fixedIcon = false } = Astro.props;
+const {
+	title, description, image = '/og-default.png', fixedIcon = false,
+	ogType = 'website', structuredData,
+} = Astro.props;
 const ogImage = typeof image === 'string' ? image : image.src;
+// JSON-LD 是原始 script 文本；转义所有 <，避免内容中的 </script> 提前闭合标签。
+const serializedStructuredData = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\u003c') : undefined;
 
 /** 随机小图标池：由 tools/build-favicon-set.mjs 从表情包里生成 */
 const icons = fixedIcon ? [] : faviconSet.items.map((item) => item.src);
@@ -66,11 +74,13 @@ const icons = fixedIcon ? [] : faviconSet.items.map((item) => item.src);
 <meta name="description" content={description} />
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content={Astro.url} />
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(ogImage, Astro.url)} />
+<meta property="og:image" content={new URL(ogImage, canonicalURL)} />
+
+{serializedStructuredData && <script type="application/ld+json" is:inline set:html={serializedStructuredData} />}
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />

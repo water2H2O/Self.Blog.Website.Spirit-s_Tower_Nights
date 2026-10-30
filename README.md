@@ -582,6 +582,20 @@ tools/
 - 配色变量集中在 `src/styles/global.css` 的 `:root`，改一处全站生效
 - 每个角色 / 种族 / 条目可用 `themeColor` 覆盖自己的主题色
 
+## 搜索引擎元信息与结构化数据
+
+- 首页输出 `WebSite` 与站长 `Person` 的 JSON-LD；姓名、简介与社交链接取现有常量，
+  不虚构联系方式或搜索动作。
+- 随笔输出 `BlogPosting`：网址使用正式 canonical，`datePublished` 保持 `pubDate`，
+  `dateModified` 优先取 `updatedDate`，缺省回到 `pubDate`。有封面时使用真实图片作为结构化
+  `image` 与 OG 分享图；没有封面时不编造文章配图，OG 仍使用站点默认分享图。
+- 随笔的 `og:type` 为 `article`，普通页面保持 `website`；OG 地址不使用本地预览主机名。
+- 关于页整理那篇正文明确由模型代笔，因此省略其个人作者声明，站长只作为发布者；
+  其他随笔沿用站长本人撰写的既有约定。新增代笔文章时也应核实署名，不能默认冒认。
+- 数据在 `BaseHead` 统一 JSON 序列化并转义 `<`，避免正文中的闭合脚本字符串破坏页面。
+- 构建后运行 `node tools/check-structured-data.mjs` 检查首页与全部已发布随笔的地址、日期、
+  封面、署名和安全转义；这些元信息帮助机器识别内容，不保证富结果展示或排名提升。
+
 ## 全站搜索
 
 `/search/` 是纯静态搜索，没有 Pagefind，也没有后端：

@@ -6,6 +6,7 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import LicenseBadge from '../components/LicenseBadge.astro';
+import { SITE_AUTHOR } from '../consts';
 
 interface Props {
 	title: string;
@@ -14,16 +15,40 @@ interface Props {
 	updatedDate?: Date;
 	heroImage?: ImageMetadata;
 	sourceFilename: string;
+	/** 未核实或由模型代笔的文章不声明个人作者。 */
+	author?: string;
 }
 
-const { title, description, pubDate, updatedDate, heroImage, sourceFilename } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, sourceFilename, author } = Astro.props;
 const lastUpdated = updatedDate ?? pubDate;
 const articleId = sourceFilename.replace(/\.mdx?$/i, '');
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const publisher = {
+	'@type': 'Person',
+	'@id': new URL('/#person', Astro.site).href,
+	name: SITE_AUTHOR,
+	url: new URL('/about/', Astro.site).href,
+};
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@type': 'BlogPosting',
+	'@id': `${canonicalURL.href}#blogposting`,
+	headline: title,
+	description,
+	url: canonicalURL.href,
+	mainEntityOfPage: canonicalURL.href,
+	datePublished: pubDate.toISOString(),
+	dateModified: lastUpdated.toISOString(),
+	...(author ? { author: { ...publisher, name: author } } : {}),
+	publisher,
+	...(heroImage ? { image: new URL(heroImage.src, Astro.site).href } : {}),
+	inLanguage: 'zh-CN',
+};
 ---
 
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} image={heroImage} ogType="article" structuredData={structuredData} />
 		<style>
 			main {
 				width: calc(100% - 2em);

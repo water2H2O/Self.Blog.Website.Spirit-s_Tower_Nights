@@ -3,6 +3,7 @@ import { basename } from 'node:path';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { blogSlugs } from '../../lib/blog-slug';
+import { SITE_AUTHOR } from '../../consts';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -18,9 +19,11 @@ type Props = CollectionEntry<'blog'>;
 const post = Astro.props;
 // Read the actual source basename, not the short URL code or the extension-less collection ID.
 const sourceFilename = basename(post.filePath ?? `${post.id}.md`);
+// 此篇正文明确由模型代笔，不把模型虚构成 Person，也不冒充站长署名。
+const author = sourceFilename === 'a-fish-rearranges-the-about-page.md' ? undefined : SITE_AUTHOR;
 const { Content } = await render(post);
 ---
 
-<BlogPost {...post.data} sourceFilename={sourceFilename}>
+<BlogPost {...post.data} sourceFilename={sourceFilename} author={author}>
 	<Content />
 </BlogPost>
