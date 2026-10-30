@@ -1,4 +1,5 @@
 ---
+import { basename } from 'node:path';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { blogCodes } from '../../lib/blog-code';
@@ -15,9 +16,11 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
+// Read the actual source basename, not the short URL code or the extension-less collection ID.
+const sourceFilename = basename(post.filePath ?? `${post.id}.md`);
 const { Content } = await render(post);
 ---
 
-<BlogPost {...post.data}>
+<BlogPost {...post.data} sourceFilename={sourceFilename}>
 	<Content />
 </BlogPost>

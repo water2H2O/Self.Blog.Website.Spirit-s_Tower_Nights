@@ -13,9 +13,11 @@ interface Props {
 	pubDate: Date;
 	updatedDate?: Date;
 	heroImage?: ImageMetadata;
+	sourceFilename: string;
 }
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, sourceFilename } = Astro.props;
+const lastUpdated = updatedDate ?? pubDate;
 ---
 
 <html lang="zh-CN">
@@ -49,18 +51,24 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.title {
 				margin-bottom: 1em;
 				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
+				text-align: left;
+				line-height: 1.5;
 			}
 			.title h1 {
 				margin: 0 0 0.5em 0;
 			}
 			.date {
-				margin-bottom: 0.5em;
+				margin: 0;
+				font-size: 0.82em;
 				color: rgb(var(--gray));
 			}
-			.last-updated-on {
-				font-style: italic;
+			.source-filename {
+				margin: 0.35em 0 0;
+				font-family: var(--font-mono, monospace);
+				font-size: 0.72em;
+				line-height: 1.6;
+				color: rgb(var(--gray));
+				overflow-wrap: anywhere;
 			}
 		</style>
 	</head>
@@ -71,15 +79,9 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			<article>
 				<div class="prose">
 					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{updatedDate && (
-								<div class="last-updated-on">
-									最后更新于 <FormattedDate date={updatedDate} />
-								</div>
-							)}
-						</div>
 						<h1>{title}</h1>
+						<p class="date">最后更新于 <FormattedDate date={lastUpdated} /></p>
+						<p class="source-filename">{sourceFilename}</p>
 						<hr />
 					</div>
 					{/* 配图放在日期与标题**下面**，先见标题再见图 */}
