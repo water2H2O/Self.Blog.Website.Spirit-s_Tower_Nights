@@ -1,5 +1,5 @@
 ---
-title: '大模型推理强度控制的接口兼容性与有效性观察——以 DSH 的 Claude 与 GPT 接入为例'
+title: Claude的推理强度控制在dsh中需要专门兼容
 description: '给 Claude 加上 DSH 的思考强度滑块，迎来的不是更多思考，而是一条 400。修到能调用以后，还得继续问：这个滑块真的生效了吗？'
 pubDate: '2026-10-30'
 updatedDate: '2026-10-30'
