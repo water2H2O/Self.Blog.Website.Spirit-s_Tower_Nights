@@ -17,13 +17,7 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-
-const CHROME_CANDIDATES = [
-	'C:/Program Files/Google/Chrome/Application/chrome.exe',
-	'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-	'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-	'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
-];
+import { findBrowser, tempDir, BROWSER_HINT } from './find-chrome.mjs';
 
 const argv = process.argv.slice(2);
 const flags = new Map();
@@ -48,14 +42,13 @@ const waitMs = Number(flags.get('wait') ?? 1200);
 const extraEval = flags.get('eval') ?? '';
 const port = Number(flags.get('port') ?? 9333 + Math.floor(Math.random() * 200));
 
-const { existsSync } = await import('node:fs');
-const chrome = CHROME_CANDIDATES.find((path) => existsSync(path));
+const chrome = findBrowser();
 if (!chrome) {
-	console.error('找不到 Chrome / Edge');
+	console.error(BROWSER_HINT);
 	process.exit(2);
 }
 
-const profile = `${process.env.TEMP ?? '.'}\\dsh-shot-${port}`;
+const profile = tempDir('dsh-shot');
 const child = spawn(
 	chrome,
 	[

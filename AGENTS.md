@@ -7,7 +7,8 @@
 **这个仓库是 push 即部署**：没有提交、没有推送，就等于没改。改动落地后不要停在「本地通过」，
 按顺序做完：
 
-1. **自检**：`dev.cmd build`（退出码 0）。改了内容类文件再跑 `node tools/site-health.mjs`。
+1. **自检**：构建退出码 0 —— Windows 用 `dev.cmd build`，Linux / macOS 用 `pnpm build`。
+   改了内容类文件再跑 `node tools/site-health.mjs`。
 2. **看工作区**：`git status --short` —— 确认没有夹带临时文件、探测文件、`dist/`、`assets-staging/`。
    调试用的临时文件用完就删，收尾时工作区必须是干净的。
 3. **提交**：`git add -A` → 提交信息用中文写清「改了什么 + 为什么」，**一条提交只说一件事**。

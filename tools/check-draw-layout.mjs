@@ -10,19 +10,15 @@
  *   需要先起本地静态服务（见 README 的自检一节），默认读 http://127.0.0.1:4322
  */
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { findBrowser, tempDir, BROWSER_HINT } from './find-chrome.mjs';
 
 const BASE = process.env.DRAW_URL ?? 'http://127.0.0.1:4322/draw/';
 const widths = process.argv.slice(2).map(Number).filter((n) => n > 0);
 const list = widths.length > 0 ? widths : [390, 430, 768, 860, 1100, 1500];
 
-const CHROME = [
-	'C:/Program Files/Google/Chrome/Application/chrome.exe',
-	'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-	'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-].find((p) => existsSync(p));
+const CHROME = findBrowser();
 if (!CHROME) {
-	console.error('找不到 Chrome / Edge');
+	console.error(BROWSER_HINT);
 	process.exit(2);
 }
 
@@ -35,7 +31,7 @@ const child = spawn(
 		'--hide-scrollbars',
 		'--no-first-run',
 		`--remote-debugging-port=${port}`,
-		`--user-data-dir=${process.env.TEMP ?? '.'}\\dsh-drawcheck-${port}`,
+		`--user-data-dir=${tempDir('dsh-drawcheck')}`,
 		'about:blank',
 	],
 	{ stdio: 'ignore' },

@@ -41,6 +41,48 @@ dev.cmd preview     # 预览构建结果
 `dev.cmd` 会自动接入 DSH 内置的 Node/pnpm 运行时，并把 pnpm 缓存放在工作区内的 `..\.dsh-cache`。
 机器上已装好 Node 时，直接 `pnpm install` / `pnpm dev` 即可。
 
+**Windows 以外的系统（Linux / macOS）没有 `dev.cmd`**，用 npm scripts 就行 —— 只有命令名字不同，
+做的事完全一样：
+
+```sh
+pnpm install        # 安装依赖（CI 用的是 pnpm 9，见「构建环境的 pnpm 版本」）
+pnpm dev            # 开发服务器 → http://localhost:4321
+pnpm build          # 构建到 dist/
+pnpm preview        # 预览构建结果
+
+node tools/site-health.mjs          # 构建后的自检
+node tools/test-canteen-seats.mjs   # 首页食堂面板的回归检查
+```
+
+`package.json` 里的 `build` 就是 `astro build`，直接 `npx astro build` 也能跑。
+
+### 从 Windows 迁到 Linux：会遇到什么
+
+仓库本身是跨平台的（`.gitattributes` 已统一 LF），要处理的只有下面几类：
+
+| 类别 | 具体情况 | 怎么处理 |
+| --- | --- | --- |
+| 构建命令 | `dev.cmd`、`refresh-usage.mjs --build` 原来写死了 `cmd /c dev.cmd` | 已改：非 Windows 直接调 `node_modules/astro/astro.js` |
+| 路径分隔符 | 文档里 `dist\`、`Downloads\…` 这类写法 | 文档已改成 `${HOME}` / `~/Downloads`，脚本内部统一用 `path.join` |
+| 导出文件路径 | `--zip="C:\Users\…\Downloads\x.zip"` | Linux 用 `--zip="$HOME/Downloads/x.zip"`；带空格或中文的路径记得加引号 |
+| tar | Windows 用系统自带 bsdtar，Linux 是 GNU tar | 两个脚本已按平台自动选，Linux 用 `tar` 即可 |
+| 文件名大小写 | Linux 文件系统区分大小写，Windows 不区分 | 改文件名（尤其是 content 里的图片引用）后重新走一遍 `site-health` |
+| 截图工具 | Chrome 路径写死了 Windows 位置 | 新增 `tools/find-chrome.mjs`：认 `CHROME_PATH`、各平台默认位置、`PATH` |
+| 品牌图 / 水印脚本 | 源图目录指向作者桌面 | 用 `BRAND_LOGO=` / `WATERMARK_SOURCE=` 环境变量指过去，缺目录时会跳过并提示 |
+
+**换机后建议按这个顺序验一遍**：
+
+```sh
+pnpm install
+pnpm build                      # exit 0，页数与改前一致（当前 184 页）
+node tools/site-health.mjs      # 全绿
+node tools/test-canteen-seats.mjs
+git status --short              # 只应有你有意改动的文件
+```
+
+> 部署不依赖本机：推上去之后由 Cloudflare 构建（Linux 容器）。所以真正需要担心的只有本地开发环境，
+> 本地能构建、能自检，就等于换机器成功。
+
 ### 关于页：一页分区展示
 
 - `/about/` 不再使用随笔布局：个人介绍与配图、创作入口、联系方式、完整友链、站点与授权摘要统一展示，并提供页内分区导航。
@@ -59,7 +101,7 @@ dev.cmd preview     # 预览构建结果
 - 导航和按钮直接说明去向或动作；页面介绍面向来访读者，不把内部文件路径、数据来源和实现细节当作操作说明。
 - 空状态、未完成内容和播放失败要如实说明，不承诺尚未实现的功能，也不把所有失败都归因于浏览器。
 - 保留栏目专名、作者的个人语气与授权边界；润色界面时不改小说、设定和教材正文。
-- 需要先看效果时，运行 `dev.cmd dev --host 127.0.0.1 --port 4321`，以终端实际输出的地址为准。验收后再提交、推送；不要把本地预览当作已经上线。
+- 需要先看效果时，运行 `dev.cmd dev --host 127.0.0.1 --port 4321`（Linux / macOS 用 `pnpm dev --host 127.0.0.1 --port 4321`），以终端实际输出的地址为准。验收后再提交、推送；不要把本地预览当作已经上线。
 
 ---
 
@@ -606,7 +648,7 @@ tools/
 | `.npmrc` 的 `node-linker=hoisted` | Cloudflare 构建用的 **pnpm 9 不读** `pnpm-workspace.yaml` 里的 `nodeLinker`，只认 `.npmrc`；两处都写才能让本地与 CI 用同一种扁平布局 |
 | `pnpm-workspace.yaml` 的 `packages` 字段 | pnpm 9 只要看到这个文件就要求它，缺了直接中止构建（详见「部署」一节的 pnpm 版本坑） |
 | `astro.config.mjs` 的 `vite.resolve.preserveSymlinks: true` | Vite 在 Windows 上执行 `net use` 挑选 realpath 实现，沙箱禁止带管道的子进程（spawn EPERM），异常被静默吞掉后所有依赖解析返回空 → 纯 CommonJS 包报 `require is not defined` |
-| `ASTRO_TELEMETRY_DISABLED=1`（见 `dev.cmd`） | Astro 遥测要写 `%APPDATA%\astro`，沙箱外不可写 |
+| `ASTRO_TELEMETRY_DISABLED=1`（见 `dev.cmd`，仅 Windows 需要） | Astro 遥测要写 `%APPDATA%\astro`，沙箱外不可写 |
 
 ## 导入 docx 档案（角色 / 种族）
 
@@ -776,7 +818,7 @@ node tools/refresh-usage.mjs          # 只更新 src/data/token-usage.json，�
 node tools/refresh-usage.mjs --dry    # 只列出会用到哪些文件
 node tools/refresh-usage.mjs --build  # 另外跑构建 + site-health
 node tools/refresh-usage.mjs --all    # 再往下：提交、pull --rebase、推送、等线上出现新数字
-node tools/refresh-usage.mjs --dir=D:\某目录   # 导出不在 Downloads 时
+node tools/refresh-usage.mjs --dir=/path/to/导出目录   # 导出不在 ~/Downloads 时（Windows 写 "D:\某目录"）
 ```
 
 它认两种文件名并据此排序：
@@ -798,9 +840,10 @@ node tools/refresh-usage.mjs --dir=D:\某目录   # 导出不在 Downloads 时
 3. 让脚本读它：
 
 ```sh
-node tools/fetch-token-usage.mjs --zip="C:\Users\你\Downloads\usage_data_2026-09-22_2026-10-21.zip"
+# Linux / macOS（Windows 把 $HOME 换成 %USERPROFILE%，路径用反斜杠）
+node tools/fetch-token-usage.mjs --zip="$HOME/Downloads/usage_data_2026-09-22_2026-10-21.zip"
 # 已经解开的目录也行：
-node tools/fetch-token-usage.mjs --dir="...\解压后的目录"
+node tools/fetch-token-usage.mjs --dir="$HOME/Downloads/解压后的目录"
 ```
 
 导出按钮坏了还可以直接调接口（要登录态 `userToken`）：
@@ -815,9 +858,9 @@ node tools/fetch-token-usage.mjs --months=3
 
 ```sh
 node tools/fetch-token-usage.mjs \
-  --zip="C:\Users\你\Downloads\usage_data_2026-09-22_2026-10-21.zip" \
-  --relay="C:\Users\你\Downloads\usage_2026-10-09_to_2026-10-22.csv" \
-  --relay="C:\Users\你\Downloads\usage_2026-10-21_to_2026-10-22.csv"
+  --zip="$HOME/Downloads/usage_data_2026-09-22_2026-10-21.zip" \
+  --relay="$HOME/Downloads/usage_2026-10-09_to_2026-10-22.csv" \
+  --relay="$HOME/Downloads/usage_2026-10-21_to_2026-10-22.csv"
 ```
 
 中转站表格只需要这几列（多出来的列忽略）：`Time`、`Model`、`Input Tokens`、`Output Tokens`、
@@ -951,7 +994,7 @@ node <pnpm9>/bin/pnpm.cjs install --frozen-lockfile --lockfile-only
 
 这个仓库是 **push 即部署**，没提交等于没改。改动落地后不要停在「本地通过」，顺序固定：
 
-1. **自检**：`dev.cmd build` 退出码 0；改了内容类文件再跑一遍 `node tools/site-health.mjs`
+1. **自检**：构建退出码 0（Windows `dev.cmd build` / 其他系统 `pnpm build`）；改了内容类文件再跑一遍 `node tools/site-health.mjs`
 2. **看工作区**：`git status --short` 确认没有夹带临时文件、探测文件、`dist/`、`assets-staging/`
 3. **提交**：`git add -A` → 提交信息用中文写清「改了什么 + 为什么」，**一条提交只说一件事**；
    历史上大多是直接的中文动宾句（如「修正脚本与工具里工作区路径写法…」），需要时加

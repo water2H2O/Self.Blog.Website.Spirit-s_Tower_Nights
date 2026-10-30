@@ -2,7 +2,7 @@
  * 把档案夹里的新图压进图池并登记。
  *
  * 用法：node tools/import-image.mjs --src=<图片路径> --name=<池内文件名> --char=<角色> --kind=<分类> [--owner=xx]
- * 例：node tools/import-image.mjs --src="C:/.../d69e.png" --name="淼渺__插画-女仆装.webp" --char=淼渺 --kind=插画
+ * 例：node tools/import-image.mjs --src="./d69e.png" --name="淼渺__插画-女仆装.webp" --char=淼渺 --kind=插画
  */
 import fs from 'node:fs';
 import path from 'node:path';

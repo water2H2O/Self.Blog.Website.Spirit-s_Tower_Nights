@@ -80,6 +80,23 @@ function node(args, opts = {}) {
 	return run(process.execPath, args, opts);
 }
 
+/**
+ * 构建一步跨平台：
+ *   · Windows 上有 dev.cmd（会接 DSH 内置 Node / pnpm 缓存），沿用它的行为
+ *   · 其他平台直接调仓库里装好的 astro，不依赖任何全局命令
+ */
+function build() {
+	const devCmd = path.join(ROOT, 'dev.cmd');
+	if (process.platform === 'win32' && fs.existsSync(devCmd)) {
+		return run('cmd', ['/c', 'dev.cmd', 'build']);
+	}
+	const astro = path.join(ROOT, 'node_modules', 'astro', 'astro.js');
+	if (fs.existsSync(astro)) {
+		return node([astro, 'build']);
+	}
+	throw new Error('没找到 node_modules/astro，先在仓库里跑一次 pnpm install');
+}
+
 function readJson() {
 	try {
 		return JSON.parse(fs.readFileSync(OUT, 'utf8'));
@@ -219,7 +236,7 @@ if (rows.length) {
 
 if (DO_BUILD) {
 	console.log('\n构建：');
-	run('cmd', ['/c', 'dev.cmd', 'build']);
+	build();
 	console.log('\n页面检查：');
 	node([HEALTH]);
 }

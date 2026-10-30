@@ -1,7 +1,8 @@
 /**
  * 从原始 logo 生成站点品牌资源（favicon / iOS 图标 / 社交分享图）。
  *
- * 用法：node tools/build-brand-assets.mjs
+ * 用法：node tools/build-brand-assets.mjs [logo.png]
+ *       或 BRAND_LOGO=/path/to/logo.png node tools/build-brand-assets.mjs
  *
  * 源图是 3072×3072 的 PNG（大量留白），内容区（trim 后）在 (662, 1191) 起、1958×527。
  * - 站点图标用「水」字：实测缩到 32px 仍清晰，猫脸会糊，整条字标完全不可读
@@ -16,7 +17,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const PUBLIC = path.join(ROOT, 'public');
 
-const SRC = process.argv[2] ?? 'C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/世界观logo.png';
+/** 源图：命令行参数 > 环境变量 > 作者本机的默认位置（换机器时用前两种） */
+const SRC =
+	process.argv[2] ??
+	process.env.BRAND_LOGO ??
+	'C:/Users/water2H2O/Desktop/oc相关/【原创&本家】水塔夜谈/世界观logo.png';
 
 /** 站点深色底 */
 const BG = { r: 13, g: 27, b: 38, alpha: 1 };

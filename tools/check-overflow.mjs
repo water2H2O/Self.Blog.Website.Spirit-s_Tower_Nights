@@ -9,7 +9,7 @@
  * 定位不到任何越界元素却仍有横向滚动时，会提示可能是 fixed/sticky 或滚动条造成。
  */
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { findBrowser, tempDir, BROWSER_HINT } from './find-chrome.mjs';
 
 const argv = process.argv.slice(2);
 const url = argv[0];
@@ -21,12 +21,9 @@ if (!url) {
 	process.exit(2);
 }
 
-const CHROME = [
-	'C:/Program Files/Google/Chrome/Application/chrome.exe',
-	'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-].find((p) => existsSync(p));
+const CHROME = findBrowser();
 if (!CHROME) {
-	console.error('找不到 Chrome');
+	console.error(BROWSER_HINT);
 	process.exit(2);
 }
 
@@ -39,7 +36,7 @@ const child = spawn(
 		'--hide-scrollbars',
 		'--no-first-run',
 		`--remote-debugging-port=${port}`,
-		`--user-data-dir=${process.env.TEMP ?? '.'}\\dsh-ovf-${port}`,
+		`--user-data-dir=${tempDir('dsh-ovf')}`,
 		'about:blank',
 	],
 	{ stdio: 'ignore' },

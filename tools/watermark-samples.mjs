@@ -6,6 +6,7 @@
  * 幂等：每次都从**未加水印的 staging 源**重新生成，重复跑不会叠水印。
  *
  * 用法：node tools/watermark-samples.mjs
+ *       源图目录不在默认位置时：WATERMARK_SOURCE=/path/to/成品 node tools/watermark-samples.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,8 +15,9 @@ import sharp from 'sharp';
 const ROOT = process.cwd();
 const STAGING = path.join(ROOT, 'assets-staging', '【企划】水塔OC补完计划');
 const GALLERY = path.join(ROOT, 'public', 'gallery');
-/** 桌面上原始的成品文件夹（只用来取新增的原图） */
-const SOURCE = 'C:/Users/water2H2O/Desktop/oc相关/【已归档】【企划】水塔OC补完计划/成品';
+/** 桌面上原始的成品文件夹（只用来取新增的原图）；换机器时用 WATERMARK_SOURCE 指过去 */
+const SOURCE =
+	process.env.WATERMARK_SOURCE ?? 'C:/Users/water2H2O/Desktop/oc相关/【已归档】【企划】水塔OC补完计划/成品';
 
 /** 不收录的素材 */
 const EXCLUDE = ['淼渺_女仆'];
