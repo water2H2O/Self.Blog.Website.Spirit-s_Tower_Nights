@@ -1028,6 +1028,21 @@ node <pnpm9>/bin/pnpm.cjs install --frozen-lockfile --lockfile-only
 `"packageManager": "pnpm@<版本>"` —— Cloudflare 的版本检测读的就是这个字段
 （和 `.node-version` 同一套机制），会据此装指定版本的 pnpm。
 
+## 自动构建与回归检查
+
+`.github/workflows/site-check.yml` 在推送 `main` 或向 `main` 提交 PR 时运行：
+
+1. 从 `.node-version` 读取 Node 版本，使用 **pnpm 9.10.0** 对齐当前 Cloudflare 镜像，
+   `pnpm install --frozen-lockfile` 后执行 `pnpm build`。
+2. 检查全站死链、缺资源、锚点与 canonical，再分别检查 token 统计、食堂座位、博客路由与页头、
+   粗体渲染、设定页布局、GitHub 数据、画廊原图加载、静态缓存与结构化元信息。
+3. 只读仓库权限，不保留 checkout 凭据，不抓取新数据、不自动提交、**不执行部署**。
+   同一 PR / 分支的新提交取消旧检查；不同 PR 与主分支互不取消。
+
+Chrome 交互回归仍在本地按「画廊图池」章节运行，不纳入这条不安装浏览器的静态检查。
+Cloudflare 继续独立构建部署；Actions 是额外的可见检查，**不是部署前置闸门**。
+提交页上 Actions 和 Workers Builds 都要查看，不能因为其中一个成功就认定另一个也成功。
+
 ## 每次改完的提交流程（DSH 会自动走一遍）
 
 这个仓库是 **push 即部署**，没提交等于没改。改动落地后不要停在「本地通过」，顺序固定：

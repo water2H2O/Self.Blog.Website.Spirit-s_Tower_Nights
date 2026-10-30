@@ -1,0 +1,82 @@
+# 只构建和回归，不抓取外部数据、不提交，也不发布；部署仍由 Cloudflare 负责。
+name: 站点构建与回归检查
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# 同一 PR / 分支只保留最新检查；不同 PR 与 main 不互相取消。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  site-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: 取出仓库（不保留凭据）
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # setup-node 的 pnpm 缓存需要先能找到 pnpm；不让此 Action 自动安装依赖。
+      - name: 安装与 Cloudflare 对齐的 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.10.0
+          run_install: false
+
+      - name: 按仓库版本安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: 按锁文件安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建站点
+        run: pnpm build
+
+      - name: 全站健康检查
+        run: node tools/site-health.mjs
+
+      - name: Token 统计回归
+        run: node tools/test-token-stats.mjs
+
+      - name: 食堂座位回归
+        run: node tools/test-canteen-seats.mjs
+
+      - name: 博客路由回归
+        run: node tools/check-blog-routes.mjs
+
+      - name: 博客页头回归
+        run: node tools/check-blog-headers.mjs
+
+      - name: 粗体渲染回归
+        run: node tools/check-bold.mjs
+
+      - name: 设定页布局回归
+        run: node tools/check-lore-layout.mjs
+
+      - name: GitHub 数据检查
+        run: node tools/check-github-data.mjs
+
+      - name: 图池加载回归
+        run: node tools/check-gallery-loading.mjs
+
+      - name: 静态资源缓存回归
+        run: node tools/check-asset-cache.mjs
+
+      - name: 结构化数据回归
+        run: node tools/check-structured-data.mjs
