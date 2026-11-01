@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-30T15:11:35.724Z",
+  "fetchedAt": "2026-11-01T04:08:02.700Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -11,30 +11,31 @@
     "2026-10-20_2026-10-26",
     "2026-10-21_2026-10-27",
     "2026-10-22_2026-10-28",
-    "2026-10-24_2026-10-30"
+    "2026-10-24_2026-10-30",
+    "2026-10-26_2026-11-01"
   ],
   "dimension": "model",
   "series": [
     {
       "label": "官方 · deepseek-flash",
-      "tokens": 4443782109,
-      "share": 87.6,
-      "cost": 194.2564,
-      "requests": 14090
+      "tokens": 4761597419,
+      "share": 84.8,
+      "cost": 206.8248,
+      "requests": 15284
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 434243043,
-      "share": 8.6,
-      "cost": 20.8904,
-      "requests": 2593
+      "tokens": 655090021,
+      "share": 11.7,
+      "cost": 28.5823,
+      "requests": 4409
     },
     {
       "label": "中转站 · claude-opus-5-5",
-      "tokens": 176415869,
-      "share": 3.5,
-      "cost": 54.4688,
-      "requests": 804
+      "tokens": 183676270,
+      "share": 3.3,
+      "cost": 56.6266,
+      "requests": 849
     },
     {
       "label": "中转站 · gpt-6-astra",
@@ -89,17 +90,17 @@
     }
   ],
   "totals": {
-    "tokens": 5071160041,
-    "input": 45265943,
-    "output": 11437358,
-    "cacheRead": 4387598335,
-    "requests": 17734,
-    "cost": 278.8953
+    "tokens": 5617082730,
+    "input": 47659666,
+    "output": 12408770,
+    "cacheRead": 4702048510,
+    "requests": 20789,
+    "cost": 301.3133
   },
   "models": [
     {
       "model": "deepseek-flash",
-      "tokens": 4443782109
+      "tokens": 4761597419
     },
     {
       "model": "deepseek-v4-pro",
@@ -644,27 +645,64 @@
     },
     {
       "date": "2026-10-30",
-      "tokens": 490779933,
-      "input": 3030130,
-      "output": 474665,
-      "cacheRead": 269315840,
-      "requests": 1593,
-      "cost": 33.347587,
+      "tokens": 502116740,
+      "input": 3463336,
+      "output": 529883,
+      "cacheRead": 280164223,
+      "requests": 1639,
+      "cost": 34.218633,
       "hours": 1,
       "parts": {
-        "官方 · deepseek-flash": 272820386,
+        "官方 · deepseek-flash": 284157193,
         "官方 · deepseek-v4-pro": 249,
-        "中转站 · claude-opus-5-5": 55428259,
         "中转站 · gpt-6.1-sol": 162219269,
         "中转站 · glm-5.3-flash": 310843,
+        "中转站 · claude-opus-5-5": 55428259,
         "中转站 · gpt-image-2": 645,
         "中转站 · gpt-6-sol": 152,
         "中转站 · gpt-6.1-terra": 130
       },
       "open": 139820833,
-      "close": 490779933,
-      "high": 490779933,
+      "close": 502116740,
+      "high": 502116740,
       "low": 139820833
+    },
+    {
+      "date": "2026-10-31",
+      "tokens": 270312758,
+      "input": 763327,
+      "output": 732073,
+      "cacheRead": 250058752,
+      "requests": 1113,
+      "cost": 9.372096,
+      "hours": 1,
+      "parts": {
+        "官方 · deepseek-flash": 251554152,
+        "中转站 · gpt-6.1-sol": 18758606
+      },
+      "open": 502116740,
+      "close": 270312758,
+      "high": 502116740,
+      "low": 270312758
+    },
+    {
+      "date": "2026-11-01",
+      "tokens": 264273124,
+      "input": 1197190,
+      "output": 184121,
+      "cacheRead": 53543040,
+      "requests": 1896,
+      "cost": 12.174886,
+      "hours": 1,
+      "parts": {
+        "官方 · deepseek-flash": 54924351,
+        "中转站 · gpt-6.1-sol": 202088372,
+        "中转站 · claude-opus-5-5": 7260401
+      },
+      "open": 270312758,
+      "close": 264273124,
+      "high": 270312758,
+      "low": 264273124
     }
   ]
 }
