@@ -1,24 +1,35 @@
 {
-  "fetchedAt": "2026-10-31T01:33:54.152Z",
+  "fetchedAt": "2026-11-01T01:05:04.745Z",
   "user": {
     "login": "water2H2O",
     "name": "",
     "url": "https://github.com/water2H2O",
     "avatar": "https://avatars.githubusercontent.com/u/189988544?v=4",
-    "publicRepos": 5,
+    "publicRepos": 6,
     "followers": 1,
     "createdAt": "2024-11-28T12:20:28Z"
   },
   "repos": [
+    {
+      "name": "mcstat-panel",
+      "description": "Linux端DSH辅助管理mc服务器可视化面板",
+      "language": "JavaScript",
+      "url": "https://github.com/water2H2O/mcstat-panel",
+      "stars": 0,
+      "pushedAt": "2026-10-31T17:34:30Z",
+      "createdAt": "2026-10-31T16:50:33Z",
+      "sizeKb": 53,
+      "empty": false
+    },
     {
       "name": "Self.Blog.Website.Spirit-s_Tower_Nights",
       "description": "水水和他的世界观企划《水塔夜谈》的官方网站，包含水水个人世界观《水塔夜谈》的大部分可公开资料",
       "language": "Astro",
       "url": "https://github.com/water2H2O/Self.Blog.Website.Spirit-s_Tower_Nights",
       "stars": 1,
-      "pushedAt": "2026-10-30T23:52:54Z",
+      "pushedAt": "2026-10-31T01:33:55Z",
       "createdAt": "2026-10-09T07:50:22Z",
-      "sizeKb": 60161,
+      "sizeKb": 60167,
       "empty": false
     },
     {
@@ -67,11 +78,10 @@
     }
   ],
   "contributions": {
-    "from": "2025-10-26",
-    "to": "2026-10-31",
-    "total": 468,
+    "from": "2025-11-02",
+    "to": "2026-11-01",
+    "total": 474,
     "weeks": [
-      "1100010",
       "0010000",
       "0000000",
       "0000000",
@@ -123,7 +133,8 @@
       "0110014",
       "2331114",
       "3232221",
-      "1121122"
+      "1121122",
+      "1000000"
     ]
   }
 }
