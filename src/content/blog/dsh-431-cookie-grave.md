@@ -4,6 +4,7 @@ urlSlug: 'cookies'
 description: '窗口能打开，认证却一直失败。查到最后，不是聊天记录丢了，而是请求头里攒了太多旧 cookie。'
 pubDate: '2026-10-30'
 updatedDate: '2026-10-30'
+draft: true
 ---
 
 DSH 桌面版打不开的时候，报错很简短：

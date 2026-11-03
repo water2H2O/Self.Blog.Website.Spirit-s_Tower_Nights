@@ -57,7 +57,6 @@ heroImage: '../../assets/oc/blog-site-changelog.webp'
 
 把 DSH 认证失败、模型探针、生图接口接入的经历整理成了三篇随笔，也补写了 10 月 17 日那次事故。后续根据原始截图和补充记录继续修订：有证据的写清楚，没确认的经历和因果不替它补全。
 
-- [DSH 打不开了，最后查到一堆旧 cookie](/blog/cookies/)
 - [给手上的模型做个小体检](/blog/models/)
 - [只显示了一行提示，对话却已经塞满了](/blog/image-api/)
 - [改个文件夹名字，怎么把 DSH 弄坏了](/blog/scripts/)
