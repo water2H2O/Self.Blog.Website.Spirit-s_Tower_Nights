@@ -112,7 +112,7 @@ const slugs = blogSlugs(posts);
 											width={720}
 											height={post.id === 'birthday2026' ? 480 : 360}
 											fit="cover"
-											position={post.id === 'birthday2026' ? 'top' : 'center'}
+											position={post.id === 'birthday2026' ? 'top' : post.id === coverId ? 'bottom' : 'center'}
 											src={post.data.heroImage}
 											alt=""
 										/>

@@ -281,8 +281,8 @@ order: 21
 - 详情页、列表页、RSS、搜索索引、关于页共用 `src/lib/blog-slug.ts`。新文章只需填写 `urlSlug`，无需修改路由代码。
 - 当前地址：关于页整理 `about-page`、脚本事故 `scripts`、生日 `birthday`、认证故障 `cookies`、生图接口 `image-api`、模型体检 `models`、站点记录 `log`、推理强度 `thinking`。
 - 文章详情页标题区统一左对齐且紧凑排列：标题 → 标题样式的「最后更新于」日期 →「文章id: 文件名去后缀」（如 `文章id: birthday2026`）。日期优先取 `updatedDate`，缺省用 `pubDate`；不再单独显示发布日期。ID 从内容条目的 `filePath` 取文件名并去掉 `.md` / `.mdx` 后缀，不用 URL 短码，也不更改网址。布局在 `src/layouts/BlogPost.astro`，传参在 `src/pages/blog/[...slug].astro`；标题区不使用全局 `hr` 的大间距，ID 的段落间距也单独覆盖。构建后运行 `node tools/check-blog-headers.mjs` 检查所有文章的显示顺序、ID 与日期兜底。
-- 随笔页固定将 `site-changelog`（站点改动记录）放在最上方，沿用首张全宽封面大卡；日期显示其最后更新日期，其余文章仍按发布日期倒序。置顶仅影响随笔列表，不修改发布日期、RSS 或文章短码。专用封面为 `src/assets/oc/blog-site-changelog.webp`（AI 生成的夜间水塔与建站工作台插画，无角色委托图混用）。
-- 随笔列表封面默认 2:1 居中裁切；`birthday2026` 是竖图，单独用 3:2、`position="top"` 的构建时裁切，让帽子、头部和下巴完整保留。不能只改 CSS 的 `object-position`，因为 Astro 已在生成缩略图时裁掉了原图。
+- 随笔页固定将 `site-changelog`（站点改动记录）放在最上方，沿用首张全宽封面大卡；日期显示其最后更新日期，其余文章仍按发布日期倒序。置顶仅影响随笔列表，不修改发布日期、RSS 或文章短码。专用封面为 `src/assets/oc/blog-site-changelog.webp`（作者提供的蓝紫色城市夜景与楼顶人物剪影图），文章内展示完整图片。
+- 随笔列表封面默认 2:1 居中裁切；置顶的 `site-changelog` 使用 `position="bottom"` 保留画面下方的人物与楼顶；`birthday2026` 是竖图，单独用 3:2、`position="top"` 的构建时裁切，让帽子、头部和下巴完整保留。不能只改 CSS 的 `object-position`，因为 Astro 已在生成缩略图时裁掉了原图。
 - 历史短码和更早的长地址统一在 `public/_redirects` 中 **301 直达最终网址**，避免跳转链；`tools/blog-redirects.mjs` 供 Astro 生成静态跳转页，与 Cloudflare 表由回归检查确保一致，保留合并文章的章节锚点。不得复用旧地址。确实需要迁移时补跳转，而不是改标题后自动换网址。
 - 构建后运行 `node tools/check-blog-routes.mjs`：检查 8 篇 canonical、列表、RSS、搜索和 sitemap 全部使用语义网址；旧地址与锚点有效、slug 缺失/非法/重名/占保留地址时拒绝构建。
 
