@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-04T00:58:54.661Z",
+  "fetchedAt": "2026-11-04T01:09:16.372Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -756,5 +756,26 @@
       "high": 43973167,
       "low": 25839303
     }
-  ]
+  ],
+  "localRelay": {
+    "source": "本机 DSH 记录（~/.dsh/.dshw-usage.json）",
+    "note": "中转站停止导出后的补充记录。次数按「回合」计，token 只覆盖一部分（约为中转站导出值的 40%~90%），cost 是本地估算；因此不参与上面的合计、占比与图表。",
+    "after": "2026-11-01",
+    "days": [
+      {
+        "date": "2026-11-02",
+        "model": "gpt-6.1-sol",
+        "requests": 4,
+        "tokens": 35152163,
+        "cost": 3.34
+      },
+      {
+        "date": "2026-11-03",
+        "model": "gpt-6.1-sol",
+        "requests": 1,
+        "tokens": 15809509,
+        "cost": 3.24
+      }
+    ]
+  }
 }

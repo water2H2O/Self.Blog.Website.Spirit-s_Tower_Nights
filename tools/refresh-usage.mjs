@@ -26,6 +26,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src', 'data', 'token-usage.json');
 const FETCH = path.join(ROOT, 'tools', 'fetch-token-usage.mjs');
 const HEALTH = path.join(ROOT, 'tools', 'site-health.mjs');
+const LOCAL_USAGE = path.join(ROOT, 'tools', 'import-local-usage.mjs');
 
 const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(`--${name}`);
@@ -217,6 +218,10 @@ if (goodZips.length === 0) {
 
 const args = [FETCH, ...goodZips.map((z) => `--zip=${z.file}`), ...relays.map((r) => `--relay=${r.file}`)];
 node(args);
+
+// 中转站停服后拿不到它自己的导出，用它覆盖不到的日期由本机记录补一份（单独字段，不进合计）
+console.log('\n本地记录补充：');
+node([LOCAL_USAGE]);
 
 const after = readJson();
 console.log(`\n刷新后：${describe(after)}`);

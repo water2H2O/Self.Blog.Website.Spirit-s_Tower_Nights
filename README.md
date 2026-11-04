@@ -879,6 +879,25 @@ node tools/refresh-usage.mjs --dir=/path/to/导出目录   # 导出不在 ~/Down
 
 下面是要手动指定文件时的原始用法。
 
+### 中转站停服后：本机记录只作补充
+
+2026-11-02 起像素星空（中转站）停止服务，拿不到它自己的用量导出。DSH 在本机留了逐次记录
+`~/.dsh/.dshw-usage.json`（`{ts, day, model, tokens, cost}`），可以把**它覆盖不到的日期**补进数据：
+
+```sh
+node tools/import-local-usage.mjs           # 写进 token-usage.json 的 localRelay 字段
+node tools/import-local-usage.mjs --check   # 只看会写什么
+```
+
+`refresh-usage.mjs` 每次刷新都会顺带跑这一步。这份记录与导出口径不同，所以**单独存、单独展示**：
+
+- 次数是「回合」，不是 HTTP 请求数（同一天可能是几十回合对上几千请求）；
+- token 只覆盖一部分（实测约为中转站导出值的 40%~90%）；
+- `cost` 是本地估算，和实付接近但不相等。
+
+`/token/` 页面上它们是一张独立的「中转站停服后的本地记录」表，**不计入合计、占比和逐日图表** ——
+掺进去那条线就再也解释不清了。
+
 官网上能直接导出，不需要 token：
 
 1. 登录 <https://platform.deepseek.com/usage>

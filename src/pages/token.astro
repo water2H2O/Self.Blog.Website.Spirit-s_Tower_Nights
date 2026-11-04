@@ -33,6 +33,13 @@ const data = tokenUsage as {
 	fetchedAt?: string;
 	dimension?: string;
 	totals?: { tokens?: number; cost?: number; requests?: number; cacheRead?: number };
+	/** 中转站停止导出后的本机补充记录：口径不同，不参与合计与图表 */
+	localRelay?: {
+		source?: string;
+		note?: string;
+		after?: string;
+		days?: { date: string; model: string; requests: number; tokens: number; cost: number }[];
+	};
 };
 
 const days: Day[] = (data.daily ?? []).filter((d) => d.tokens > 0);
@@ -1043,6 +1050,44 @@ const guestCards = series
 					</tbody>
 				</table>
 			</div>
+
+			{data.localRelay?.days?.length ? (
+				<>
+					<h2>中转站停服后的本地记录</h2>
+					<div class="card">
+						<table class="daily">
+							<thead>
+								<tr>
+									<th>日期</th>
+									<th>模型</th>
+									<th>次数</th>
+									<th>本地记录用量</th>
+									<th>本地估算花费</th>
+								</tr>
+							</thead>
+							<tbody>
+								{data.localRelay.days.map((row) => (
+									<tr>
+										<td>{row.date}</td>
+										<td>{row.model}</td>
+										<td>
+											{row.requests}
+											<span class="unit"> 次</span>
+										</td>
+										<td>{fmt(row.tokens)}</td>
+										<td>{row.cost ? fmtYuan(row.cost) : '—'}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+						<p class="note">{data.localRelay.note}</p>
+						<p class="note">
+							数据来源：{data.localRelay.source}；中转站导出止于 {data.localRelay.after}。
+							这几行不计入上面的合计、占比和逐日图表。
+						</p>
+					</div>
+				</>
+			) : null}
 
 			<p class="note">
 				数据源：{data.source ?? 'token-usage.json'}。刷新方式是在仓库里跑
