@@ -31,12 +31,15 @@ const fmt = (n) => (n >= 1e8 ? (n / 1e8).toFixed(2) + ' 亿' : n >= 1e4 ? (n / 1
 
 const data = JSON.parse(fs.readFileSync(OUT, 'utf8'));
 
-/** 中转站导出覆盖到的最后一天：那天 parts 里还有「中转站 · …」 */
-const lastRelayDay = (data.daily ?? [])
-	.filter((day) => Object.entries(day.parts ?? {}).some(([label, v]) => label.startsWith('中转站') && v > 0))
-	.map((day) => day.date)
-	.sort()
-	.at(-1);
+/** 中转站导出覆盖到的日子：那天 parts 里还有「中转站 · …」。
+ * 按「天」判断而不是只取最后一天 —— 中间断档（比如 11-02 缺导出、11-03 又有了）时，
+ * 断档那天仍然需要本地记录补。 */
+const coveredDays = new Set(
+	(data.daily ?? [])
+		.filter((day) => Object.entries(day.parts ?? {}).some(([label, v]) => label.startsWith('中转站') && v > 0))
+		.map((day) => day.date),
+);
+const lastRelayDay = [...coveredDays].sort().at(-1);
 if (!lastRelayDay) {
 	console.log('数据里没有中转站记录，跳过');
 	process.exit(0);
@@ -50,7 +53,7 @@ if (!fs.existsSync(LOCAL)) {
 const events = JSON.parse(fs.readFileSync(LOCAL, 'utf8')).events ?? [];
 const agg = new Map();
 for (const e of events) {
-	if (!e.day || e.day <= lastRelayDay) continue;
+	if (!e.day || coveredDays.has(e.day)) continue;
 	if (!isRelay(e.model)) continue;
 	const key = `${e.day}|${e.model}`;
 	const cur = agg.get(key) ?? { date: e.day, model: e.model, requests: 0, tokens: 0, cost: 0 };

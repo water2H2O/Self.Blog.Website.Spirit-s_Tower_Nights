@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-04T01:09:16.372Z",
+  "fetchedAt": "2026-11-04T03:30:47.611Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -20,16 +20,16 @@
     {
       "label": "官方 · deepseek-flash",
       "tokens": 4888674565,
-      "share": 85.1,
+      "share": 84.9,
       "cost": 214.1125,
       "requests": 15957
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 655090021,
-      "share": 11.4,
-      "cost": 28.5823,
-      "requests": 4409
+      "tokens": 670899530,
+      "share": 11.6,
+      "cost": 29.3234,
+      "requests": 4433
     },
     {
       "label": "中转站 · claude-opus-5-5",
@@ -91,12 +91,12 @@
     }
   ],
   "totals": {
-    "tokens": 5744159876,
+    "tokens": 5759969385,
     "input": 49524337,
     "output": 12947453,
     "cacheRead": 4826722302,
-    "requests": 21462,
-    "cost": 308.656
+    "requests": 21486,
+    "cost": 309.3971
   },
   "models": [
     {
@@ -724,20 +724,21 @@
     },
     {
       "date": "2026-11-03",
-      "tokens": 25839303,
+      "tokens": 41648812,
       "input": 508908,
       "output": 264667,
       "cacheRead": 25065728,
-      "requests": 282,
-      "cost": 2.624056,
+      "requests": 306,
+      "cost": 3.365155,
       "hours": 1,
       "parts": {
-        "官方 · deepseek-flash": 25839303
+        "官方 · deepseek-flash": 25839303,
+        "中转站 · gpt-6.1-sol": 15809509
       },
       "open": 31545374,
-      "close": 25839303,
-      "high": 31545374,
-      "low": 25839303
+      "close": 41648812,
+      "high": 41648812,
+      "low": 31545374
     },
     {
       "date": "2026-11-04",
@@ -751,16 +752,16 @@
       "parts": {
         "官方 · deepseek-flash": 43973167
       },
-      "open": 25839303,
+      "open": 41648812,
       "close": 43973167,
       "high": 43973167,
-      "low": 25839303
+      "low": 41648812
     }
   ],
   "localRelay": {
     "source": "本机 DSH 记录（~/.dsh/.dshw-usage.json）",
     "note": "中转站停止导出后的补充记录。次数按「回合」计，token 只覆盖一部分（约为中转站导出值的 40%~90%），cost 是本地估算；因此不参与上面的合计、占比与图表。",
-    "after": "2026-11-01",
+    "after": "2026-11-03",
     "days": [
       {
         "date": "2026-11-02",
@@ -768,13 +769,6 @@
         "requests": 4,
         "tokens": 35152163,
         "cost": 3.34
-      },
-      {
-        "date": "2026-11-03",
-        "model": "gpt-6.1-sol",
-        "requests": 1,
-        "tokens": 15809509,
-        "cost": 3.24
       }
     ]
   }
