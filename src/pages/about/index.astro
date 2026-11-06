@@ -6,7 +6,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import LicenseBadge from '../../components/LicenseBadge.astro';
-import { FRIENDS } from '../../data/friends';
+import { FRIENDS, friendAddress, isInsecure } from '../../data/friends';
 import { blogSlugs } from '../../lib/blog-slug';
 import {
 	BILIBILI_NAME, BILIBILI_URL, EMAIL, GITHUB_NAME, GITHUB_URL,
@@ -90,7 +90,7 @@ const contacts = [
 					<p class="muted">朋友们的小站、我参与的项目，还有帮这座水塔搭起来的工具。路过的话，也去他们那里坐坐吧。</p>
 					<ul class="friend-grid">
 						{FRIENDS.map((friend) => (
-							<li><a href={friend.href} target="_blank" rel="noreferrer"><h3>{friend.who}<span aria-hidden="true">↗</span></h3><span class="friend-address">{new URL(friend.href).host}</span>{friend.note && <p>{friend.note}</p>}</a></li>
+							<li><a href={friend.href} target="_blank" rel="noreferrer" title={isInsecure(friend.href) ? '对方站点暂时只有 HTTP，连接不加密' : undefined}><h3>{friend.who}<span aria-hidden="true">↗</span></h3><span class="friend-address">{friendAddress(friend.href)}{isInsecure(friend.href) && <em class="friend-http">仅 HTTP</em>}</span>{friend.note && <p>{friend.note}</p>}</a></li>
 						))}
 					</ul>
 					<p class="friends-foot">想随机认识一位角色？去<a href="/draw/">抽支签</a>，或者在<a href="/draw/pool/">签筒</a>里慢慢翻。</p>
@@ -160,6 +160,7 @@ const contacts = [
 	.friend-grid a { display: block; height: 100%; box-sizing: border-box; padding: 1.1rem; border: 1px solid rgb(var(--border)); border-radius: 0.8rem; background: rgba(18,34,46,0.4); text-decoration: none; }
 	.friend-grid h3 { font-size: 0.87rem; }
 	.friend-address { display: block; color: var(--accent); font-size: 0.68rem; margin-top: 0.4rem; overflow-wrap: anywhere; }
+	.friend-http { display: inline-block; margin-left: 0.5em; padding: 0 0.45em; border: 1px solid rgba(240,190,120,0.45); border-radius: 99px; color: #f0be78; font-style: normal; font-size: 0.6rem; line-height: 1.5; vertical-align: 0.05em; white-space: nowrap; }
 	.friend-grid p { margin: 0.65rem 0 0; font-size: 0.73rem; color: rgb(var(--gray)); }
 	.friends-foot { margin: 1.4rem 0 0; color: rgb(var(--gray)); }
 	.site-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }

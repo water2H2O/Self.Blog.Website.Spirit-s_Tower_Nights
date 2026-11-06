@@ -1,3 +1,5 @@
+import { domainToUnicode } from 'node:url';
+
 /**
  * 友情链接名单。
  *
@@ -9,11 +11,28 @@
  *   href —— 完整网址（显示出来的也是它，方便直接复制）
  *   who  —— 归属
  *   note —— 一句话说明，可省
+ *
+ * 显示规则（关于页自动处理，不用手写）：
+ *   - 中文域名显示成中文，不显示 xn-- 编码；路径不是「/」时一并显示
+ *   - http:// 开头的链接自动加「仅 HTTP」标记，对方开了 https 后把 href 改掉即可
  */
 export interface FriendLink {
 	href: string;
 	who: string;
 	note?: string;
+}
+
+/** 卡片上显示的地址：中文域名解码、去掉末尾斜杠，保留有意义的路径。 */
+export function friendAddress(href: string): string {
+	const url = new URL(href);
+	const host = domainToUnicode(url.hostname) || url.hostname;
+	const path = url.pathname === '/' ? '' : url.pathname.replace(/\/$/, '');
+	return host + path;
+}
+
+/** 只有 http、没有 https 的站点。 */
+export function isInsecure(href: string): boolean {
+	return new URL(href).protocol === 'http:';
 }
 
 export const FRIENDS: FriendLink[] = [
@@ -59,6 +78,13 @@ export const FRIENDS: FriendLink[] = [
 		href: 'https://blog.xiey.work/',
 		who: 'In Huntersxy',
 		note: 'Huntersxy 的个人博客：技术折腾与折腾记录',
+	},
+	{
+		// 2026-11-06 加；签筒里「檐下汐」的设主。站点暂时只有 http（https 握手失败），
+		// 等对方开了 https 把这里改掉即可，页面上的「仅 HTTP」标记会自动消失。
+		href: 'http://shiori.amquora.love/',
+		who: '浅水 ShallowAqua',
+		note: '檐下汐的小站：自我介绍、设定与图廊',
 	},
 	{
 		href: 'https://blophy.cn/',
