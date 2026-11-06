@@ -6,7 +6,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import LicenseBadge from '../../components/LicenseBadge.astro';
-import { FRIENDS, friendAddress, isInsecure } from '../../data/friends';
+import { FRIENDS, FRIEND_GROUPS, friendAddress, isInsecure } from '../../data/friends';
 import { blogSlugs } from '../../lib/blog-slug';
 import {
 	BILIBILI_NAME, BILIBILI_URL, EMAIL, GITHUB_NAME, GITHUB_URL,
@@ -88,11 +88,31 @@ const contacts = [
 				<section class="section friends-section" id="friends" aria-labelledby="friends-title">
 					<div class="section-head"><p class="eyebrow">不止我一个人的小世界</p><h2 id="friends-title">朋友与伙伴</h2></div>
 					<p class="muted">朋友们的小站、我参与的项目，还有帮这座水塔搭起来的工具。路过的话，也去他们那里坐坐吧。</p>
-					<ul class="friend-grid">
-						{FRIENDS.map((friend) => (
-							<li><a href={friend.href} target="_blank" rel="noreferrer" title={isInsecure(friend.href) ? '对方站点暂时只有 HTTP，连接不加密' : undefined}><h3>{friend.who}<span aria-hidden="true">↗</span></h3><span class="friend-address">{friendAddress(friend.href)}{isInsecure(friend.href) && <em class="friend-http">仅 HTTP</em>}</span>{friend.note && <p>{friend.note}</p>}</a></li>
-						))}
-					</ul>
+					{FRIEND_GROUPS.map((group) => {
+						const items = FRIENDS.filter((f) => group.groups.includes(f.group));
+						return items.length > 0 && (
+							<div class="friend-group">
+								<h3 class="friend-group-title">{group.label}<span>{items.length}</span></h3>
+								<ul class="friend-grid">
+									{items.map((friend) => (
+										<li>
+											<a href={friend.href} target="_blank" rel="noreferrer" title={isInsecure(friend.href) ? '对方站点暂时只有 HTTP，连接不加密' : undefined}>
+												{friend.icon
+													? <Image class="friend-icon" src={friend.icon} alt="" width={48} height={48} loading="lazy" />
+													: <span class="friend-icon friend-icon-text" aria-hidden="true">{[...friend.who][0]}</span>}
+												<span class="friend-body">
+													<strong class="friend-name">{friend.who}</strong>
+													<span class="friend-address">{friendAddress(friend.href)}{isInsecure(friend.href) && <em class="friend-http">仅 HTTP</em>}</span>
+													{friend.note && <span class="friend-note">{friend.note}</span>}
+												</span>
+												<span class="friend-arrow" aria-hidden="true">↗</span>
+											</a>
+										</li>
+									))}
+								</ul>
+							</div>
+						);
+					})}
 					<p class="friends-foot">想随机认识一位角色？去<a href="/draw/">抽支签</a>，或者在<a href="/draw/pool/">签筒</a>里慢慢翻。</p>
 				</section>
 				<section class="section site-section" id="site" aria-labelledby="site-title">
@@ -136,8 +156,8 @@ const contacts = [
 	.work-links { display: grid; gap: 0.7rem; margin-top: 1.6rem; }
 	.work-card { display: block; padding: 1rem 1.1rem; border: 1px solid rgb(var(--border)); border-radius: 0.8rem; text-decoration: none; background: rgba(18,34,46,0.45); }
 	.work-card:hover, .friend-grid a:hover { border-color: var(--accent-dark); background: rgba(34,64,79,0.6); }
-	.work-card h3, .friend-grid h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin: 0; color: rgb(var(--black)); }
-	.work-card h3 span, .friend-grid h3 span { flex-shrink: 0; font-size: 0.95rem; color: var(--accent); }
+	.work-card h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin: 0; color: rgb(var(--black)); }
+	.work-card h3 span { flex-shrink: 0; font-size: 0.95rem; color: var(--accent); }
 	.work-card p { margin: 0.5rem 0 0; color: rgb(var(--gray)); font-size: 0.9rem; }
 	.work-card .eyebrow { display: block; font-size: 0.65rem; margin-bottom: 0.35rem; }
 	.email-card { display: grid; gap: 0.4rem; padding: 1.1rem; margin: 1.2rem 0 0.6rem; border-radius: 0.8rem; border: 1px solid rgba(127,233,240,0.35); background: rgba(127,233,240,0.06); text-decoration: none; }
@@ -155,13 +175,25 @@ const contacts = [
 	.contact-list a:hover strong { color: var(--glow); }
 	.out-arrow { margin-left: auto; font-size: 0.9rem; }
 	.friends-section, .site-section { grid-column: 1 / -1; }
-	.friend-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; margin-top: 1.4rem; }
+	.friend-group { margin-top: 1.6rem; }
+	.friend-group-title { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.8rem; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em; color: rgb(var(--gray)); }
+	.friend-group-title::after { content: ''; flex: 1; height: 1px; background: rgb(var(--border)); }
+	.friend-group-title span { font-size: 0.65rem; color: var(--accent); }
+	.friend-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; }
 	.friend-grid li { min-width: 0; }
-	.friend-grid a { display: block; height: 100%; box-sizing: border-box; padding: 1.1rem; border: 1px solid rgb(var(--border)); border-radius: 0.8rem; background: rgba(18,34,46,0.4); text-decoration: none; }
-	.friend-grid h3 { font-size: 0.87rem; }
-	.friend-address { display: block; color: var(--accent); font-size: 0.68rem; margin-top: 0.4rem; overflow-wrap: anywhere; }
+	.friend-grid a { position: relative; display: flex; align-items: flex-start; gap: 0.85rem; height: 100%; box-sizing: border-box; padding: 1rem 2.2rem 1rem 1rem; border: 1px solid rgb(var(--border)); border-radius: 0.8rem; background: rgba(18,34,46,0.4); text-decoration: none; transition: border-color 0.2s, background 0.2s, transform 0.2s; }
+	.friend-grid a:hover { transform: translateY(-2px); }
+	.friend-icon { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 0.7rem; object-fit: cover; background: rgba(255,255,255,0.04); box-shadow: 0 0 0 1px rgba(255,255,255,0.08); }
+	.friend-icon-text { display: grid; place-items: center; font-size: 1.25rem; font-weight: 600; color: var(--glow); background: linear-gradient(135deg, rgba(127,233,240,0.18), rgba(34,64,79,0.6)); }
+	.friend-body { display: grid; gap: 0.25rem; min-width: 0; }
+	.friend-name { font-size: 0.87rem; font-weight: 600; line-height: 1.4; color: rgb(var(--black)); overflow-wrap: anywhere; }
+	.friend-arrow { position: absolute; top: 0.9rem; right: 1rem; font-size: 0.95rem; color: var(--accent); transition: transform 0.2s; }
+	.friend-grid a:hover .friend-arrow { transform: translate(2px, -2px); }
+	.friend-grid a:hover .friend-name { color: var(--glow); }
+	.friend-address { display: block; color: var(--accent); font-size: 0.68rem; overflow-wrap: anywhere; }
 	.friend-http { display: inline-block; margin-left: 0.5em; padding: 0 0.45em; border: 1px solid rgba(240,190,120,0.45); border-radius: 99px; color: #f0be78; font-style: normal; font-size: 0.6rem; line-height: 1.5; vertical-align: 0.05em; white-space: nowrap; }
-	.friend-grid p { margin: 0.65rem 0 0; font-size: 0.73rem; color: rgb(var(--gray)); }
+	.friend-note { margin-top: 0.3rem; font-size: 0.73rem; line-height: 1.6; color: rgb(var(--gray)); }
+	@media (prefers-reduced-motion: reduce) { .friend-grid a, .friend-arrow { transition: none; } .friend-grid a:hover, .friend-grid a:hover .friend-arrow { transform: none; } }
 	.friends-foot { margin: 1.4rem 0 0; color: rgb(var(--gray)); }
 	.site-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
 	.site-columns > div { min-width: 0; }
@@ -183,6 +215,11 @@ const contacts = [
 		.section-nav { gap: 0.45rem; }
 		.section-nav a { padding: 0.4rem 0.75rem; font-size: 0.74rem; }
 		.friend-grid, .site-columns { grid-template-columns: minmax(0, 1fr); }
+		.friend-grid { gap: 0.6rem; }
+		.friend-grid a { gap: 0.75rem; padding: 0.8rem 2rem 0.8rem 0.8rem; }
+		.friend-icon { width: 40px; height: 40px; border-radius: 0.6rem; }
+		.friend-icon-text { font-size: 1.05rem; }
+		.friend-arrow { top: 0.75rem; right: 0.85rem; }
 		.site-columns { gap: 1.5rem; }
 		.usage { border-left: 0; border-top: 1px solid rgb(var(--border)); padding: 1.5rem 0 0; }
 	}
