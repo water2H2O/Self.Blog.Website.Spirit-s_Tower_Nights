@@ -88,7 +88,7 @@ git status --short              # 只应有你有意改动的文件
 - `/about/` 不再使用随笔布局：个人介绍与配图、创作入口、联系方式、完整友链、站点与授权摘要统一展示，并提供页内分区导航。
 - 友链仍只维护 `src/data/friends.ts`，全部显示，不再按前几条截断。
 - 卡片地址自动处理：中文域名显示成中文（不显示 `xn--` 编码）；`http://` 的链接自动加「仅 HTTP」标记，对方开了 https 后把 `href` 改掉，标记会自己消失。
-- 每条有 `group`（朋友 / 项目 / 技术支持），关于页按 `FRIEND_GROUPS` 分成「朋友们的小站」「我参与的项目与技术支持」两区。
+- 每条有 `group`（朋友 / 友情站点 / 项目 / 技术支持），关于页按 `FRIEND_GROUPS` 分成「朋友们的小站」「友情站点」「我参与的项目与技术支持」三区；蓝色大肥鱼归入独立的「友情站点」。
 - 站点图标放 `src/assets/friends/`，96×96 WebP，**下载到本地再用，不热链**；优先对方的 favicon / apple-touch-icon，没有就从对方站点公开的图里裁，不自己画。没给 `icon` 的条目显示名字首字（目前 Aurelith、墨白、天涯在本机网络下证书校验失败抓不到，维度镜像没有 favicon）。
 - `node tools/check-friends.mjs` 逐条体检友链能否打开，并替 http 条目试 https，能通会提示改。依赖网络，不进 CI。
 - 旧地址 `/about/friends/` 与 `/about/site/` 分别跳转到 `/about/#friends` 与 `/about/#site`。Astro 静态构建生成带 canonical、noindex 和备用链接的跳转页；站点健康检查按跳转目标校验 canonical，并继续校验目标和锚点。

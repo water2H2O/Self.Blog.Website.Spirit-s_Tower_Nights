@@ -17,7 +17,7 @@ import iconHarness from '../assets/friends/harness.webp';
  * 每条：
  *   href  —— 完整网址
  *   who   —— 归属
- *   group —— friend 朋友 / project 我参与的项目 / tool 技术支持；关于页按 FRIEND_GROUPS 分区，区内保持这里的顺序
+ *   group —— friend 朋友 / community 友情站点 / project 我参与的项目 / tool 技术支持；关于页按 FRIEND_GROUPS 分区，区内保持这里的顺序
  *   note  —— 一句话说明，可省
  *   icon  —— 站点图标，放在 src/assets/friends/，96×96 WebP；可省，省了显示名字首字
  *
@@ -29,7 +29,7 @@ import iconHarness from '../assets/friends/harness.webp';
  *   - 中文域名显示成中文，不显示 xn-- 编码；路径不是「/」时一并显示
  *   - http:// 开头的链接自动加「仅 HTTP」标记，对方开了 https 后把 href 改掉即可
  */
-export type FriendGroup = 'friend' | 'project' | 'tool';
+export type FriendGroup = 'friend' | 'community' | 'project' | 'tool';
 
 export interface FriendLink {
 	href: string;
@@ -42,6 +42,7 @@ export interface FriendLink {
 /** 关于页的分区：项目与技术支持各只有一条，合成一区，避免单卡孤零零占一整排。 */
 export const FRIEND_GROUPS: { label: string; groups: FriendGroup[] }[] = [
 	{ label: '朋友们的小站', groups: ['friend'] },
+	{ label: '友情站点', groups: ['community'] },
 	{ label: '我参与的项目与技术支持', groups: ['project', 'tool'] },
 ];
 
@@ -102,7 +103,7 @@ export const FRIENDS: FriendLink[] = [
 		// 与上一条同一位作者（GitHub lmy414/bluedafeiyu）；中文域名，浏览器会显示成 蓝色大肥鱼.com
 		href: 'https://蓝色大肥鱼.com/',
 		who: '蓝色大肥鱼',
-		group: 'friend',
+		group: 'community',
 		icon: iconBluefish,
 		note: '「大肥鱼」是 DeepSeek 娘的社区昵称：1244 件表情包、梗图与二创的开放档案',
 	},
