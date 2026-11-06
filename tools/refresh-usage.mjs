@@ -91,7 +91,7 @@ function build() {
 	if (process.platform === 'win32' && fs.existsSync(devCmd)) {
 		return run('cmd', ['/c', 'dev.cmd', 'build']);
 	}
-	const astro = path.join(ROOT, 'node_modules', 'astro', 'astro.js');
+	const astro = path.join(ROOT, 'node_modules', 'astro', 'bin', 'astro.mjs');
 	if (fs.existsSync(astro)) {
 		return node([astro, 'build']);
 	}
