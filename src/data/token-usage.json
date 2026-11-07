@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-07T12:02:31.768Z",
+  "fetchedAt": "2026-11-07T14:40:34.417Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -22,7 +22,7 @@
     {
       "label": "官方 · deepseek-flash",
       "tokens": 5096995027,
-      "share": 83.7,
+      "share": 83.3,
       "cost": 235.211,
       "requests": 17419
     },
@@ -35,10 +35,10 @@
     },
     {
       "label": "中转站 · claude-opus-5-5",
-      "tokens": 190301507,
-      "share": 3.1,
-      "cost": 57.6998,
-      "requests": 930
+      "tokens": 202992773,
+      "share": 3.3,
+      "cost": 63.6285,
+      "requests": 1029
     },
     {
       "label": "官方 · deepseek-v4-pro",
@@ -55,11 +55,32 @@
       "requests": 72
     },
     {
+      "label": "中转站 · claude-sonnet-5",
+      "tokens": 7476345,
+      "share": 0.1,
+      "cost": 3.0709,
+      "requests": 25
+    },
+    {
       "label": "中转站 · glm-5.3-flash",
       "tokens": 5646633,
       "share": 0.1,
       "cost": 0.1789,
       "requests": 137
+    },
+    {
+      "label": "中转站 · gemini-4-argon",
+      "tokens": 4135403,
+      "share": 0.1,
+      "cost": 4.6509,
+      "requests": 41
+    },
+    {
+      "label": "中转站 · claude-sonnet-5-5",
+      "tokens": 3312067,
+      "share": 0.1,
+      "cost": 1.515,
+      "requests": 19
     },
     {
       "label": "中转站 · gpt-image-2",
@@ -93,12 +114,12 @@
     }
   ],
   "totals": {
-    "tokens": 6091492585,
+    "tokens": 6119107666,
     "input": 55477817,
     "output": 14333689,
     "cacheRead": 5040212606,
-    "requests": 23989,
-    "cost": 342.3937
+    "requests": 24173,
+    "cost": 357.5592
   },
   "models": [
     {
@@ -803,22 +824,25 @@
     },
     {
       "date": "2026-11-07",
-      "tokens": 28241589,
+      "tokens": 55856670,
       "input": 557581,
       "output": 104646,
       "cacheRead": 26561152,
-      "requests": 119,
-      "cost": 1.703717,
+      "requests": 303,
+      "cost": 16.869187,
       "hours": 1,
       "parts": {
         "官方 · deepseek-flash": 27223379,
-        "中转站 · claude-opus-5-5": 397,
-        "中转站 · gpt-6.1-sol": 1017813
+        "中转站 · claude-opus-5-5": 12691663,
+        "中转站 · gpt-6.1-sol": 1017813,
+        "中转站 · claude-sonnet-5-5": 3312067,
+        "中转站 · gemini-4-argon": 4135403,
+        "中转站 · claude-sonnet-5": 7476345
       },
       "open": 82828466,
-      "close": 28241589,
+      "close": 55856670,
       "high": 82828466,
-      "low": 28241589
+      "low": 55856670
     }
   ]
 }
