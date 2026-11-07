@@ -849,7 +849,7 @@ pnpm run github:build       # 抓完再跑一次构建
 - 卡片上生图那位显示「出了 20 张 · ¥2.90 · 单张 ¥0.145」，不再给那个大到没意义的「¥105/百万」
 - 对话模型的 `series[].requests` 也顺带记了（官方导出按 `request_count` 累加），以后要算「每次多少钱」有得用
 
-「加桌」一行：比第一排小一号（小像在左、文字在右，固定宽度从左排起，不拉伸），不写「新客」「加座」之类的身份标签；GLM 用小像 `src/assets/oc/glm-guest.webp`（放大头像、淡紫描边与微光，`li.is-glm`），Gemini 用 `src/assets/oc/gemini-guest.webp`（同一套做法，换粉紫描边，`li.is-gemini`；/token/ 上卡片色 `#ff9ecb`），生图模型用 `src/assets/oc/image-guest.webp` 当小照片（3:2 卡片，`li.is-image`，不抠图），还没画立绘的先用饭碗图标顶上。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
+「加桌」一块：**等宽卡片网格**（`.cn-row-seats` 用 `repeat(auto-fill, minmax(11.5em, 1fr))`，手机固定两列），每位客人一张纵向卡，立绘在上（统一放进方形容器，`object-fit: contain`，不裁画面）、名字 / 占比 / 用量 / 花费依次往下排；不写「新客」「加座」之类的身份标签，客人再多也只是多排几行。每张卡的主色用 CSS 变量 `--guest-hue` 控制：GLM 淡紫（`li.is-glm`，`src/assets/oc/glm-guest.webp`）、Gemini 粉紫（`li.is-gemini`，`src/assets/oc/gemini-guest.webp`；/token/ 上卡片色 `#ff9ecb`）、生图模型青（`li.is-image`，`src/assets/oc/image-guest.webp`，3:2 的画在方形容器里上下留白，不抠图），还没画立绘的先用饭碗图标顶上。**新增有立绘的客人**：加一张 `src/assets/oc/<名>-guest.webp`（建议 640×640 透明底）、在 `canteen-seats.mjs` 里加 `isXxx` 标记、模板里补一支分支、CSS 里补一行 `--guest-hue`。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
 
 改三联画格数时才需要调整 `TABLE_FAMILIES` 与 `.cn-seats` 的列数；加座区为自适应网格。
 

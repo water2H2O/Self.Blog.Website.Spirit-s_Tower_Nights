@@ -978,20 +978,35 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				color: var(--accent);
 				font-variant-numeric: tabular-nums;
 			}
-            /* 第一排坐满了，旁边再摆一桌：比第一排小一号，不抢三联画的位置 */
+            /* 加桌：等宽卡片网格。每位客人一张卡，立绘在上、数字在下，和上面三联画同一个节奏；
+               客人再多也只是多排几行，不会因为卡片宽窄不一而参差 */
             .cn-row { margin-top: 1.15em; }
-            .cn-row-label { display: flex; align-items: center; gap: 0.7em; margin: 0 0 0.7em; font-size: 0.7em; letter-spacing: 0.16em; color: rgb(var(--gray)); }
+            .cn-row-label { display: flex; align-items: center; gap: 0.7em; margin: 0 0 0.8em; font-size: 0.7em; letter-spacing: 0.16em; color: rgb(var(--gray)); }
             .cn-row-label::after { content: ''; flex: 1; height: 1px; background: rgba(175, 255, 255, 12%); }
-            .cn-row-seats { display: flex; flex-wrap: wrap; gap: 0.9em 1.4em; list-style: none; margin: 0; padding: 0; }
-            .cn-row-seats li { display: flex; align-items: center; gap: 0.7em; flex: 0 0 auto; max-width: 100%; }
-            .cn-row-art { flex: none; width: 54px; color: #9bdab6; }
-            .cn-row-art img,
-            .cn-row-art svg { display: block; width: 100%; height: auto; }
-            .cn-row-text { display: flex; flex-direction: column; gap: 0.1em; min-width: 0; }
-            .cn-row-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 0.45em; font-size: 0.8em; color: rgb(var(--gray)); overflow-wrap: anywhere; }
-            .cn-row-title b { font-size: 1.2em; font-weight: 600; color: var(--glow); font-variant-numeric: tabular-nums; }
+            .cn-row-seats { display: grid; grid-template-columns: repeat(auto-fill, minmax(11.5em, 1fr)); gap: 0.8em; align-items: stretch; list-style: none; margin: 0; padding: 0; }
+            .cn-row-seats li {
+                --guest-hue: 127, 233, 240;
+                display: flex; flex-direction: column; align-items: center; gap: 0.5em;
+                min-width: 0; padding: 0.7em 0.7em 0.85em; text-align: center;
+                border-radius: 12px; border: 1px solid rgba(var(--guest-hue), 30%);
+                background: linear-gradient(180deg, rgba(var(--guest-hue), 13%), rgba(var(--guest-hue), 3%) 75%);
+                box-shadow: 0 0 16px rgba(var(--guest-hue), 10%);
+            }
+            .cn-row-seats li.is-glm { --guest-hue: 186, 156, 255; }
+            .cn-row-seats li.is-gemini { --guest-hue: 255, 158, 203; }
+            .cn-row-seats li.is-image { --guest-hue: 127, 233, 240; }
+            /* 立绘统一放进方形容器，contain 不裁画面；生图那张 3:2 在里面上下留白，和别的客人对齐 */
+            .cn-row-art { flex: none; width: min(100%, 150px); aspect-ratio: 1 / 1; display: grid; place-items: center; color: #9bdab6; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 38%)); }
+            .cn-row-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+            .cn-row-art svg { display: block; width: 72%; height: auto; }
+            .cn-row-text { display: flex; flex-direction: column; align-items: center; gap: 0.15em; min-width: 0; width: 100%; }
+            .cn-row-title { display: flex; flex-direction: column; align-items: center; gap: 0.05em; font-size: 0.86em; color: rgb(var(--gray)); overflow-wrap: anywhere; line-height: 1.35; }
+            .cn-row-title b { font-size: 1.35em; font-weight: 600; color: var(--glow); font-variant-numeric: tabular-nums; }
+            .cn-row-seats li.is-glm .cn-row-title { color: #e6dcff; } .cn-row-seats li.is-glm .cn-row-title b { color: #d6c6ff; }
+            .cn-row-seats li.is-gemini .cn-row-title { color: #ffe0ef; } .cn-row-seats li.is-gemini .cn-row-title b { color: #ffc2de; }
+            .cn-row-seats li.is-image .cn-row-title { color: var(--glow); }
             .cn-row-meta { font-size: 0.72em; color: rgb(var(--gray)); opacity: 0.85; }
-            .cn-row-cost { display: flex; flex-wrap: wrap; gap: 0.2em 0.7em; font-size: 0.72em; color: var(--accent); font-variant-numeric: tabular-nums; }
+            .cn-row-cost { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.1em 0.7em; font-size: 0.72em; color: var(--accent); font-variant-numeric: tabular-nums; }
             /* 主桌只展开用量最高的两个型号，其余仍在家族合计与 /token/ 中。 */
             .cn-variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(8.5em, 100%), 1fr)); gap: 0.4em; width: 100%; max-width: 21em; list-style: none; margin: 0.45em 0 0; padding: 0; }
             .cn-variants li { display: flex; flex-direction: column; gap: 0.1em; padding: 0.4em 0.55em; border-radius: 8px; text-align: left; background: rgba(175, 255, 255, 4%); border: 1px solid rgba(175, 255, 255, 11%); }
@@ -1003,37 +1018,6 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
             .cn-v-cost small { font-size: 0.92em; opacity: 0.8; }
             /* 主桌只展开前两个型号，剩下的在这里交代一句：合计里有，明细在 /token/ */
             .cn-variant-more { display: block; margin-top: 0.3em; font-size: 0.64em; line-height: 1.6; color: rgb(var(--gray)); opacity: 0.72; }
-            /* 生图模型：给的是一整幅画（3:2、白底），当小照片贴在加桌上，不抠图 */
-            .cn-row-seats li.is-image {
-                align-items: center;
-                padding: 0.5em 0.95em 0.5em 0.55em;
-                border-radius: 12px;
-                background: linear-gradient(100deg, rgba(127, 233, 240, 11%), rgba(255, 214, 138, 6%) 72%);
-                border: 1px solid rgba(175, 255, 255, 30%);
-                box-shadow: 0 0 16px rgba(127, 233, 240, 12%);
-            }
-            /* 生图那张自己是透明底的，别加白衬；contain 才不会把画裁掉 */
-            .cn-row-seats li.is-image .cn-row-art {
-                width: 132px;
-                aspect-ratio: 3 / 2;
-                margin: 0;
-                border-radius: 8px;
-                overflow: visible;
-                background: none;
-                filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 45%));
-            }
-            .cn-row-seats li.is-image .cn-row-art img { width: 100%; height: 100%; object-fit: contain; border-radius: 0; }
-            .cn-row-seats li.is-image .cn-row-title { font-size: 0.84em; color: var(--glow); }
-            /* GLM 是唯一有专属立绘的加桌客人：放大头像、紫色描边和微光，让她从一排小字里跳出来 */
-            .cn-row-seats li.is-glm { position: relative; padding: 0.55em 1em 0.55em 0.6em; border-radius: 12px; background: linear-gradient(100deg, rgba(186, 156, 255, 14%), rgba(127, 233, 240, 5%) 70%); border: 1px solid rgba(196, 170, 255, 38%); box-shadow: 0 0 18px rgba(170, 140, 255, 14%); }
-            .cn-row-seats li.is-glm .cn-row-art { width: 78px; margin: -0.6em 0 -0.35em; filter: drop-shadow(0 0 8px rgba(196, 170, 255, 40%)); }
-            .cn-row-seats li.is-glm .cn-row-title { font-size: 0.88em; color: #e6dcff; }
-            .cn-row-seats li.is-glm .cn-row-title b { color: #d6c6ff; }
-            /* Gemini：和 GLM 同一套“有立绘的加桌客人”，换成粉紫描边，两位并排不会混成一个色 */
-            .cn-row-seats li.is-gemini { position: relative; padding: 0.55em 1em 0.55em 0.6em; border-radius: 12px; background: linear-gradient(100deg, rgba(255, 158, 203, 14%), rgba(127, 233, 240, 5%) 70%); border: 1px solid rgba(255, 170, 210, 38%); box-shadow: 0 0 18px rgba(255, 140, 190, 14%); }
-            .cn-row-seats li.is-gemini .cn-row-art { width: 78px; margin: -0.6em 0 -0.35em; filter: drop-shadow(0 0 8px rgba(255, 158, 203, 40%)); }
-            .cn-row-seats li.is-gemini .cn-row-title { font-size: 0.88em; color: #ffe0ef; }
-            .cn-row-seats li.is-gemini .cn-row-title b { color: #ffc2de; }
 			.tk-stats {
 				display: grid;
 				grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1092,19 +1076,16 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				.cn-cost {
 					font-size: 0.68em;
 				}
-				/* 加桌那排：手机上缩成一行一个，像座位号一样贴左边 */
+				/* 加桌：手机上两列等宽，立绘缩小一点 */
 				.cn-row-seats {
-					gap: 0.65em 1em;
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+					gap: 0.6em;
+				}
+				.cn-row-seats li {
+					padding: 0.55em 0.45em 0.7em;
 				}
 				.cn-row-art {
-					width: 44px;
-				}
-				.cn-row-seats li.is-glm .cn-row-art,
-				.cn-row-seats li.is-gemini .cn-row-art {
-					width: 62px;
-				}
-				.cn-row-seats li.is-image .cn-row-art {
-					width: 96px;
+					width: min(100%, 118px);
 				}
 				.cn-variants li {
 					padding: 0.35em 0.4em;
@@ -1497,21 +1478,21 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                                     <Image
                                                         src={imageGuest}
                                                         alt=""
-                                                        width={240}
+                                                        width={320}
                                                         loading="lazy"
                                                     />
                                                 ) : seat.isGlm ? (
                                                     <Image
                                                         src={glmGuest}
                                                         alt=""
-                                                        width={128}
+                                                        width={320}
                                                         loading="lazy"
                                                     />
                                                 ) : seat.isGemini ? (
                                                     <Image
                                                         src={geminiGuest}
                                                         alt=""
-                                                        width={128}
+                                                        width={320}
                                                         loading="lazy"
                                                     />
                                                 ) : (
