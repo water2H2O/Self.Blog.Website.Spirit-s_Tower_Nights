@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-ed'
+summary: 空荡的药剂室与银箱底干枯的蓝星花瓣，在蔷薇凋零之前，有人仍在独自守望。
 status: published
 ---
 

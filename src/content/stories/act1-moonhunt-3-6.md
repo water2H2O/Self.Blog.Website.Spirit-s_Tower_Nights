@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'viola']
 arc: 寻月觅影篇
 code: '3-6'
+summary: 循着星图与共鸣的路标深入奇点，在时间近乎停滞的黄金回廊前，叩响凝固王城的大门。
 status: published
 ---
 

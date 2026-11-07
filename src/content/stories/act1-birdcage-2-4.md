@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'viola']
 arc: 囚鸟篇
 code: '2-4'
+summary: 永冻冰原上的冰屋与沉默的雪狐族人，两碗滚烫的热汤，让总爱道歉的水精灵第一次迈出屋门。
 status: published
 ---
 

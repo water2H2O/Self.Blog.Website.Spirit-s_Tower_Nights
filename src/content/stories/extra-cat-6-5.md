@@ -4,6 +4,7 @@ act: 别传
 arc: 穿行时间的猫
 code: '6-5'
 author: '水水'
+summary: 暖阳下的水塔与玻璃球里的微型巡逻队，不加药剂的热茶与安静摇晃的猫尾。
 status: published
 ---
 

@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'liliana-salambo', 'viola', 'weilan']
 arc: 愈者之契
 code: '4-5'
+summary: 苦涩的药香与逼近的追兵，在暗潮汹涌的夜晚，刚出炉的抑制药剂迎来了实战与失稳的双重考验。
 status: published
 ---
 

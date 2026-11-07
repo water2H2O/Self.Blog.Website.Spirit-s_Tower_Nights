@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'viola']
 arc: 寻月觅影篇
 code: '3-4'
+summary: 燃烧的村落与伫立火海的旧影，踏入交界地的瞬间，尘封的剧痛与记忆碎片再度翻涌。
 status: published
 ---
 

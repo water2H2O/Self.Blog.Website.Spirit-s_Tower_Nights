@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'liliana-salambo', 'viola']
 arc: 寻月觅影篇
 code: '3-3'
+summary: 夜战平息后的水塔，魔女薇奥拉带来的旧日信标，将失忆的守护者引向封闭的精灵交界地。
 status: published
 ---
 

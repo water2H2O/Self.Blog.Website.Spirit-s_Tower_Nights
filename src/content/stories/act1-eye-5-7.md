@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'viola', 'weilan']
 arc: 风眼密云
 code: '5-7'
+summary: 夜幕下的岚风堂亮起风盾屏障，圣盾特别行动队指挥官 18 号率队突袭，临界点终于到来。
 status: published
 ---
 

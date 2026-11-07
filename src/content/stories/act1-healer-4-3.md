@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'fengxi-lingyue', 'liliana-salambo', 'weilan']
 arc: 愈者之契
 code: '4-3'
+summary: 编号 17 的出逃者与倒计时的控制项圈，在拂晓到来之前，两个截然不同的治愈者决定联手救人。
 status: published
 ---
 

@@ -5,6 +5,7 @@ characters: ['liliana-salambo']
 arc: 未冕之时篇
 code: 'x-1'
 author: '浅羽'
+summary: 裹着斗篷从枯燥课堂溜出来的血族公主，决定趁母上不备，来一场溜出皇城的远行。
 status: published
 ---
 

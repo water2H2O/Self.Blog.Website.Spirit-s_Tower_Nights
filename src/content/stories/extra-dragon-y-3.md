@@ -4,6 +4,7 @@ act: 别传
 arc: 龙族篇
 code: 'y-3'
 author: '浅羽'
+summary: 前往北境霜脊之巅的狂暴风雪路，在父亲的金色龙翼庇护下，迎战祖地外围的冰蚀幽魂。
 status: published
 ---
 

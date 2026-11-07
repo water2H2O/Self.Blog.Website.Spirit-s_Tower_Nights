@@ -4,6 +4,7 @@ act: 别传
 characters: ['miaomiao', 'salan']
 arc: 银辉之沐
 code: 'sp-1'
+summary: 银蓝与暖黄交织的联邦狂欢节广场，飒岚拽着紧张的淼渺穿过喧嚣人海与落日气泡饮的甜香。
 status: published
 ---
 

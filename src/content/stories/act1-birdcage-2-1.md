@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'liliana-salambo']
 arc: 囚鸟篇
 code: '2-1'
+summary: 枯萎的永夜蔷薇与东境的密报，代理女皇在皇宫深处守着她留不住的“小药剂师”。
 status: published
 ---
 

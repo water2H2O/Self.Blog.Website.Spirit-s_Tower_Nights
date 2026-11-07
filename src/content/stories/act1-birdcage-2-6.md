@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-6'
+summary: 初雪落下后的告别，背上抄满五本笔记的行囊，飞出囚笼的鸟儿踏上了自己的归途。
 status: published
 ---
 

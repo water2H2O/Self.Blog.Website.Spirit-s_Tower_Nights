@@ -4,6 +4,7 @@ act: 别传
 arc: 龙族篇
 code: 'y-1'
 author: '浅羽'
+summary: 龙域皇宫后方的角斗场内，不愿只满足于最低标准的龙族公主，挑中了近卫军中的强者。
 status: published
 ---
 

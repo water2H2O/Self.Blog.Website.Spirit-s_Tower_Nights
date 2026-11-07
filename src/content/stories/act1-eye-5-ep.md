@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'fengxi-lingyue', 'weilan']
 arc: 风眼密云
 code: '5-ep'
+summary: 云梯港的晨风吹响离别的铃铛，风止云归之后，有人踏上归途，有人留守新的日常。
 status: published
 ---
 

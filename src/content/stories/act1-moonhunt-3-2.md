@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'fengxi-lingyue', 'liliana-salambo']
 arc: 寻月觅影篇
 code: '3-2'
+summary: 月明星稀的巡村夜，废弃水塔外不请自来的粉发血族分身，惊动了守护小镇的冷月寒光。
 status: published
 ---
 

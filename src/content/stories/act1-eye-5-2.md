@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-2'
+summary: 岚铸区的喧嚣之上，来自枫栖宫的一纸邀约，将初来乍到的四人卷入云穹城邦三大家族的棋盘。
 status: published
 ---
 

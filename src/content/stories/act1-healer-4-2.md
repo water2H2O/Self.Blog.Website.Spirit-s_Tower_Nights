@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue']
 arc: 愈者之契
 code: '4-2'
+summary: 还没分出胜负的“治愈比试”，被边境森林里传来的急促哨音、血腥味与重伤的出逃实验体打断。
 status: published
 ---
 

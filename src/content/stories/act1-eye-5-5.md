@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'viola', 'weilan']
 arc: 风眼密云
 code: '5-5'
+summary: 枫栖宫正厅里的摊牌与七日之约，当永痕花束的秘密被点破，四个女孩的命运彻底绑在一起。
 status: published
 ---
 

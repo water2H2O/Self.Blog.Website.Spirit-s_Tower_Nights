@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'viola', 'weilan']
 arc: 愈者之契
 code: '4-ep'
+summary: 愈发短暂的药效与迫在眉睫的耐药性，为了寻找根治的线索，众人将目光投向天空之城云穹城邦。
 status: published
 ---
 

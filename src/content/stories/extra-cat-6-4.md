@@ -4,6 +4,7 @@ act: 别传
 arc: 穿行时间的猫
 code: '6-4'
 author: '水水'
+summary: 悬在墨水湖中央如月光凝固的“梦鳞”，把举着汤勺的锅边骑士弹进了薄荷叶小船里。
 status: published
 ---
 

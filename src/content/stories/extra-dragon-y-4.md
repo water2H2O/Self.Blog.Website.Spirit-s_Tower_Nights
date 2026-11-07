@@ -4,6 +4,7 @@ act: 别传
 arc: 龙族篇
 code: 'y-4'
 author: '浅羽'
+summary: 停在零点的龙印怀表与永夜风雪的龙骨坟场，在初代龙王不留情面的生死淬炼中重塑肉身。
 status: published
 ---
 

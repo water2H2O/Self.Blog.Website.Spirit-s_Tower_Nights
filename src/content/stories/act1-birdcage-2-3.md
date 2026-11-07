@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-3'
+summary: 拎着星露蜜的魔女薇奥拉如约而至，一场由“绑架犯”亲手安排的北境远行悄然启程。
 status: published
 ---
 

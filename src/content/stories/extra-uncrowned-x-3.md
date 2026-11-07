@@ -5,6 +5,7 @@ characters: ['miaomiao', 'liliana-salambo']
 arc: 未冕之时篇
 code: 'x-3'
 author: '水水 & 浅羽'
+summary: 精灵森林外围的溪潭边，打翻漂浮剂的笨拙水精灵，被路过的红裙少女用血雾捉弄了个正着。
 status: published
 ---
 

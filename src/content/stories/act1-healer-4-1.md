@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue']
 arc: 愈者之契
 code: '4-1'
+summary: 交界地归来后的平静日常，一声清脆的铃铛响，让水塔里的药剂师遇上了腰悬铜葫芦的奇怪女孩。
 status: published
 ---
 

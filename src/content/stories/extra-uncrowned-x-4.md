@@ -4,6 +4,7 @@ act: 别传
 characters: ['miaomiao', 'liliana-salambo']
 arc: 未冕之时篇
 code: 'x-4'
+summary: 装满珍稀药材的琉璃柜与承诺的双倍浆果挞，被“拐”进血族皇宫的小水精灵开始了新生活。
 status: published
 ---
 

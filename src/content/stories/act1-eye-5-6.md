@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-6'
+summary: 紧急议会表决将至，引渡提案的阴影笼罩云穹城邦，落子无悔的各方势力静待风暴降临。
 status: published
 ---
 

@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-3'
+summary: 回声档案馆里尘封的旧日卷宗，“原初之焰”与“永痕花束”的秘密，最终指向淼渺发间的蓝花。
 status: published
 ---
 

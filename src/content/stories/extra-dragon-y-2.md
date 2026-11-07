@@ -4,6 +4,7 @@ act: 别传
 arc: 龙族篇
 code: 'y-2'
 author: '浅羽'
+summary: 酣战之后提前苏醒的“龙王之心”，既是皇室至高的荣耀馈赠，亦是随时可能反噬的诅咒。
 status: published
 ---
 

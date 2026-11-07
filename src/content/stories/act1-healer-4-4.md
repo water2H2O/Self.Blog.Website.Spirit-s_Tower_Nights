@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'fengxi-lingyue', 'liliana-salambo', 'weilan']
 arc: 愈者之契
 code: '4-4'
+summary: 滴答作响的项圈与残缺的复合药剂配方，在“水”与“茶”的碰撞下，寻找压制戒断幻痛的可能。
 status: published
 ---
 

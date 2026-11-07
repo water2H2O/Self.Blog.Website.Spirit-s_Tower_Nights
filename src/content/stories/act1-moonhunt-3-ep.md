@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'viola']
 arc: 寻月觅影篇
 code: '3-ep'
+summary: 发光晶簇林间的小憩与白沫的送别，告别旧影的守护者带着新生的星月光晕重返人间。
 status: published
 ---
 

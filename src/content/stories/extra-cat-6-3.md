@@ -4,6 +4,7 @@ act: 别传
 arc: 穿行时间的猫
 code: '6-3'
 author: '水水'
+summary: 漂在墨水湖面上咔哒作响的磨损银齿轮，每响一声，水塔里的光便跟着暗下一分。
 status: published
 ---
 

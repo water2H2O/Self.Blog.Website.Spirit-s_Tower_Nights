@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'viola']
 arc: 寻月觅影篇
 code: '3-7'
+summary: 困守王座的精灵王虚影与冷月碎片的悲鸣，当旧日的执念散去，碎裂的月刃终于重获新生的核心。
 status: published
 ---
 

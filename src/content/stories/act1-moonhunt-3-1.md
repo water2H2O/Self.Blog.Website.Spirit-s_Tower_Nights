@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['fengxi-lingyue']
 arc: 寻月觅影篇
 code: '3-1'
+summary: 沉寂之泉边醒来的失忆狼耳少女，破碎的刀刃与纯白的过往，在边陲小村化作新的名字。
 status: published
 ---
 

@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-2'
+summary: 北境雪狐族的使者提出以冰元素成果交换水精灵，莉莉安娜不得不直面“囚笼”与“保护”的边界。
 status: published
 ---
 

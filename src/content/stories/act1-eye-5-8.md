@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha']
 arc: 风眼密云
 code: '5-8'
+summary: 龟裂的风盾屏障与第 17 号、第 18 号的重逢，在风暴眼中心，以生命与花束为赌注的决战打响。
 status: published
 ---
 

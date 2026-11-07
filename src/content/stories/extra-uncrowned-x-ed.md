@@ -4,6 +4,7 @@ act: 别传
 characters: ['miaomiao', 'liliana-salambo']
 arc: 未冕之时篇
 code: 'x-ed'
+summary: 大灾变前三年的议事殿烛火，见习政务官成堆的报告旁，蜷在矮榻上熟睡的蓝发小药剂师。
 status: published
 ---
 

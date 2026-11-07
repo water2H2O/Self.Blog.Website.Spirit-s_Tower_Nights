@@ -5,6 +5,7 @@ characters: ['liliana-salambo']
 arc: 未冕之时篇
 code: 'x-2'
 author: '浅羽'
+summary: 黑曜国边境的漫天烽火中，看热闹的血族公主撞见了手握冰晶长枪独守防线的银发龙姬。
 status: published
 ---
 

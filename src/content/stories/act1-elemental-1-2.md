@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan']
 arc: 元素精灵篇
 code: '1-2'
+summary: 废弃水塔的铁皮顶棚被失控的风行器撞穿，胆小的水精灵遇上了从天而降的冒失风精灵。
 status: published
 ---
 

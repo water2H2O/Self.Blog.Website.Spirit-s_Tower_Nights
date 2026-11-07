@@ -5,6 +5,7 @@ characters: ['liliana-salambo']
 arc: 龙族篇
 code: 'y-5'
 author: '浅羽'
+summary: 黑曜国使者割让九成矿脉的求援，刚刚完成传承淬炼的龙族公主主动请缨，单骑平乱。
 status: published
 ---
 

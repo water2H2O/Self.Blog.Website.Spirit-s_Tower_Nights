@@ -4,6 +4,7 @@ act: 别传
 arc: 穿行时间的猫
 code: '6-1'
 author: '墨白'
+summary: 水塔外撞上无形软墙的飒岚，塔内沸腾造反的药剂锅，以及一只闯入时间的黑猫。
 status: published
 ---
 

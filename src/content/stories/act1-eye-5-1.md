@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi', 'liliana-salambo']
 arc: 风眼密云
 code: '5-1'
+summary: 穿过厚重云霭的升降舱，三座悬浮于苍穹的浮岛城邦，向地面来客揭开天翼种故乡的帷幕。
 status: published
 ---
 

@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'liliana-salambo', 'viola']
 arc: 囚鸟篇
 code: '2-5'
+summary: 雪停的傍晚与跳动的蓝火，学会了生火、采药与不再道歉的水精灵，迎来了去留的抉择。
 status: published
 ---
 

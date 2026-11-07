@@ -4,6 +4,7 @@ act: 别传
 arc: 穿行时间的猫
 code: '6-2'
 author: '墨白'
+summary: 凌晨四点浮在墨水湖面上的奇怪来信，将熟睡的水团子与黑猫引向水塔下的异常。
 status: published
 ---
 

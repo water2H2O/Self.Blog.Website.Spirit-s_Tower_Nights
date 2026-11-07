@@ -5,6 +5,7 @@ characters: ['liliana-salambo']
 arc: 血疫纷争篇
 code: 'z-1'
 author: '浅羽'
+summary: 掌心灼烧的旧发卡与血族向全大陆宣战的急报，龙皇蕾娜莉塔亲提巨汉踏碎反血族同盟的大门。
 status: published
 ---
 

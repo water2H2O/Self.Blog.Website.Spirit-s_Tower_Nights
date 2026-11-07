@@ -3,6 +3,7 @@ title: 报名处的运气
 act: 第二幕：银色的新芽
 arc: 冷庆典与盗火者
 code: '1-3'
+summary: 旧书巷里用炭条涂改的请柬，与报名处桌面上无风自晃的一圈茶汤波纹。
 status: published
 ---
 

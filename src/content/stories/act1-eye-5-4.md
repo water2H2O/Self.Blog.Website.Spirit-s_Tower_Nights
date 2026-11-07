@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'baicha', 'yingqi']
 arc: 风眼密云
 code: '5-4'
+summary: 枫家执事送来的单独请帖，在三大家族与圣盾通牒的暗流夹缝中，应祈独自赴约。
 status: published
 ---
 

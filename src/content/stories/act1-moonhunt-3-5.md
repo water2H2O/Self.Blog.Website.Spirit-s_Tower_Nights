@@ -4,6 +4,7 @@ act: 第一幕：囚笼与飞翔
 characters: ['miaomiao', 'salan', 'fengxi-lingyue', 'viola']
 arc: 寻月觅影篇
 code: '3-5'
+summary: 错乱的时空湍流与失灵的指针，在时锚点庇护的狼灵孤岛上，守望过去的牧者道出旧日裂痕。
 status: published
 ---
 

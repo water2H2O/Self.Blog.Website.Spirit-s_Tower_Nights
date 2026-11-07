@@ -4,6 +4,7 @@ act: 别传
 arc: 穿行时间的猫
 code: '6-ep'
 author: '水水'
+summary: 水塔外蹲守整夜的飒岚与铃月，当无形的屏障终于散去，墨水湖迎来了门外的访客。
 status: published
 ---
 
