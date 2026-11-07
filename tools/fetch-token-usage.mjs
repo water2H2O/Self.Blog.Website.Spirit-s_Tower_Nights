@@ -167,19 +167,26 @@ function addCount(day, label, n = 1) {
 const MODEL_ALIASES = new Map([['claude-opus-5', 'claude-opus-5-5']]);
 const canonicalModel = (model) => MODEL_ALIASES.get(model.toLowerCase()) ?? model;
 
-/** 中转站那份导出：Time / Model / Input / Output / Cache Read / Cache Creation / Billed Cost */
+/**
+ * 中转站那份导出：Time / Model / Input / Output / Cache Read / Cache Creation / Billed Cost。
+ *
+ * 另有一种「使用日志」导出（usage-logs-<日期>-<日期>.csv），表头是中文：
+ * 时间 / 类型 / 模型 / 输入 Token / 输出 Token / 缓存读取 / 缓存写入 / 费用（费用带 ¥）。
+ * 它的「类型」是 消耗 / 充值，只有「消耗」是用量；令牌、分组、IP、请求 ID 都不读、不写。
+ */
 function ingestRelay(text) {
 	const { header, rows } = parseCsv(text.replace(/^\uFEFF/, ''));
-	const col = (name) => header.findIndex((h) => h === name);
-	const iTime = col('Time');
-	const iModel = col('Model');
-	const iIn = col('Input Tokens');
-	const iOut = col('Output Tokens');
-	const iCR = col('Cache Read Tokens');
-	const iCC = col('Cache Creation Tokens');
-	const iCost = col('Billed Cost');
-	const iType = col('Type');
-	if (iTime < 0 || iModel < 0) throw new Error('中转站 CSV 里找不到 Time / Model 列');
+	const col = (...names) => names.map((name) => header.indexOf(name)).find((i) => i >= 0) ?? -1;
+	const iTime = col('Time', '时间');
+	const iModel = col('Model', '模型');
+	const iIn = col('Input Tokens', '输入 Token');
+	const iOut = col('Output Tokens', '输出 Token');
+	const iCR = col('Cache Read Tokens', '缓存读取');
+	const iCC = col('Cache Creation Tokens', '缓存写入');
+	const iCost = col('Billed Cost', '费用');
+	const iType = col('Type', '类型');
+	const isLogFormat = header.includes('类型');
+	if (iTime < 0 || iModel < 0) throw new Error('中转站 CSV 里找不到 Time / Model（时间 / 模型）列');
 
 	for (const row of rows) {
 		const time = (row[header[iTime]] ?? '').trim();
@@ -192,8 +199,10 @@ function ingestRelay(text) {
 		const crTok = Number.parseInt(row[header[iCR]], 10) || 0;
 		const ccTok = Number.parseInt(row[header[iCC]], 10) || 0;
 		const tokens = inTok + outTok + crTok + ccTok;
-		const cost = Number.parseFloat(row[header[iCost]]) || 0;
+		const cost = Number.parseFloat(String(row[header[iCost]] ?? '').replace(/[¥￥,\s]/g, '')) || 0;
 		const rowType = iType >= 0 ? (row[header[iType]] ?? '').trim() : '';
+		// 使用日志里夹着「充值」行：那是进账不是用量，不能算成请求
+		if (isLogFormat && rowType !== '消耗') continue;
 		const label = `中转站 · ${model}`;
 		// 生图那一行的 token 通常是 0（按张计费），只靠 tokens 筛会把整张图漏掉
 		const imageRow = /^image$/i.test(rowType) || isImageLabel(label);

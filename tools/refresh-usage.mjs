@@ -15,6 +15,9 @@
  *   · 平台导出 usage_data_<起>_<止>.zip —— 按「止」升序，同「止」按「起」升序。
  *     后一份按天覆盖前一份，所以覆盖范围最新、最全的那份排在最后。
  *   · 中转站导出 usage_<起>_to_<止>.csv —— 按「起」升序；重叠的行由脚本内部按时间戳去重。
+ *   · 中转站「使用日志」usage-logs-<起>-<止>.csv（中文表头，日期不带连字符）同样按中转站处理；
+ *     只取「消耗」行，充值行忽略。注意：它和上一种导出的时间格式、费用精度不同，
+ *     两种导出若覆盖同一时段，内部去重认不出是同一笔，会重复计入 —— 导出时避开重叠时段。
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -44,6 +47,8 @@ const DO_PUBLISH = flag('all');
 /** 浏览器重复下载会加「 (1)」后缀，这里一并认掉 */
 const ZIP_RE = /^usage_data_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})(?:\s*\(\d+\))?\.zip$/i;
 const RELAY_RE = /^usage_(\d{4}-\d{2}-\d{2})_to_(\d{4}-\d{2}-\d{2})(?:\s*\(\d+\))?\.csv$/i;
+/** 中转站「使用日志」导出：usage-logs-20261107-20261107.csv，表头是中文，日期不带连字符 */
+const LOG_RE = /^usage-logs-(\d{4})(\d{2})(\d{2})-(\d{4})(\d{2})(\d{2})(?:\s*\(\d+\))?\.csv$/i;
 
 function scan() {
 	if (!fs.existsSync(DIR)) {
@@ -64,6 +69,17 @@ function scan() {
 		m = RELAY_RE.exec(name);
 		if (m) {
 			relays.push({ file: full, name, start: m[1], end: m[2], mtime: fs.statSync(full).mtimeMs });
+			continue;
+		}
+		m = LOG_RE.exec(name);
+		if (m) {
+			relays.push({
+				file: full,
+				name,
+				start: `${m[1]}-${m[2]}-${m[3]}`,
+				end: `${m[4]}-${m[5]}-${m[6]}`,
+				mtime: fs.statSync(full).mtimeMs,
+			});
 			continue;
 		}
 		if (/^usage/i.test(name)) ignored.push(name);
