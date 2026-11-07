@@ -26,6 +26,7 @@ assert.equal(seats[0].variants[0].shortName, 'deepseek-flash');
 assert.equal(seats[0].variants[0].variants.length, 0); // 小票不再往下展开，防无限递归
 assert.equal(guests.length, 1);
 assert.equal(guests[0].isGlm, true);
+assert.equal(guests[0].isGemini, false);
 assert.equal(guests[0].days, 1);
 assert.equal(seats.reduce((s, x) => s + x.tokens, 0) + guests.reduce((s, x) => s + x.tokens, 0), 180);
 assert.equal(arrangeCanteen([{ label: 'new', tokens: 1 }]).guests[0].unitPrice, null);
@@ -45,6 +46,17 @@ assert.equal(withImage.guests[0].variants.length, 0); // 加桌不再套小卡
 assert.equal(withImage.guests[0].unitPrice, null); // 生图不按百万 tokens 报价
 assert.equal(withImage.guests[0].perImage, 2 / 20); // 单张均价 = 花费 ÷ 张数
 assert.equal(withImage.guests[0].requests, 20);
+
+// Gemini 不属于三联画的任何一家：另坐加桌，并带上专属立绘的标记
+const withGemini = arrangeCanteen([
+  { label: '官方 · deepseek-flash', tokens: 100, cost: 1 },
+  { label: '中转站 · gemini-4-argon', tokens: 40, cost: 4, requests: 41 },
+], [{ date: '2026-11-07', parts: { '中转站 · gemini-4-argon': 40 } }]);
+assert.equal(withGemini.guests.length, 1);
+assert.equal(withGemini.guests[0].isGemini, true);
+assert.equal(withGemini.guests[0].isGlm, false);
+assert.equal(withGemini.guests[0].days, 1);
+assert.equal(withGemini.seats.find(s => s.family === 'deepseek').tokens, 100); // 不被主桌吞掉
 
 // 主桌最多展开两个型号，其余计入合计并留一句说明
 const crowded = arrangeCanteen([

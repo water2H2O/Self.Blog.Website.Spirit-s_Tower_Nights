@@ -849,7 +849,7 @@ pnpm run github:build       # 抓完再跑一次构建
 - 卡片上生图那位显示「出了 20 张 · ¥2.90 · 单张 ¥0.145」，不再给那个大到没意义的「¥105/百万」
 - 对话模型的 `series[].requests` 也顺带记了（官方导出按 `request_count` 累加），以后要算「每次多少钱」有得用
 
-「加桌」一行：比第一排小一号（小像在左、文字在右，固定宽度从左排起，不拉伸），不写「新客」「加座」之类的身份标签；GLM 用小像 `src/assets/oc/glm-guest.webp`（放大头像、淡紫描边与微光，`li.is-glm`），生图模型用 `src/assets/oc/image-guest.webp` 当小照片（3:2 卡片，`li.is-image`，不抠图），还没画立绘的先用饭碗图标顶上。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
+「加桌」一行：比第一排小一号（小像在左、文字在右，固定宽度从左排起，不拉伸），不写「新客」「加座」之类的身份标签；GLM 用小像 `src/assets/oc/glm-guest.webp`（放大头像、淡紫描边与微光，`li.is-glm`），Gemini 用 `src/assets/oc/gemini-guest.webp`（同一套做法，换粉紫描边，`li.is-gemini`；/token/ 上卡片色 `#ff9ecb`），生图模型用 `src/assets/oc/image-guest.webp` 当小照片（3:2 卡片，`li.is-image`，不抠图），还没画立绘的先用饭碗图标顶上。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
 
 改三联画格数时才需要调整 `TABLE_FAMILIES` 与 `.cn-seats` 的列数；加座区为自适应网格。
 
@@ -877,6 +877,7 @@ node tools/refresh-usage.mjs --dir=/path/to/导出目录   # 导出不在 ~/Down
 | --- | --- | --- |
 | `usage_data_<起>_<止>.zip` | 按「止」升序（同「止」按「起」升序） | **后一份按天覆盖前一份**：最后那份最全 |
 | `usage_<起>_to_<止>.csv` | 按「起」升序 | 重叠的请求按时间戳去重，多给几份不会翻倍 |
+| `usage-logs-<起>-<止>.csv`（日期不带连字符，如 `usage-logs-20261107-20261107.csv`） | 同上，归为中转站 | **中文表头**的「使用日志」导出：只取「类型 = 消耗」的行，「充值」行忽略；令牌、分组、IP、请求 ID 都不读。**它和上一种导出时间格式、费用精度不同，内部去重认不出是同一笔——两种导出覆盖同一时段会重复计入，导出时要错开时段** |
 
 所以平时只要把新导出的文件丢进 Downloads，跑一次 `--all` 就行，不用记参数、不用挑文件。
 （导出目录里的旧文件留着没关系，它们只会被更新的那份覆盖。）

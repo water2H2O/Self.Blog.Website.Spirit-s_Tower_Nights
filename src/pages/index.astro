@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import logo from '../assets/oc/logo.webp';
 import canteenTrio from '../assets/oc/canteen-trio.webp';
 import glmGuest from '../assets/oc/glm-guest.webp';
+import geminiGuest from '../assets/oc/gemini-guest.webp';
 import imageGuest from '../assets/oc/image-guest.webp';
 import githubData from '../data/github.json';
 import tokenUsage from '../data/token-usage.json';
@@ -1028,6 +1029,11 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
             .cn-row-seats li.is-glm .cn-row-art { width: 78px; margin: -0.6em 0 -0.35em; filter: drop-shadow(0 0 8px rgba(196, 170, 255, 40%)); }
             .cn-row-seats li.is-glm .cn-row-title { font-size: 0.88em; color: #e6dcff; }
             .cn-row-seats li.is-glm .cn-row-title b { color: #d6c6ff; }
+            /* Gemini：和 GLM 同一套“有立绘的加桌客人”，换成粉紫描边，两位并排不会混成一个色 */
+            .cn-row-seats li.is-gemini { position: relative; padding: 0.55em 1em 0.55em 0.6em; border-radius: 12px; background: linear-gradient(100deg, rgba(255, 158, 203, 14%), rgba(127, 233, 240, 5%) 70%); border: 1px solid rgba(255, 170, 210, 38%); box-shadow: 0 0 18px rgba(255, 140, 190, 14%); }
+            .cn-row-seats li.is-gemini .cn-row-art { width: 78px; margin: -0.6em 0 -0.35em; filter: drop-shadow(0 0 8px rgba(255, 158, 203, 40%)); }
+            .cn-row-seats li.is-gemini .cn-row-title { font-size: 0.88em; color: #ffe0ef; }
+            .cn-row-seats li.is-gemini .cn-row-title b { color: #ffc2de; }
 			.tk-stats {
 				display: grid;
 				grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1093,7 +1099,8 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
 				.cn-row-art {
 					width: 44px;
 				}
-				.cn-row-seats li.is-glm .cn-row-art {
+				.cn-row-seats li.is-glm .cn-row-art,
+				.cn-row-seats li.is-gemini .cn-row-art {
 					width: 62px;
 				}
 				.cn-row-seats li.is-image .cn-row-art {
@@ -1484,7 +1491,7 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                 <p class="cn-row-label">加桌</p>
                                 <ul class="cn-row-seats">
                                     {guestSeats.map((seat) => (
-                                        <li data-guest-model={seat.shortName} class:list={[{ 'is-glm': seat.isGlm, 'is-image': seat.isImage }]}>
+                                        <li data-guest-model={seat.shortName} class:list={[{ 'is-glm': seat.isGlm, 'is-gemini': seat.isGemini, 'is-image': seat.isImage }]}>
                                             <div class="cn-row-art" aria-hidden="true">
                                                 {seat.isImage ? (
                                                     <Image
@@ -1496,6 +1503,13 @@ const claudeSeat = canteenSeats.find((seat) => /claude/i.test(seat.label)) ?? nu
                                                 ) : seat.isGlm ? (
                                                     <Image
                                                         src={glmGuest}
+                                                        alt=""
+                                                        width={128}
+                                                        loading="lazy"
+                                                    />
+                                                ) : seat.isGemini ? (
+                                                    <Image
+                                                        src={geminiGuest}
                                                         alt=""
                                                         width={128}
                                                         loading="lazy"

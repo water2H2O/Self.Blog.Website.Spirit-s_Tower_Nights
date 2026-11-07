@@ -39,6 +39,7 @@ export function arrangeCanteen(series = [], daily = []) {
       // 生图不给「每百万 tokens」—— 那个数会大得离谱且没有解释力
       unitPrice: hasCost && !image ? perMillion(tokens, cost) : null,
       isGlm: members.some(s => /glm/i.test(s.label)),
+      isGemini: members.some(s => /gemini/i.test(s.label)),
       isImage: image,
       multi: members.length > 1,
       // 单型号也有小卡，但小卡不能继续递归。合计行由页面统一保留，三列起点才对齐。

@@ -14,6 +14,7 @@ import aiDeepseek from '../assets/oc/ai-deepseek.webp';
 import aiGpt from '../assets/oc/ai-gpt.webp';
 import aiClaude from '../assets/oc/ai-claude.webp';
 import glmGuest from '../assets/oc/glm-guest.webp';
+import geminiGuest from '../assets/oc/gemini-guest.webp';
 import imageGuest from '../assets/oc/image-guest.webp';
 import tokenUsage from '../data/token-usage.json';
 import { familyOf, isImageModel } from '../data/canteen-seats.mjs';
@@ -190,8 +191,8 @@ const guestCards = series
 			requests: (s as { requests?: number }).requests ?? 0,
 			perImage: image && (s as { requests?: number }).requests ? (s.cost ?? 0) / (s as { requests: number }).requests : null,
 			image,
-			art: image ? imageGuest : /glm/i.test(s.label) ? glmGuest : null,
-			hue: image ? '#7fe9f0' : '#c6a6ff',
+			art: image ? imageGuest : /glm/i.test(s.label) ? glmGuest : /gemini/i.test(s.label) ? geminiGuest : null,
+			hue: image ? '#7fe9f0' : /gemini/i.test(s.label) ? '#ff9ecb' : '#c6a6ff',
 		};
 	});
 ---
