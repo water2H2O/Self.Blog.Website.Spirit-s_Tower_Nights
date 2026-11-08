@@ -4,7 +4,7 @@
  *
  * 首页那块只放三席 + 四格；真要看曲线、看每天怎么烧、看哪个模型贵，
  * 都在这页。数据还是 src/data/token-usage.json（tools/fetch-token-usage.mjs 生成）。
- * 全部是构建时算好的静态 SVG，页面不带前端 JS。
+ * 全部是构建时算好的静态 SVG；页面只带一小段原生 JS —— 负责悬停浮层和「基础 / 详细」两张图的显隐切换，不拉任何库。
  */
 import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
@@ -50,6 +50,52 @@ const series: Series[] = (data.series ?? []).filter((s) => s.tokens > 0);
 const COLORS = ['#7fe9f0', '#c9a8ff', '#ffd68a', '#8fdc9b', '#e06a7a', '#9be7e0'];
 const colored = series.map((s, i) => ({ ...s, color: COLORS[i % COLORS.length] }));
 
+/**
+ * 「基础」视图：只留模型家族名，不带版本号（deepseek / claude / gemini / gpt / glm / gpt-image）。
+ * 来源前缀（官方 / 中转站）保留 —— 图题本来就是「按来源 · 模型」，合并掉会看不出是自家还是中转站。
+ */
+function familyOfLabel(label: string): string {
+	const cut = label.indexOf(' · ');
+	const source = cut < 0 ? '' : `${label.slice(0, cut)} · `;
+	const model = cut < 0 ? label : label.slice(cut + 3);
+	// 生图要单独成一家，不能被 gpt 吞掉；它的「版本号」长这样：gpt-image-2 → gpt-image
+	const family = /image/i.test(model)
+		? model.replace(/-\d[\d.]*.*$/, '')
+		: /deepseek/i.test(model)
+			? 'deepseek'
+			: /claude/i.test(model)
+				? 'claude'
+				: /gemini/i.test(model)
+					? 'gemini'
+					: /glm/i.test(model)
+						? 'glm'
+						: /gpt|openai/i.test(model)
+							? 'gpt'
+							: model;
+	return source + family;
+}
+
+const familyTotals = new Map<string, number>();
+for (const s of series) {
+	const key = familyOfLabel(s.label);
+	familyTotals.set(key, (familyTotals.get(key) ?? 0) + s.tokens);
+}
+const basicSeries = [...familyTotals]
+	.map(([label, tokens]) => ({ label, tokens }))
+	.sort((a, b) => b.tokens - a.tokens);
+const basicColored = basicSeries.map((s, i) => ({ ...s, color: COLORS[i % COLORS.length] }));
+
+/** 把一天的分段按家族合并，喂给基础视图的柱子和浮层 */
+function basicPartsOf(day: Day): Record<string, number> {
+	const out = new Map<string, number>();
+	for (const [label, value] of Object.entries(day.parts ?? {})) {
+		if (!(value > 0)) continue;
+		const key = familyOfLabel(label);
+		out.set(key, (out.get(key) ?? 0) + value);
+	}
+	return Object.fromEntries(out);
+}
+
 const fmt = (n: number) =>
 	n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(n);
 const fmtYuan = (n: number) => `¥${n.toFixed(2)}`;
@@ -68,8 +114,11 @@ const priciest = [...days].sort((a, b) => b.cost - a.cost)[0] ?? null;
 /** 用量最大的一天 */
 const biggest = [...days].sort((a, b) => b.tokens - a.tokens)[0] ?? null;
 
-/** 每日堆叠柱：一天一根，按来源 · 模型分段 */
-const stack = (() => {
+/**
+ * 每日堆叠柱：一天一根，按分段上色。
+ * 「基础」按家族、「详细」按具体型号，同一套几何参数，只是分段不同。
+ */
+function buildTokenStack(list: { label: string; color: string }[], partsOf: (d: Day) => Record<string, number>) {
 	if (days.length === 0) return null;
 	const W = 960;
 	const H = 280;
@@ -87,9 +136,10 @@ const stack = (() => {
 	const bars = days.map((d, i) => {
 		const cx = PL + slot * i + slot / 2;
 		let acc = 0;
+		const parts = partsOf(d);
 		const segs: { color: string; label: string; y: number; h: number; value: number }[] = [];
-		for (const s of colored) {
-			const value = d.parts?.[s.label] ?? (colored.length === 1 ? d.tokens : 0);
+		for (const s of list) {
+			const value = parts[s.label] ?? (list.length === 1 ? d.tokens : 0);
 			if (value <= 0) continue;
 			const y0 = y(acc);
 			const y1 = y(acc + value);
@@ -104,7 +154,10 @@ const stack = (() => {
 		};
 	});
 	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW, slot };
-})();
+}
+
+const stack = buildTokenStack(colored, (d) => d.parts ?? {});
+const stackBasic = buildTokenStack(basicColored, basicPartsOf);
 
 /** 每日花费：折线。颜色按高度取（userSpaceOnUse 渐变，底部青、中段金、顶部红），越贵越红 */
 const costChart = (() => {
@@ -137,15 +190,18 @@ const costChart = (() => {
 	return { W, H, PL, PR, PT, PB, plotW, plotH, base, max, points, line, area, peak, peakAnchor, slot };
 })();
 
-/** 逐日明细喂给悬停浮层：颜色和数字都在这里，前端只负责排版 */
+/** 逐日明细喂给悬停浮层：两种粒度的颜色和数字都在这里，前端只负责排版 */
 const tipData = {
-	colors: Object.fromEntries(colored.map((s) => [s.label, s.color])),
+	colors: {
+		basic: Object.fromEntries(basicColored.map((s) => [s.label, s.color])),
+		detail: Object.fromEntries(colored.map((s) => [s.label, s.color])),
+	},
 	days: days.map((d) => ({
 		date: d.date,
 		tokens: d.tokens,
 		cost: d.cost,
 		requests: d.requests,
-		parts: d.parts ?? {},
+		parts: { basic: basicPartsOf(d), detail: d.parts ?? {} },
 	})),
 };
 
@@ -474,6 +530,35 @@ const guestCards = series
 				padding: 0;
 				list-style: none;
 				font-size: 0.8em;
+			}
+			/* 基础 / 详细：两张图、两份图例都渲染好，切换只是显隐，不重排 */
+			[hidden] {
+				display: none !important;
+			}
+			.chart-modes {
+				display: flex;
+				gap: 0.4em;
+				margin: 0 0 0.6em;
+			}
+			.chart-modes button {
+				padding: 0.3em 0.9em;
+				font: inherit;
+				font-size: 0.78em;
+				color: rgb(var(--gray));
+				background: rgba(175, 255, 255, 4%);
+				border: 1px solid rgba(175, 255, 255, 14%);
+				border-radius: 99px;
+				cursor: pointer;
+			}
+			.chart-modes button:hover {
+				color: var(--glow);
+				border-color: var(--accent-dark);
+			}
+			.chart-modes button.is-on {
+				color: rgb(var(--black));
+				background: var(--accent);
+				border-color: var(--accent);
+				font-weight: 600;
 			}
 			.legend li {
 				display: flex;
@@ -842,75 +927,83 @@ const guestCards = series
 
 			<h2>每天烧多少（按来源 · 模型）</h2>
 			<div class="card">
+				<div class="chart-modes" role="group" aria-label="图表粒度">
+					<button type="button" data-mode="basic" class="is-on" aria-pressed="true">基础</button>
+					<button type="button" data-mode="detail" aria-pressed="false">详细</button>
+				</div>
 				{
-					stack && (
-						<svg
-							class="chart"
-							viewBox={`0 0 ${stack.W} ${stack.H}`}
-							role="img"
-							aria-label="每日 token 用量堆叠柱状图"
-							data-chart="tokens"
-						>
-							{[0, 0.25, 0.5, 0.75, 1].map((r) => (
-								<line
-									class="grid"
-									x1={stack.PL}
-									x2={stack.W - stack.PR}
-									y1={stack.PT + stack.plotH * r}
-									y2={stack.PT + stack.plotH * r}
-								/>
-							))}
-							<text class="axis" x={stack.W - 6} y={stack.PT + 4} text-anchor="end">
-								{fmt(stack.max)}
-							</text>
-							<text class="axis" x={stack.W - 6} y={stack.PT + stack.plotH} text-anchor="end">
-								0
-							</text>
-							{stack.bars.map((bar) => (
-								<g>
-									{bar.segs.map((seg) => (
-										<rect
-											x={bar.cx - stack.barW / 2}
-											y={seg.y}
-											width={stack.barW}
-											height={seg.h}
-											fill={seg.color}
-											fill-opacity="0.85"
-											rx="1.5"
-										/>
-									))}
-									{/* 整根柱子的悬停热区：比柱子宽一点，细日子也好指中 */}
-									<rect
-										class="hit"
-										x={bar.cx - stack.slot / 2}
-										y={stack.PT}
-										width={stack.slot}
-										height={stack.plotH}
-										fill="transparent"
-										data-chart="tokens"
-										data-date={bar.date}
+					[stackBasic, stack].map((st, i) =>
+						st ? (
+							<svg
+								class="chart"
+								viewBox={`0 0 ${st.W} ${st.H}`}
+								role="img"
+								aria-label={`每日 token 用量堆叠柱状图（${i === 0 ? '基础：按模型家族' : '详细：按具体型号'}）`}
+								data-chart="tokens"
+								data-mode={i === 0 ? 'basic' : 'detail'}
+								hidden={i === 1}
+							>
+								{[0, 0.25, 0.5, 0.75, 1].map((r) => (
+									<line
+										class="grid"
+										x1={st.PL}
+										x2={st.W - st.PR}
+										y1={st.PT + st.plotH * r}
+										y2={st.PT + st.plotH * r}
 									/>
-									{bar.label && (
-										<text class="axis" x={bar.cx} y={stack.H - 8} text-anchor="middle">
-											{bar.date.slice(5).replace('-', '/')}
-										</text>
-									)}
-								</g>
-							))}
-						</svg>
+								))}
+								<text class="axis" x={st.W - 6} y={st.PT + 4} text-anchor="end">
+									{fmt(st.max)}
+								</text>
+								<text class="axis" x={st.W - 6} y={st.PT + st.plotH} text-anchor="end">
+									0
+								</text>
+								{st.bars.map((bar) => (
+									<g>
+										{bar.segs.map((seg) => (
+											<rect
+												x={bar.cx - st.barW / 2}
+												y={seg.y}
+												width={st.barW}
+												height={seg.h}
+												fill={seg.color}
+												fill-opacity="0.85"
+												rx="1.5"
+											/>
+										))}
+										{/* 整根柱子的悬停热区：比柱子宽一点，细日子也好指中 */}
+										<rect
+											class="hit"
+											x={bar.cx - st.slot / 2}
+											y={st.PT}
+											width={st.slot}
+											height={st.plotH}
+											fill="transparent"
+											data-chart="tokens"
+											data-date={bar.date}
+										/>
+										{bar.label && (
+											<text class="axis" x={bar.cx} y={st.H - 8} text-anchor="middle">
+												{bar.date.slice(5).replace('-', '/')}
+											</text>
+										)}
+									</g>
+								))}
+							</svg>
+						) : null,
 					)
 				}
-				<ul class="legend">
-					{
-						colored.map((s) => (
+				{[basicColored, colored].map((list, i) => (
+					<ul class="legend" data-mode={i === 0 ? 'basic' : 'detail'} hidden={i === 1}>
+						{list.map((s) => (
 							<li>
 								<span class="dot" style={`background:${s.color}`} />
 								<span class="name">{s.label}</span>
 								<span class="num">{fmt(s.tokens)}</span>
 							</li>
-						))
-					}
-				</ul>
+						))}
+					</ul>
+				))}
 			</div>
 
 			<h2>每天花多少</h2>
@@ -1116,11 +1209,33 @@ const guestCards = series
 				tokens: number;
 				cost: number;
 				requests: number;
-				parts: Record<string, number>;
+				parts: { basic: Record<string, number>; detail: Record<string, number> };
 			};
 			const raw = document.getElementById('tk-days')?.textContent ?? '{}';
-			const tip = JSON.parse(raw) as { colors: Record<string, string>; days: Day[] };
+			const tip = JSON.parse(raw) as {
+				colors: { basic: Record<string, string>; detail: Record<string, string> };
+				days: Day[];
+			};
 			const byDate = new Map(tip.days.map((d) => [d.date, d]));
+
+			/** 当前粒度：基础（按家族）为默认，详细（按型号）可切换 */
+			let mode: 'basic' | 'detail' = 'basic';
+			const modeButtons = document.querySelectorAll<HTMLButtonElement>('.chart-modes button');
+			function applyMode(next: 'basic' | 'detail') {
+				mode = next;
+				for (const btn of modeButtons) {
+					const on = btn.dataset.mode === next;
+					btn.classList.toggle('is-on', on);
+					btn.setAttribute('aria-pressed', String(on));
+				}
+				for (const el of document.querySelectorAll<HTMLElement>('[data-mode]')) {
+					if (el.tagName === 'BUTTON') continue;
+					el.hidden = el.dataset.mode !== next;
+				}
+			}
+			for (const btn of modeButtons) {
+				btn.addEventListener('click', () => applyMode(btn.dataset.mode === 'detail' ? 'detail' : 'basic'));
+			}
 
 			const box = document.getElementById('tk-tip') as HTMLDivElement;
 			const elDate = box.querySelector('.tip-date') as HTMLElement;
@@ -1132,9 +1247,11 @@ const guestCards = series
 				n >= 1e8 ? `${(n / 1e8).toFixed(2)} 亿` : n >= 1e4 ? `${(n / 1e4).toFixed(1)} 万` : String(Math.round(n));
 			const fmtYuan = (n: number) => `¥${n.toFixed(2)}`;
 
-			/** 哪张图悬停，浮层就写什么口径 */
+			/** 哪张图悬停，浮层就写什么口径；粒度跟着上方的「基础 / 详细」走（花费图固定按型号） */
 			function fill(chart: string, day: Day) {
-				const entries = Object.entries(day.parts ?? {}).sort((a, b) => b[1] - a[1]);
+				const granularity = chart === 'cost' ? 'detail' : mode;
+				const palette = tip.colors[granularity] ?? {};
+				const entries = Object.entries(day.parts?.[granularity] ?? {}).sort((a, b) => b[1] - a[1]);
 				elDate.textContent = day.date;
 				elTotal.textContent = chart === 'cost' ? fmtYuan(day.cost) : fmtTokens(day.tokens);
 				elRows.replaceChildren();
@@ -1143,7 +1260,7 @@ const guestCards = series
 				for (const [label, value] of shown) {
 					const li = document.createElement('li');
 					const dot = document.createElement('i');
-					dot.style.background = tip.colors[label] ?? '#7fe9f0';
+					dot.style.background = palette[label] ?? '#7fe9f0';
 					const name = document.createElement('span');
 					name.className = 'tip-name';
 					name.textContent = label;
