@@ -58,6 +58,31 @@ assert.equal(withGemini.guests[0].isGlm, false);
 assert.equal(withGemini.guests[0].days, 1);
 assert.equal(withGemini.seats.find(s => s.family === 'deepseek').tokens, 100); // 不被主桌吞掉
 
+// 同一家族的多个 Gemini 型号坐同一张卡（出勤按日期去重，不按型号各算一次）
+const twoGemini = arrangeCanteen([
+  { label: '中转站 · gemini-4-argon', tokens: 40, cost: 4, requests: 41 },
+  { label: '中转站 · gemini-3.8-flash', tokens: 10, cost: 1, requests: 5 },
+], [
+  { date: '2026-11-08', parts: { '中转站 · gemini-4-argon': 40 } },
+  { date: '2026-11-09', parts: { '中转站 · gemini-3.8-flash': 10 } },
+]);
+assert.equal(twoGemini.guests.length, 1);
+assert.equal(twoGemini.guests[0].tokens, 50);
+assert.equal(twoGemini.guests[0].cost, 5);
+assert.equal(twoGemini.guests[0].days, 2);
+assert.equal(twoGemini.guests[0].memberCount, 2);
+assert.equal(twoGemini.guests[0].shortName, 'Gemini · 2 个型号');
+assert.deepEqual(twoGemini.guests[0].members, ['gemini-4-argon', 'gemini-3.8-flash']);
+assert.equal(twoGemini.guests[0].isGemini, true);
+
+// 不同家族仍然分开坐
+const mixedGuests = arrangeCanteen([
+  { label: '中转站 · gemini-4-argon', tokens: 40, cost: 4 },
+  { label: '中转站 · glm-5.3-flash', tokens: 30, cost: 1 },
+]);
+assert.equal(mixedGuests.guests.length, 2);
+assert.deepEqual(mixedGuests.guests.map(g => g.shortName), ['gemini-4-argon', 'glm-5.3-flash']);
+
 // 主桌最多展开两个型号，其余计入合计并留一句说明
 const crowded = arrangeCanteen([
   { label: '官方 · deepseek-flash', tokens: 300, cost: 1 },

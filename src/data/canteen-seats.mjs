@@ -11,6 +11,18 @@ export const familyOf = (label) => {
 };
 
 /**
+ * 加桌客人按家族归组：同一个家族的多个型号坐一张卡。
+ * 以前是一个型号一张卡，Gemini 一进来就变成 4-argon / 3.8-flash 两桌，挤在加桌行里像重复座位。
+ */
+export const GUEST_NAMES = { gemini: 'Gemini', glm: 'GLM', image: 'GPT-Image' };
+export const guestFamilyOf = (label) => {
+  if (isImageModel(label)) return 'image';
+  if (/gemini/i.test(label)) return 'gemini';
+  if (/glm/i.test(label)) return 'glm';
+  return label;
+};
+
+/**
  * 三联画固定对应 DeepSeek / GPT / Claude，其他用途或家族另坐加桌。
  * 主桌合计仍含全部型号；只把用量最高的两个展开成小卡，其余在 /token/ 保留完整明细。
  * 出勤按日期并集计算，不能把多个型号同一天的出勤加两次。
@@ -19,7 +31,7 @@ export function arrangeCanteen(series = [], daily = []) {
   // 生图模型的 token 可能极少甚至为 0，别让它因为「token 为 0」被整条丢掉
   const active = series.filter(s => s.tokens > 0 || s.image || s.perImage != null);
   const sumTokens = active.reduce((sum, s) => sum + s.tokens, 0);
-  const decorate = (members, family = null, withVariants = true) => {
+  const decorate = (members, family = null, withVariants = true, displayName = null) => {
     const tokens = members.reduce((sum, s) => sum + s.tokens, 0);
     const hasCost = members.every(s => typeof s.cost === 'number' && Number.isFinite(s.cost));
     const cost = hasCost ? members.reduce((sum, s) => sum + s.cost, 0) : null;
@@ -29,9 +41,15 @@ export function arrangeCanteen(series = [], daily = []) {
     const image = members.some(s => isImageModel(s.label));
     // 生图按张计费：单价 = 这个模型花的钱 ÷ 出了几张，按百万 tokens 算没有意义
     const perImage = image && hasCost && requests > 0 ? cost / requests : null;
+    const single = members.length === 1;
     return {
       family, label: members.map(s => s.label).join('、'),
-      shortName: members.length === 1 ? members[0].label.split('·').pop().trim() : `${family === 'gpt' ? 'GPT' : family === 'claude' ? 'Claude' : 'DeepSeek'} · ${members.length} 个型号`,
+      // 合并后的加桌卡用家族名（Gemini），单型号仍显示型号全名
+      shortName: single
+        ? members[0].label.split('·').pop().trim()
+        : `${displayName ?? (family === 'gpt' ? 'GPT' : family === 'claude' ? 'Claude' : 'DeepSeek')} · ${members.length} 个型号`,
+      memberCount: members.length,
+      members: ranked.map(s => s.label.split('·').pop().trim()),
       tokens, cost, share: sumTokens > 0 ? Math.round(tokens / sumTokens * 1000) / 10 : 0,
       days: dates.size,
       requests,
@@ -49,11 +67,20 @@ export function arrangeCanteen(series = [], daily = []) {
       hiddenVariantCount: withVariants ? Math.max(0, members.length - MAX_TABLE_VARIANTS) : 0,
     };
   };
+  // 加桌按家族合并：同一家族的多个型号坐一张卡，出勤与花费都按这张卡合计
+  const guestGroups = new Map();
+  for (const s of active.filter(s => !familyOf(s.label))) {
+    const key = guestFamilyOf(s.label);
+    if (!guestGroups.has(key)) guestGroups.set(key, []);
+    guestGroups.get(key).push(s);
+  }
   return {
     seats: TABLE_FAMILIES.map(family => {
       const members = active.filter(s => familyOf(s.label) === family);
-      return members.length ? decorate(members, family) : { family, shortName: family === 'gpt' ? 'GPT' : family === 'claude' ? 'Claude' : 'DeepSeek', tokens: 0, cost: null, share: 0, days: 0, unitPrice: null, empty: true, variants: [], hiddenVariantCount: 0 };
+      return members.length ? decorate(members, family) : { family, shortName: family === 'gpt' ? 'GPT' : family === 'claude' ? 'Claude' : 'DeepSeek', tokens: 0, cost: null, share: 0, days: 0, unitPrice: null, empty: true, variants: [], hiddenVariantCount: 0, memberCount: 0, members: [] };
     }),
-    guests: active.filter(s => !familyOf(s.label)).sort((a, b) => b.tokens - a.tokens || a.label.localeCompare(b.label)).map(s => decorate([s], null, false)),
+    guests: [...guestGroups.entries()]
+      .map(([key, members]) => decorate(members, null, false, GUEST_NAMES[key] ?? key))
+      .sort((a, b) => b.tokens - a.tokens || a.label.localeCompare(b.label)),
   };
 }

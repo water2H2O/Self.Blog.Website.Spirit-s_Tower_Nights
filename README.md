@@ -849,7 +849,7 @@ pnpm run github:build       # 抓完再跑一次构建
 - 卡片上生图那位显示「出了 20 张 · ¥2.90 · 单张 ¥0.145」，不再给那个大到没意义的「¥105/百万」
 - 对话模型的 `series[].requests` 也顺带记了（官方导出按 `request_count` 累加），以后要算「每次多少钱」有得用
 
-「加桌」一块：**等宽卡片网格**（`.cn-row-seats` 用 `repeat(auto-fill, minmax(11.5em, 1fr))`，手机固定两列），每位客人一张纵向卡，立绘在上（统一放进方形容器，`object-fit: contain`，不裁画面）、名字 / 占比 / 用量 / 花费依次往下排；不写「新客」「加座」之类的身份标签，客人再多也只是多排几行。每张卡的主色用 CSS 变量 `--guest-hue` 控制：GLM 淡紫（`li.is-glm`，`src/assets/oc/glm-guest.webp`）、Gemini 粉紫（`li.is-gemini`，`src/assets/oc/gemini-guest.webp`；/token/ 上卡片色 `#ff9ecb`）、生图模型青（`li.is-image`，`src/assets/oc/image-guest.webp`，3:2 的画在方形容器里上下留白，不抠图），还没画立绘的先用饭碗图标顶上。**新增有立绘的客人**：加一张 `src/assets/oc/<名>-guest.webp`（建议 640×640 透明底）、在 `canteen-seats.mjs` 里加 `isXxx` 标记、模板里补一支分支、CSS 里补一行 `--guest-hue`。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
+「加桌」一块：**等宽卡片网格**（`.cn-row-seats` 用 `repeat(auto-fill, minmax(11.5em, 1fr))`，手机固定两列），每位客人一张纵向卡，立绘在上（统一放进方形容器，`object-fit: contain`，不裁画面）、名字 / 占比 / 用量 / 花费依次往下排；不写「新客」「加座」之类的身份标签，客人再多也只是多排几行。**同一家族坐一张卡**（`guestFamilyOf()` + `GUEST_NAMES`）：Gemini 的 `4-argon` / `3.8-flash` 合成一张「Gemini · 2 个型号」，出勤按日期去重、花费与 token 相加；单型号的客人（GLM、生图）仍显示型号全名。每张卡的主色用 CSS 变量 `--guest-hue` 控制：GLM 淡紫（`li.is-glm`，`src/assets/oc/glm-guest.webp`）、Gemini 粉紫（`li.is-gemini`，`src/assets/oc/gemini-guest.webp`；/token/ 上卡片色 `#ff9ecb`）、生图模型青（`li.is-image`，`src/assets/oc/image-guest.webp`，3:2 的画在方形容器里上下留白，不抠图），还没画立绘的先用饭碗图标顶上。**新增有立绘的客人**：加一张 `src/assets/oc/<名>-guest.webp`（建议 640×640 透明底）、在 `canteen-seats.mjs` 里加家族判定（`guestFamilyOf` 与 `GUEST_NAMES`）和 `isXxx` 标记、模板里补一支分支、CSS 里补一行 `--guest-hue`。新增系列自动排到加桌行，小于0.1%的用量不写成0%。逻辑在 `src/data/canteen-seats.mjs`，回归检查 `node tools/test-canteen-seats.mjs`。
 
 改三联画格数时才需要调整 `TABLE_FAMILIES` 与 `.cn-seats` 的列数；加座区为自适应网格。
 
@@ -858,10 +858,12 @@ pnpm run github:build       # 抓完再跑一次构建
 
 **`/token/` 的堆叠柱分两档粒度**，页面上用「基础 / 详细」切换，**默认基础**：
 
-- **基础**：按模型家族合并，只留不带版本号的名字 —— `官方 · deepseek` / `中转站 · gpt` / `中转站 · claude` / `中转站 · gemini` / `中转站 · glm` / `中转站 · gpt-image`，通常 5～6 条。家族判定在 `familyOfLabel()`，生图先判（`gpt-image-*` 归 `gpt-image`，不会被 `gpt` 吞掉），来源前缀（官方 / 中转站）保留。
-- **详细**：按具体型号，就是 `series` 原样，条目会随型号增加一直变多。
+- **基础**：按模型家族合并，**不带版本号、也不带来源**，名字按各家官方写法 —— `DeepSeek` / `GPT` / `Claude` / `Gemini` / `GLM` / `GPT-Image`，通常 5～6 条。官方和中转站两头的同一家族并成一条（所以基础视图里看不出是自家还是中转站，要看这个切到详细）。家族判定在 `familyOfLabel()`，生图先判（`gpt-image-*` 归 `GPT-Image`，不会被 `GPT` 吞掉）。
+- **详细**：按具体型号，就是 `series` 原样（带 `官方 · ` / `中转站 · ` 前缀），条目会随型号增加一直变多。
 
 两张 SVG 和两份图例都是构建时都渲染好，切换只改 `hidden`；悬停浮层读 `tipData` 里两套 `parts`，跟着当前粒度走（花费图的浮层固定按型号）。
+
+**逐日明细表**：一页 30 天，构建时按 30 条切好 `tbody[data-page]`，翻页只切换 `tbody` 的 `hidden`（不重新渲染、不发请求），页脚有「上一页 / 第 N / M 页 / 下一页」。每行可点（或回车 / 空格）展开当天各模型的用量构成，展开内容是构建时渲染好的下一条 `tr.day-more`，带占比条。
 
 **数据从哪来**：两条路，选一条。站上**当前用的是第二条**（官网导出，带 ¥ 花费、覆盖所有客户端）。
 

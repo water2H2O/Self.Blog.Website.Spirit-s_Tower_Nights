@@ -17,7 +17,7 @@ import glmGuest from '../assets/oc/glm-guest.webp';
 import geminiGuest from '../assets/oc/gemini-guest.webp';
 import imageGuest from '../assets/oc/image-guest.webp';
 import tokenUsage from '../data/token-usage.json';
-import { familyOf, isImageModel } from '../data/canteen-seats.mjs';
+import { familyOf, guestFamilyOf, GUEST_NAMES, isImageModel } from '../data/canteen-seats.mjs';
 
 type Day = {
 	date: string;
@@ -51,28 +51,20 @@ const COLORS = ['#7fe9f0', '#c9a8ff', '#ffd68a', '#8fdc9b', '#e06a7a', '#9be7e0'
 const colored = series.map((s, i) => ({ ...s, color: COLORS[i % COLORS.length] }));
 
 /**
- * 「基础」视图：只留模型家族名，不带版本号（deepseek / claude / gemini / gpt / glm / gpt-image）。
- * 来源前缀（官方 / 中转站）保留 —— 图题本来就是「按来源 · 模型」，合并掉会看不出是自家还是中转站。
+ * 「基础」视图：只留模型家族名，不带版本号、也不带来源（官方 / 中转站）。
+ * 同一家族在官方和中转站两头用的都并成一条，名字按各家官方的写法。
  */
 function familyOfLabel(label: string): string {
 	const cut = label.indexOf(' · ');
-	const source = cut < 0 ? '' : `${label.slice(0, cut)} · `;
 	const model = cut < 0 ? label : label.slice(cut + 3);
 	// 生图要单独成一家，不能被 gpt 吞掉；它的「版本号」长这样：gpt-image-2 → gpt-image
-	const family = /image/i.test(model)
-		? model.replace(/-\d[\d.]*.*$/, '')
-		: /deepseek/i.test(model)
-			? 'deepseek'
-			: /claude/i.test(model)
-				? 'claude'
-				: /gemini/i.test(model)
-					? 'gemini'
-					: /glm/i.test(model)
-						? 'glm'
-						: /gpt|openai/i.test(model)
-							? 'gpt'
-							: model;
-	return source + family;
+	if (/image/i.test(model)) return 'GPT-Image';
+	if (/deepseek/i.test(model)) return 'DeepSeek';
+	if (/claude/i.test(model)) return 'Claude';
+	if (/gemini/i.test(model)) return 'Gemini';
+	if (/glm/i.test(model)) return 'GLM';
+	if (/gpt|openai/i.test(model)) return 'GPT';
+	return model;
 }
 
 const familyTotals = new Map<string, number>();
@@ -205,8 +197,11 @@ const tipData = {
 	})),
 };
 
-/** 表格：倒序，最近的在上面 */
+/** 表格：倒序，最近的在上面；一页 30 天，翻页由页面上的小脚本负责显隐 */
+const PAGE_SIZE = 30;
 const rows = [...days].reverse();
+const rowPages: Day[][] = [];
+for (let i = 0; i < rows.length; i += PAGE_SIZE) rowPages.push(rows.slice(i, i + PAGE_SIZE));
 
 /**
  * 角色面板：像二游那样，一位 AI 一张卡 —— 左边立绘，右边是它自己的全部账。
@@ -231,26 +226,40 @@ const rosterCards = ROSTER.map((meta) => {
 	return { ...meta, members, tokens, cost, days: activeDays };
 });
 
-/** 加桌那两位：同样一张卡，只是没有三联画里的小图 */
-const guestCards = series
-	.filter((s) => !familyOf(s.label))
-	.sort((a, b) => b.tokens - a.tokens)
-	.map((s) => {
-		const image = isImageModel(s.label);
-		const dayCount = days.filter((d) => (d.parts?.[s.label] ?? 0) > 0).length;
+/**
+ * 加桌客人：同样一张卡，只是没有三联画里的小图。
+ * 按家族归组 —— Gemini 现在有两个型号（4-argon / 3.8-flash），各占一张卡就成了两张一样的脸。
+ */
+const guestGroups = new Map<string, Series[]>();
+for (const s of series.filter((s) => !familyOf(s.label))) {
+	const key = guestFamilyOf(s.label);
+	if (!guestGroups.has(key)) guestGroups.set(key, []);
+	guestGroups.get(key)!.push(s);
+}
+const guestCards = [...guestGroups.entries()]
+	.map(([key, members]) => {
+		const tokens = members.reduce((sum, s) => sum + s.tokens, 0);
+		const cost = members.reduce((sum, s) => sum + (s.cost ?? 0), 0);
+		const requests = members.reduce((sum, s) => sum + ((s as { requests?: number }).requests ?? 0), 0);
+		const dayCount = days.filter((d) => members.some((s) => (d.parts?.[s.label] ?? 0) > 0)).length;
+		const image = members.some((s) => isImageModel(s.label));
+		const ranked = [...members].sort((a, b) => b.tokens - a.tokens);
 		return {
-			label: s.label,
-			name: s.label.split('·').pop()?.trim() ?? s.label,
-			tokens: s.tokens,
-			cost: s.cost ?? 0,
+			label: members.map((s) => s.label).join('、'),
+			// 单型号照旧显示型号名；合并的用家族名（Gemini）
+			name: members.length === 1 ? (ranked[0].label.split('·').pop()?.trim() ?? ranked[0].label) : (GUEST_NAMES[key] ?? key),
+			modelList: ranked.map((s) => s.label.split('·').pop()?.trim() ?? s.label),
+			tokens,
+			cost,
 			days: dayCount,
-			requests: (s as { requests?: number }).requests ?? 0,
-			perImage: image && (s as { requests?: number }).requests ? (s.cost ?? 0) / (s as { requests: number }).requests : null,
+			requests,
+			perImage: image && requests ? cost / requests : null,
 			image,
-			art: image ? imageGuest : /glm/i.test(s.label) ? glmGuest : /gemini/i.test(s.label) ? geminiGuest : null,
-			hue: image ? '#7fe9f0' : /gemini/i.test(s.label) ? '#ff9ecb' : '#c6a6ff',
+			art: image ? imageGuest : /glm/i.test(key) ? glmGuest : /gemini/i.test(key) ? geminiGuest : null,
+			hue: image ? '#7fe9f0' : /gemini/i.test(key) ? '#ff9ecb' : '#c6a6ff',
 		};
-	});
+	})
+	.sort((a, b) => b.tokens - a.tokens);
 ---
 
 <!doctype html>
@@ -368,6 +377,15 @@ const guestCards = series
 				font-size: 0.76em;
 				line-height: 1.7;
 				color: rgb(var(--gray));
+			}
+			/* 加桌合并卡：名字下面补一行它其实包含哪几款型号 */
+			.hero-models {
+				margin: 0.35em 0 0;
+				font-size: 0.72em;
+				line-height: 1.6;
+				color: rgb(var(--gray));
+				opacity: 0.8;
+				overflow-wrap: anywhere;
 			}
 			.hero-stats {
 				display: grid;
@@ -634,17 +652,125 @@ const guestCards = series
 			.daily .unit {
 				display: none;
 			}
-			.daily .part {
+			/* 逐日明细：一行一天，点开才展开当天构成 */
+			.day-row {
+				cursor: pointer;
+			}
+			.day-row .date-cell {
 				white-space: nowrap;
 			}
-			.daily .part + .part::before {
-				content: '+ ';
-				white-space: normal;
-				opacity: 0.6;
+			.day-row .chev {
+				display: inline-block;
+				width: 1em;
+				margin-right: 0.35em;
+				color: var(--accent);
+				transition: transform 0.15s;
 			}
-			.daily .part:not(:last-child)::after {
-				content: ' ';
-				white-space: normal;
+			.day-row[aria-expanded='true'] .chev {
+				transform: rotate(90deg);
+			}
+			.day-row[aria-expanded='true'] {
+				background: rgba(175, 255, 255, 6%);
+			}
+			.day-row:focus-visible {
+				outline: 2px solid var(--glow);
+				outline-offset: -2px;
+			}
+			.day-more > td {
+				padding: 0.2em 0.6em 0.9em;
+				text-align: left;
+				background: rgba(175, 255, 255, 3%);
+			}
+			.more-list {
+				display: grid;
+				gap: 0.4em;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				font-size: 0.82em;
+			}
+			.more-list li {
+				display: grid;
+				grid-template-columns: minmax(8em, 13em) minmax(3em, 1fr) auto;
+				align-items: center;
+				gap: 0.7em;
+			}
+			.more-list .dot {
+				flex: none;
+				width: 8px;
+				height: 8px;
+				border-radius: 2px;
+			}
+			.m-name {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+				min-width: 0;
+				color: rgb(var(--gray));
+				overflow-wrap: anywhere;
+			}
+			.m-bar {
+				display: block;
+				height: 5px;
+				border-radius: 3px;
+				background: rgba(175, 255, 255, 9%);
+				overflow: hidden;
+			}
+			.m-bar span {
+				display: block;
+				height: 100%;
+				border-radius: 3px;
+				background: var(--glow);
+				opacity: 0.55;
+			}
+			.m-num {
+				color: var(--glow);
+				font-variant-numeric: tabular-nums;
+				white-space: nowrap;
+				text-align: right;
+			}
+			.m-pct {
+				display: inline-block;
+				min-width: 3.4em;
+				margin-left: 0.6em;
+				font-size: 0.9em;
+				color: rgb(var(--gray));
+				text-align: right;
+			}
+			.pager {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 1em;
+				margin: 1em 0 0;
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+			}
+			.pager button {
+				padding: 0.35em 0.9em;
+				font: inherit;
+				color: rgb(var(--gray));
+				background: rgba(175, 255, 255, 4%);
+				border: 1px solid rgba(175, 255, 255, 14%);
+				border-radius: 99px;
+				cursor: pointer;
+			}
+			.pager button:hover:not(:disabled) {
+				color: var(--glow);
+				border-color: var(--accent-dark);
+			}
+			.pager button:disabled {
+				opacity: 0.35;
+				cursor: default;
+			}
+			.pager-info b {
+				color: var(--glow);
+			}
+			.daily-hint {
+				margin: 0.8em 0 0;
+				font-size: 0.74em;
+				color: rgb(var(--gray));
+				opacity: 0.75;
 			}
 			.note {
 				margin: 1em 0 0;
@@ -723,13 +849,29 @@ const guestCards = series
 					font-size: 0.85em;
 					color: rgb(var(--gray));
 				}
-				.daily td.parts {
-					grid-column: 1 / -1;
-					text-align: left;
+				/* 展开出来的当天构成：手机上条缩短一点，名称与数字各占一行更宽松 */
+				.daily tr.day-more {
+					display: block;
+					padding: 0;
+				}
+				.daily .day-more > td {
+					display: block;
+					padding: 0 0.2em 0.9em;
+				}
+				.more-list {
+					grid-template-columns: minmax(0, 1fr);
+					gap: 0.5em;
+				}
+				.more-list li {
+					grid-template-columns: minmax(0, 1fr) auto;
+					gap: 0.2em 0.6em;
+				}
+				.m-name {
 					white-space: normal;
-					font-size: 0.88em;
-					line-height: 1.6;
-					color: rgb(var(--gray));
+				}
+				.m-bar {
+					grid-column: 1 / -1;
+					order: 3;
 				}
 			}
 		</style>
@@ -899,6 +1041,7 @@ const guestCards = series
 							) : null}
 							<div class="hero-body">
 								<h3 class="hero-name">{card.name}</h3>
+								{card.modelList.length > 1 && <p class="hero-models">{card.modelList.join(' · ')}</p>}
 								<dl class="hero-stats">
 									<div>
 										<dt>量</dt>
@@ -1107,42 +1250,75 @@ const guestCards = series
 
 			<h2>逐日明细</h2>
 			<div class="card">
-				<table class="daily">
+				<table class="daily" id="daily-table">
 					<thead>
 						<tr>
 							<th>日期</th>
 							<th>tokens</th>
 							<th>请求</th>
 							<th>花费</th>
-							<th>构成</th>
 						</tr>
 					</thead>
-					<tbody>
-						{
-							rows.map((d) => (
-								<tr>
-									<td>{d.date}</td>
-									<td>{fmt(d.tokens)}</td>
-									<td>
-										{d.requests}
-										<span class="unit"> 次</span>
-									</td>
-									<td>{d.cost ? fmtYuan(d.cost) : '—'}</td>
-									<td class="parts">
-										{/* 每段单独一个不换行的 span：窄屏只在「+」之间折行，不把模型名拆成两截 */}
-										{Object.entries(d.parts ?? {})
-											.sort((a, b) => b[1] - a[1])
-											.map(([label, v]) => (
-												<span class="part">
-													{label.replace(/^官方 · |^中转站 · /, '')} {fmt(v)}
-												</span>
-											))}
-									</td>
-								</tr>
-							))
-						}
-					</tbody>
+					{rowPages.map((page, pageIndex) => (
+						<tbody data-page={pageIndex + 1} hidden={pageIndex > 0}>
+							{page.map((d) => (
+								<Fragment>
+									<tr class="day-row" data-day={d.date} tabindex="0" aria-expanded="false">
+										<td class="date-cell">
+											<span class="chev" aria-hidden="true">▸</span>
+											{d.date}
+										</td>
+										<td>{fmt(d.tokens)}</td>
+										<td>
+											{d.requests}
+											<span class="unit"> 次</span>
+										</td>
+										<td>{d.cost ? fmtYuan(d.cost) : '—'}</td>
+									</tr>
+									<tr class="day-more" data-more={d.date} hidden>
+										<td colspan="4">
+											<ul class="more-list">
+												{Object.entries(d.parts ?? {})
+													.sort((a, b) => b[1] - a[1])
+													.map(([label, v]) => (
+														<li>
+															<span class="m-name">
+																<span class="dot" style={`background:${tipData.colors.detail[label] ?? '#7fe9f0'}`} />
+																{label.replace(/^官方 · |^中转站 · /, '')}
+															</span>
+															<span class="m-bar">
+																<span style={`width:${d.tokens > 0 ? Math.max(2, (v / d.tokens) * 100).toFixed(1) : 0}%`} />
+															</span>
+															<span class="m-num">
+																{fmt(v)}
+																<span class="m-pct">
+																	{d.tokens > 0 ? ((v / d.tokens) * 100).toFixed(1) : '0.0'}%
+																</span>
+															</span>
+														</li>
+													))}
+											</ul>
+										</td>
+									</tr>
+								</Fragment>
+							))}
+						</tbody>
+					))}
 				</table>
+				{rowPages.length > 1 && (
+					<nav class="pager" id="daily-pager" aria-label="逐日明细分页">
+						<button type="button" data-prev>
+							← 上一页
+						</button>
+						<span class="pager-info">
+							第 <b data-current>1</b> / {rowPages.length} 页 · 共 {rows.length} 天
+						</span>
+						<button type="button" data-next>
+							下一页 →
+						</button>
+					</nav>
+				)}
+				<p class="daily-hint">点一行可以展开当天各模型的用量构成。</p>
 			</div>
 
 			{data.localRelay?.days?.length ? (
@@ -1311,6 +1487,55 @@ const guestCards = series
 						hit.classList.remove('is-active');
 					});
 				});
+			}
+			/* ---------- 逐日明细：翻页 + 点行展开 ---------- */
+			const table = document.getElementById('daily-table');
+			const pager = document.getElementById('daily-pager');
+			if (table) {
+				const bodys = [...table.querySelectorAll<HTMLTableSectionElement>('tbody[data-page]')];
+				let page = 1;
+				const paint = () => {
+					for (const body of bodys) body.hidden = Number(body.dataset.page) !== page;
+					const cur = pager?.querySelector('[data-current]');
+					if (cur) cur.textContent = String(page);
+					const prev = pager?.querySelector<HTMLButtonElement>('[data-prev]');
+					const next = pager?.querySelector<HTMLButtonElement>('[data-next]');
+					if (prev) prev.disabled = page <= 1;
+					if (next) next.disabled = page >= bodys.length;
+				};
+				pager?.querySelector('[data-prev]')?.addEventListener('click', () => {
+					if (page > 1) {
+						page -= 1;
+						paint();
+						table.scrollIntoView({ block: 'start', behavior: 'smooth' });
+					}
+				});
+				pager?.querySelector('[data-next]')?.addEventListener('click', () => {
+					if (page < bodys.length) {
+						page += 1;
+						paint();
+						table.scrollIntoView({ block: 'start', behavior: 'smooth' });
+					}
+				});
+				paint();
+
+				// 点一行展开当天构成；展开行紧跟在自己那天后面，翻页时跟着一起显隐
+				const toggle = (row: HTMLTableRowElement) => {
+					const more = row.nextElementSibling as HTMLTableRowElement | null;
+					if (!more?.classList.contains('day-more')) return;
+					const open = row.getAttribute('aria-expanded') === 'true';
+					row.setAttribute('aria-expanded', String(!open));
+					more.hidden = open;
+				};
+				for (const row of table.querySelectorAll<HTMLTableRowElement>('tr.day-row')) {
+					row.addEventListener('click', () => toggle(row));
+					row.addEventListener('keydown', (event) => {
+						if (event.key === 'Enter' || event.key === ' ') {
+							event.preventDefault();
+							toggle(row);
+						}
+					});
+				}
 			}
 		</script>
 	</body>
