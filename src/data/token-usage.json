@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-08T23:22:47.758Z",
+  "fetchedAt": "2026-11-09T20:14:38.693Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -16,28 +16,29 @@
     "2026-10-29_2026-11-04",
     "2026-10-31_2026-11-06",
     "2026-11-01_2026-11-07",
-    "2026-11-03_2026-11-09"
+    "2026-11-03_2026-11-09",
+    "2026-11-04_2026-11-10"
   ],
   "dimension": "model",
   "series": [
     {
       "label": "官方 · deepseek-flash",
-      "tokens": 5213157371,
-      "share": 83.1,
-      "cost": 240.8649,
-      "requests": 17807
+      "tokens": 5371259094,
+      "share": 82.7,
+      "cost": 248.8101,
+      "requests": 18460
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 777781549,
-      "share": 12.4,
-      "cost": 34.5889,
-      "requests": 5474
+      "tokens": 829632593,
+      "share": 12.8,
+      "cost": 36.5809,
+      "requests": 5873
     },
     {
       "label": "中转站 · claude-opus-5-5",
       "tokens": 202992773,
-      "share": 3.2,
+      "share": 3.1,
       "cost": 63.6285,
       "requests": 1029
     },
@@ -56,9 +57,16 @@
       "requests": 72
     },
     {
+      "label": "中转站 · gemini-4-argon",
+      "tokens": 17528347,
+      "share": 0.3,
+      "cost": 16.0993,
+      "requests": 86
+    },
+    {
       "label": "官方 · deepseek-v4-pro",
       "tokens": 15929678,
-      "share": 0.3,
+      "share": 0.2,
       "cost": 8.3692,
       "requests": 151
     },
@@ -70,25 +78,18 @@
       "requests": 72
     },
     {
-      "label": "中转站 · gemini-4-argon",
-      "tokens": 6631247,
-      "share": 0.1,
-      "cost": 7.4299,
-      "requests": 56
-    },
-    {
       "label": "中转站 · glm-5.3-flash",
-      "tokens": 5646633,
+      "tokens": 5722246,
       "share": 0.1,
-      "cost": 0.1789,
-      "requests": 137
+      "cost": 0.1859,
+      "requests": 144
     },
     {
       "label": "中转站 · gemini-3.8-flash",
-      "tokens": 245243,
+      "tokens": 1247627,
       "share": 0,
-      "cost": 0.1632,
-      "requests": 38
+      "cost": 0.4297,
+      "requests": 90
     },
     {
       "label": "中转站 · gpt-image-2",
@@ -122,17 +123,17 @@
     }
   ],
   "totals": {
-    "tokens": 6275366704,
-    "input": 57646856,
-    "output": 14714307,
-    "cacheRead": 5156725886,
-    "requests": 24949,
-    "cost": 379.0585
+    "tokens": 6497294568,
+    "input": 59173723,
+    "output": 15315531,
+    "cacheRead": 5312699518,
+    "requests": 26090,
+    "cost": 398.1435
   },
   "models": [
     {
       "model": "deepseek-flash",
-      "tokens": 5213157371
+      "tokens": 5371259094
     },
     {
       "model": "deepseek-v4-pro",
@@ -877,24 +878,44 @@
     },
     {
       "date": "2026-11-09",
-      "tokens": 38492609,
-      "input": 744022,
-      "output": 89976,
-      "cacheRead": 22878720,
-      "requests": 263,
-      "cost": 9.906565,
+      "tokens": 217501284,
+      "input": 2153701,
+      "output": 512123,
+      "cacheRead": 140029440,
+      "requests": 1236,
+      "cost": 24.229147,
       "hours": 1,
       "parts": {
-        "官方 · deepseek-flash": 20837879,
+        "官方 · deepseek-flash": 139820425,
         "官方 · deepseek-v4-pro": 2874839,
-        "中转站 · gpt-6.1-sol": 2722247,
+        "中转站 · gpt-6.1-sol": 54573291,
         "中转站 · claude-sonnet-5": 12018492,
-        "中转站 · gemini-3.8-flash": 39152
+        "中转站 · gemini-3.8-flash": 1041536,
+        "中转站 · glm-5.3-flash": 75613,
+        "中转站 · gemini-4-argon": 7097088
       },
       "open": 56713545,
-      "close": 38492609,
-      "high": 56713545,
-      "low": 38492609
+      "close": 217501284,
+      "high": 217501284,
+      "low": 56713545
+    },
+    {
+      "date": "2026-11-10",
+      "tokens": 42919189,
+      "input": 117188,
+      "output": 179077,
+      "cacheRead": 38822912,
+      "requests": 168,
+      "cost": 4.762458,
+      "hours": 1,
+      "parts": {
+        "官方 · deepseek-flash": 39119177,
+        "中转站 · gemini-4-argon": 3800012
+      },
+      "open": 217501284,
+      "close": 42919189,
+      "high": 217501284,
+      "low": 42919189
     }
   ]
 }
