@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-09T20:14:38.693Z",
+  "fetchedAt": "2026-11-13T11:40:48.614Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -17,51 +17,52 @@
     "2026-10-31_2026-11-06",
     "2026-11-01_2026-11-07",
     "2026-11-03_2026-11-09",
-    "2026-11-04_2026-11-10"
+    "2026-11-04_2026-11-10",
+    "2026-11-07_2026-11-13"
   ],
   "dimension": "model",
   "series": [
     {
       "label": "官方 · deepseek-flash",
-      "tokens": 5371259094,
-      "share": 82.7,
-      "cost": 248.8101,
-      "requests": 18460
+      "tokens": 5672031176,
+      "share": 83.3,
+      "cost": 268.9682,
+      "requests": 19602
     },
     {
       "label": "中转站 · gpt-6.1-sol",
-      "tokens": 829632593,
-      "share": 12.8,
-      "cost": 36.5809,
-      "requests": 5873
+      "tokens": 835055902,
+      "share": 12.3,
+      "cost": 36.8672,
+      "requests": 6009
     },
     {
       "label": "中转站 · claude-opus-5-5",
-      "tokens": 202992773,
-      "share": 3.1,
-      "cost": 63.6285,
-      "requests": 1029
+      "tokens": 206592653,
+      "share": 3,
+      "cost": 65.329,
+      "requests": 1055
     },
     {
       "label": "中转站 · claude-sonnet-5-5",
-      "tokens": 22934443,
-      "share": 0.4,
-      "cost": 5.5329,
-      "requests": 83
+      "tokens": 22965749,
+      "share": 0.3,
+      "cost": 5.5901,
+      "requests": 85
     },
     {
       "label": "中转站 · claude-sonnet-5",
-      "tokens": 19494837,
+      "tokens": 22391280,
       "share": 0.3,
-      "cost": 9.9003,
-      "requests": 72
+      "cost": 11.6205,
+      "requests": 93
     },
     {
       "label": "中转站 · gemini-4-argon",
-      "tokens": 17528347,
+      "tokens": 18084512,
       "share": 0.3,
-      "cost": 16.0993,
-      "requests": 86
+      "cost": 16.6565,
+      "requests": 98
     },
     {
       "label": "官方 · deepseek-v4-pro",
@@ -79,17 +80,17 @@
     },
     {
       "label": "中转站 · glm-5.3-flash",
-      "tokens": 5722246,
+      "tokens": 5722626,
       "share": 0.1,
-      "cost": 0.1859,
-      "requests": 144
+      "cost": 0.186,
+      "requests": 150
     },
     {
       "label": "中转站 · gemini-3.8-flash",
-      "tokens": 1247627,
+      "tokens": 1250322,
       "share": 0,
-      "cost": 0.4297,
-      "requests": 90
+      "cost": 0.4312,
+      "requests": 99
     },
     {
       "label": "中转站 · gpt-image-2",
@@ -108,6 +109,13 @@
       "requests": 1
     },
     {
+      "label": "中转站 · gemini-4-carbon",
+      "tokens": 1546,
+      "share": 0,
+      "cost": 0.0042,
+      "requests": 4
+    },
+    {
       "label": "中转站 · gpt-6-sol",
       "tokens": 152,
       "share": 0,
@@ -123,17 +131,17 @@
     }
   ],
   "totals": {
-    "tokens": 6497294568,
-    "input": 59173723,
-    "output": 15315531,
-    "cacheRead": 5312699518,
-    "requests": 26090,
-    "cost": 398.1435
+    "tokens": 6810578374,
+    "input": 65750080,
+    "output": 16498520,
+    "cacheRead": 5605712254,
+    "requests": 27448,
+    "cost": 422.8738
   },
   "models": [
     {
       "model": "deepseek-flash",
-      "tokens": 5371259094
+      "tokens": 5672031176
     },
     {
       "model": "deepseek-v4-pro",
@@ -891,8 +899,8 @@
         "中转站 · gpt-6.1-sol": 54573291,
         "中转站 · claude-sonnet-5": 12018492,
         "中转站 · gemini-3.8-flash": 1041536,
-        "中转站 · glm-5.3-flash": 75613,
-        "中转站 · gemini-4-argon": 7097088
+        "中转站 · gemini-4-argon": 7097088,
+        "中转站 · glm-5.3-flash": 75613
       },
       "open": 56713545,
       "close": 217501284,
@@ -901,21 +909,86 @@
     },
     {
       "date": "2026-11-10",
-      "tokens": 42919189,
-      "input": 117188,
-      "output": 179077,
-      "cacheRead": 38822912,
-      "requests": 168,
-      "cost": 4.762458,
+      "tokens": 178409923,
+      "input": 2297316,
+      "output": 435994,
+      "cacheRead": 171840512,
+      "requests": 508,
+      "cost": 12.276984,
       "hours": 1,
       "parts": {
-        "官方 · deepseek-flash": 39119177,
-        "中转站 · gemini-4-argon": 3800012
+        "官方 · deepseek-flash": 174573822,
+        "中转站 · gemini-3.8-flash": 2241,
+        "中转站 · claude-sonnet-5": 423,
+        "中转站 · claude-opus-5-5": 1184,
+        "中转站 · claude-sonnet-5-5": 31306,
+        "中转站 · gemini-4-argon": 3800012,
+        "中转站 · glm-5.3-flash": 380,
+        "中转站 · gpt-6.1-sol": 555
       },
       "open": 217501284,
-      "close": 42919189,
+      "close": 178409923,
       "high": 217501284,
-      "low": 42919189
+      "low": 178409923
+    },
+    {
+      "date": "2026-11-11",
+      "tokens": 43696525,
+      "input": 1771491,
+      "output": 318608,
+      "cacheRead": 41097600,
+      "requests": 304,
+      "cost": 4.556706,
+      "hours": 1,
+      "parts": {
+        "官方 · deepseek-flash": 43187699,
+        "中转站 · gemini-4-argon": 508826
+      },
+      "open": 178409923,
+      "close": 43696525,
+      "high": 178409923,
+      "low": 43696525
+    },
+    {
+      "date": "2026-11-12",
+      "tokens": 88350494,
+      "input": 1840029,
+      "output": 493175,
+      "cacheRead": 85993344,
+      "requests": 429,
+      "cost": 6.662901,
+      "hours": 1,
+      "parts": {
+        "官方 · deepseek-flash": 88326548,
+        "中转站 · gemini-4-argon": 23946
+      },
+      "open": 43696525,
+      "close": 88350494,
+      "high": 88350494,
+      "low": 43696525
+    },
+    {
+      "date": "2026-11-13",
+      "tokens": 45746053,
+      "input": 784709,
+      "output": 114289,
+      "cacheRead": 32904192,
+      "requests": 285,
+      "cost": 5.996124,
+      "hours": 1,
+      "parts": {
+        "官方 · deepseek-flash": 33803190,
+        "中转站 · claude-opus-5-5": 3598696,
+        "中转站 · claude-sonnet-5": 2896020,
+        "中转站 · gemini-4-carbon": 1546,
+        "中转站 · gemini-4-argon": 23393,
+        "中转站 · gemini-3.8-flash": 454,
+        "中转站 · gpt-6.1-sol": 5422754
+      },
+      "open": 88350494,
+      "close": 45746053,
+      "high": 88350494,
+      "low": 45746053
     }
   ]
 }
