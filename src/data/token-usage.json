@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-13T11:40:48.614Z",
+  "fetchedAt": "2026-11-13T15:59:03.047Z",
   "source": "platform.deepseek.com/usage（页面导出） + 中转站导出",
   "note": "平台用量导出；tokens = 输入 + 输出 + 缓存命中（其中缓存单列在 cacheRead）",
   "months": [
@@ -24,15 +24,15 @@
   "series": [
     {
       "label": "官方 · deepseek-flash",
-      "tokens": 5672031176,
-      "share": 83.3,
-      "cost": 268.9682,
-      "requests": 19602
+      "tokens": 5777781952,
+      "share": 83.5,
+      "cost": 273.7098,
+      "requests": 19995
     },
     {
       "label": "中转站 · gpt-6.1-sol",
       "tokens": 835055902,
-      "share": 12.3,
+      "share": 12.1,
       "cost": 36.8672,
       "requests": 6009
     },
@@ -131,17 +131,17 @@
     }
   ],
   "totals": {
-    "tokens": 6810578374,
-    "input": 65750080,
-    "output": 16498520,
-    "cacheRead": 5605712254,
-    "requests": 27448,
-    "cost": 422.8738
+    "tokens": 6916329150,
+    "input": 66452449,
+    "output": 16985519,
+    "cacheRead": 5710273662,
+    "requests": 27841,
+    "cost": 427.7154
   },
   "models": [
     {
       "model": "deepseek-flash",
-      "tokens": 5672031176
+      "tokens": 5777781952
     },
     {
       "model": "deepseek-v4-pro",
@@ -969,15 +969,15 @@
     },
     {
       "date": "2026-11-13",
-      "tokens": 45746053,
-      "input": 784709,
-      "output": 114289,
-      "cacheRead": 32904192,
-      "requests": 285,
-      "cost": 5.996124,
+      "tokens": 151496829,
+      "input": 1487078,
+      "output": 601288,
+      "cacheRead": 137465600,
+      "requests": 678,
+      "cost": 10.837718,
       "hours": 1,
       "parts": {
-        "官方 · deepseek-flash": 33803190,
+        "官方 · deepseek-flash": 139553966,
         "中转站 · claude-opus-5-5": 3598696,
         "中转站 · claude-sonnet-5": 2896020,
         "中转站 · gemini-4-carbon": 1546,
@@ -986,9 +986,9 @@
         "中转站 · gpt-6.1-sol": 5422754
       },
       "open": 88350494,
-      "close": 45746053,
-      "high": 88350494,
-      "low": 45746053
+      "close": 151496829,
+      "high": 151496829,
+      "low": 88350494
     }
   ]
 }
