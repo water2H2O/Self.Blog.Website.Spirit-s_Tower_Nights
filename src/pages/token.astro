@@ -109,9 +109,19 @@ const biggest = [...days].sort((a, b) => b.tokens - a.tokens)[0] ?? null;
 /**
  * 每日堆叠柱：一天一根，按分段上色。
  * 「基础」按家族、「详细」按具体型号，同一套几何参数，只是分段不同。
+ *
+ * 只画**最近 30 天**（相对最后一次更新的日期）。数据一多柱子就细到看不清，
+ * 更早的日期仍然在下面的「逐日明细」里翻得到、花费折线也仍然画全区间。
  */
-function buildTokenStack(list: { label: string; color: string }[], partsOf: (d: Day) => Record<string, number>) {
-	if (days.length === 0) return null;
+const CHART_DAYS = 30;
+const chartDays = days.slice(-CHART_DAYS);
+
+function buildTokenStack(
+	list: { label: string; color: string }[],
+	partsOf: (d: Day) => Record<string, number>,
+	windowDays: Day[] = days,
+) {
+	if (windowDays.length === 0) return null;
 	const W = 960;
 	const H = 280;
 	const PL = 10;
@@ -120,12 +130,12 @@ function buildTokenStack(list: { label: string; color: string }[], partsOf: (d: 
 	const PB = 30;
 	const plotW = W - PL - PR;
 	const plotH = H - PT - PB;
-	const max = Math.max(...days.map((d) => d.tokens), 1);
+	const max = Math.max(...windowDays.map((d) => d.tokens), 1);
 	const y = (v: number) => PT + plotH - (v / max) * plotH;
-	const slot = plotW / days.length;
+	const slot = plotW / windowDays.length;
 	const barW = Math.max(6, Math.min(30, slot * 0.6));
-	const labelEvery = Math.max(1, Math.ceil(days.length / 8));
-	const bars = days.map((d, i) => {
+	const labelEvery = Math.max(1, Math.ceil(windowDays.length / 8));
+	const bars = windowDays.map((d, i) => {
 		const cx = PL + slot * i + slot / 2;
 		let acc = 0;
 		const parts = partsOf(d);
@@ -142,14 +152,14 @@ function buildTokenStack(list: { label: string; color: string }[], partsOf: (d: 
 			date: d.date,
 			cx,
 			segs,
-			label: i === 0 || i === days.length - 1 || i % labelEvery === 0,
+			label: i === 0 || i === windowDays.length - 1 || i % labelEvery === 0,
 		};
 	});
-	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW, slot };
+	return { W, H, PL, PR, PT, PB, plotW, plotH, max, y, bars, barW, slot, windowDays: windowDays.length };
 }
 
-const stack = buildTokenStack(colored, (d) => d.parts ?? {});
-const stackBasic = buildTokenStack(basicColored, basicPartsOf);
+const stack = buildTokenStack(colored, (d) => d.parts ?? {}, chartDays);
+const stackBasic = buildTokenStack(basicColored, basicPartsOf, chartDays);
 
 /** 每日花费：折线。颜色按高度取（userSpaceOnUse 渐变，底部青、中段金、顶部红），越贵越红 */
 const costChart = (() => {
@@ -1146,6 +1156,10 @@ const guestCards = [...guestGroups.entries()]
 						))}
 					</ul>
 				))}
+				<p class="daily-hint">
+					柱子只画最近 {Math.min(CHART_DAYS, days.length)} 天（{chartDays[0]?.date ?? '—'} → {chartDays.at(-1)?.date ?? '—'}）；
+					更早的日子在下面的逐日明细里翻得到，花费那条折线仍是全区间。
+				</p>
 			</div>
 
 			<h2>每天花多少</h2>
