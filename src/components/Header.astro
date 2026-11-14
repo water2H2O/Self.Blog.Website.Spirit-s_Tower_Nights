@@ -10,6 +10,7 @@ import {
 	loreCategoryHref,
 } from '../lib/lore';
 import { HANDBOOK_BASE, HANDBOOK_VOLUMES } from '../lib/handbook';
+import { groupByArc, publishedEpisodes } from '../lib/stories';
 
 /**
  * 顶层导航：个人内容在根目录，世界观企划整体收在 /worldview/ 下。
@@ -85,6 +86,19 @@ let subItems: SubItem[] = [];
 /** 设定那一条专用的分组目录：一个类目一组，见上面的注释 */
 let loreGroups: SubGroup[] = [];
 
+/**
+ * 故事索引页专用的抽屉：幕 → 篇。
+ * 索引页有 60 多话、每条还带摘要，靠滚很难找到某一话；这里给个「幕 → 篇」的跳板，
+ * 点篇名直接落到索引页里那一篇的锚点（`#act2-riverbed-2`）。
+ * 只列到「篇」不列到「话」：全列出来侧栏就成一堵墙了，进篇之后再挑那一话。
+ */
+interface StoryGroup {
+	act: string;
+	total: number;
+	arcs: { id: string; label: string; count: number }[];
+}
+let storyGroups: StoryGroup[] = [];
+
 if (inWorldview) {
 	const section = path === WORLDVIEW_BASE ? '' : path.slice(WORLDVIEW_BASE.length + 1).split('/')[0];
 
@@ -139,7 +153,14 @@ if (inWorldview) {
 		// 只有具体到某一话时才展开，索引页不列（一列就是 56 条）
 		const currentId = path.slice(`${WORLDVIEW_BASE}/stories/`.length).replace(/\/+$/, '');
 		// 「故事」下有两个入口：正文与教材。在读书时，侧栏列出本书的卷/章
-		if (currentId === 'textbook' || currentId.startsWith('textbook/')) {
+		if (currentId === '') {
+			// 索引页：给出「幕 → 篇」的跳板，点篇名直接落到那一篇的锚点，不用从头滚
+			storyGroups = groupByArc(await publishedEpisodes()).map((group) => ({
+				act: group.act,
+				total: group.arcs.reduce((sum, arc) => sum + arc.episodes.length, 0),
+				arcs: group.arcs.map((arc) => ({ id: arc.id, label: arc.arc, count: arc.episodes.length })),
+			}));
+		} else if (currentId === 'textbook' || currentId.startsWith('textbook/')) {
 			const currentSlug = currentId.replace(/^textbook\/?/, '');
 			const written = new Set(
 				(await getCollection('textbook', ({ data }) => !data.draft)).map((entry) => entry.id),
@@ -314,8 +335,27 @@ if (inWorldview) {
 								{link.label}
 							</a>
 							{/* 二级目录：只在当前这一栏下展开 */}
-							{(subItems.length > 0 || loreGroups.length > 0) && isActive(link.href) && (
+							{(subItems.length > 0 || loreGroups.length > 0 || storyGroups.length > 0) &&
+								isActive(link.href) && (
 								<ul class="sub-list">
+									{/* 故事索引页：幕 → 篇，可点开收起 */}
+									{storyGroups.map((group) => (
+										<li class="drawer">
+											<details open>
+												<summary>{group.act}</summary>
+												<ul class="sub-list arc-list">
+													{group.arcs.map((arc) => (
+														<li>
+															<a href={`${WORLDVIEW_BASE}/stories/#${arc.id}`}>
+																{arc.label}
+																<span class="count">{arc.count}</span>
+															</a>
+														</li>
+													))}
+												</ul>
+											</details>
+										</li>
+									))}
 									{/* 设定：一个类目一组 —— 组头指向索引页里那一段，组内是条目 */}
 									{loreGroups.map((group) => (
 										<>
@@ -593,6 +633,55 @@ if (inWorldview) {
 	/* 分组目录：「设定」那一栏里一个类目一组 —— 组头一行，条目缩在下面 */
 	.wv-toc .sub-list .group {
 		margin: 0.5em 0 0.15em;
+	}
+	/* 故事索引页的抽屉：幕是可点开收起的一组，篇缩在下面。
+	   用原生 details/summary，不额外加 JS。 */
+	.wv-toc .sub-list .drawer {
+		margin: 0.15em 0;
+	}
+	.wv-toc .sub-list .drawer details > summary {
+		/* 用块级而不是 flex：侧栏窄，幕名会折行，flex 会把计数挤到上一行末尾 */
+		display: block;
+		padding: 0.34em 0.6em;
+		font-size: 0.85em;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		line-height: 1.5;
+		color: var(--accent);
+		cursor: pointer;
+		list-style: none;
+		border-radius: 6px;
+	}
+	.wv-toc .sub-list .drawer details > summary::-webkit-details-marker {
+		display: none;
+	}
+	.wv-toc .sub-list .drawer details > summary::before {
+		content: '▸';
+		display: inline-block;
+		width: 1em;
+		font-size: 0.9em;
+		opacity: 0.7;
+		transition: transform 0.15s;
+		transform-origin: 0.35em 50%;
+	}
+	.wv-toc .sub-list .drawer details[open] > summary::before {
+		transform: rotate(90deg);
+	}
+	.wv-toc .sub-list .drawer details > summary:hover {
+		color: var(--glow);
+		background: rgba(175, 255, 255, 7%);
+	}
+	.wv-toc .sub-list .drawer .count,
+	.wv-toc .sub-list .arc-list .count {
+		margin-left: 0.45em;
+		font-size: 0.82em;
+		font-weight: 400;
+		color: rgb(var(--gray));
+	}
+	/* 篇这一层再往里缩一格，视觉上和幕分开 */
+	.wv-toc .sub-list .arc-list {
+		margin: 0 0 0.2em 0.5em;
+		border-left-color: rgba(175, 255, 255, 10%);
 	}
 	.wv-toc .sub-list .group :global(a) {
 		font-size: 0.85em;
