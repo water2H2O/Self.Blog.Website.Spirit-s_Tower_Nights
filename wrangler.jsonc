@@ -20,7 +20,9 @@
 		"binding": "ASSETS",
 		// 浏览器导航不能被 404-page 提前接走；只有下面这些路径优先执行 Worker。
 		// /api/aichat/* 是聊天后端：漏了这条，线上会直接当静态文件找不到 → 404。
-		"run_worker_first": ["/teapot", "/teapot/", "/api/aichat/*"]
+		// "/" 与 /aichat/* 是给聊天子域用的：chat.water2h2o.com 的根路径要交给脚本，
+		// 才能改写成 /aichat/；主站那条则由脚本 301 到子域（见 worker/index.mjs）。
+		"run_worker_first": ["/teapot", "/teapot/", "/api/aichat/*", "/", "/aichat", "/aichat/"]
 	},
 
 	"observability": {

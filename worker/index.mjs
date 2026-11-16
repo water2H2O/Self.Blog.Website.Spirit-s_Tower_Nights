@@ -150,9 +150,42 @@ const TEAPOT_HTML = `<!doctype html>
 </html>
 `;
 
+/** 聊天应用挂在哪个子域上；主站的 /aichat/ 只做跳转，真正在跑的是这个域名 */
+const CHAT_HOST = 'chat.water2h2o.com';
+/** 主站的两个入口（裸域 + www），用来判断"这是不是主站" */
+const SITE_HOSTS = new Set(['water2h2o.com', 'www.water2h2o.com']);
+
 export default {
 	async fetch(request, env) {
-		const { pathname } = new URL(request.url);
+		const url = new URL(request.url);
+		const { pathname } = url;
+		const host = url.hostname;
+
+		/**
+		 * 子域把根路径交给聊天应用。
+		 *
+		 * 这个 Worker 是「静态资源优先」，配置里只把 /teapot、/api/aichat/* 和 "/" 交给脚本，
+		 * 所以子域 "/" 会先走到这里；内部改成取 /aichat/ 那份产物即可，页面里的
+		 * 相对路径（/_astro/*、/api/aichat/*）在子域下同样能命中，cookie 也是同源的。
+		 */
+		if (host === CHAT_HOST && (pathname === '/' || pathname === '/index.html')) {
+			const assetUrl = new URL(request.url);
+			assetUrl.pathname = '/aichat/';
+			return env.ASSETS.fetch(new Request(assetUrl, request));
+		}
+
+		// 子域不是入口的地方都送回主站，免得同一个页面在两个域名上各有一份
+		if (host === CHAT_HOST && !pathname.startsWith('/api/') && !pathname.startsWith('/_astro/')) {
+			const last = pathname.split('/').pop() ?? '';
+			if (!last.includes('.')) {
+				return Response.redirect(`https://water2h2o.com${pathname}${url.search}`, 302);
+			}
+		}
+
+		// 主站的 /aichat/ 不再自己渲染，统一送到子域（应用只有一个地址）
+		if (SITE_HOSTS.has(host) && (pathname === '/aichat' || pathname === '/aichat/')) {
+			return Response.redirect(`https://${CHAT_HOST}/${url.search}`, 301);
+		}
 
 		// 聊天后端：登录、会话、SSE 转发。密钥只在这里出现，永远不下发到浏览器。
 		if (pathname.startsWith('/api/aichat/')) {
