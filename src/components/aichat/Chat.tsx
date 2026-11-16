@@ -26,7 +26,8 @@ import MessageView from './MessageView.tsx';
 import ModelPicker from './ModelPicker.tsx';
 import ProviderForm from './ProviderForm.tsx';
 import Settings from './Settings.tsx';
-import { deleteSession, listSessions, replaceAllSessions, saveSession } from './db.ts';
+import { deleteSession, listSessions, putSessions, replaceAllSessions, saveSession } from './db.ts';
+import { collectSessions } from './importer.ts';
 import {
 	bodyOf,
 	describeUpstreamError,
@@ -103,6 +104,8 @@ export default function Chat() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [syncing, setSyncing] = useState(false);
 	const [syncMessage, setSyncMessage] = useState('');
+	const [importing, setImporting] = useState(false);
+	const [importMessage, setImportMessage] = useState('');
 
 	const [sessions, setSessions] = useState<Session[]>([]);
 	const [currentId, setCurrentId] = useState<string | null>(null);
@@ -321,6 +324,45 @@ export default function Chat() {
 			setSyncMessage(String((error as Error)?.message ?? error));
 		} finally {
 			setSyncing(false);
+		}
+	}, []);
+
+	// ---------------------------------------------------------------- 导入官方导出
+
+	const importFiles = useCallback(async (list: FileList | File[]) => {
+		const files = Array.from(list).filter((file) => file.name.toLowerCase().endsWith('.json'));
+		if (files.length === 0) {
+			setImportMessage('没选中 .json 文件 —— 请选解压后的 chat_sessions 文件夹');
+			return;
+		}
+		setImporting(true);
+		setImportMessage('');
+		try {
+			const texts: { name: string; text: string }[] = [];
+			for (const file of files) {
+				// 单个会话 JSON 正常都在几 MB 内；异常大的直接跳过，避免卡死
+				if (file.size > 16 * 1024 * 1024) continue;
+				texts.push({ name: file.name, text: await file.text() });
+			}
+			const existing = new Set(sessionsRef.current.map((session) => session.id));
+			const { sessions: imported, summary } = collectSessions(texts, existing);
+			await putSessions(imported);
+
+			const merged = [...imported, ...sessionsRef.current].sort((a, b) => b.updatedAt - a.updatedAt);
+			setSessions(merged);
+			setCurrentId(merged[0]?.id ?? null);
+
+			const parts = [
+				`导入 ${summary.sessions} 个会话、${summary.messages} 条消息`,
+				summary.archives > 0 ? `另有 ${summary.archives} 个分叉会话生成了「全部分支」副本` : '',
+				summary.skipped > 0 ? `跳过 ${summary.skipped} 个（已存在或为空）` : '',
+				summary.droppedFiles > 0 ? `附件只记录了 ${summary.droppedFiles} 个文件名` : '',
+			].filter(Boolean);
+			setImportMessage(`${parts.join('；')}。`);
+		} catch (error) {
+			setImportMessage(`导入失败：${String((error as Error)?.message ?? error)}`);
+		} finally {
+			setImporting(false);
 		}
 	}, []);
 
@@ -872,6 +914,9 @@ export default function Chat() {
 					onPull={() => void pullFromServer()}
 					syncing={syncing}
 					syncMessage={syncMessage}
+					onImportFiles={(files) => void importFiles(files)}
+					importing={importing}
+					importMessage={importMessage}
 				/>
 			)}
 		</div>

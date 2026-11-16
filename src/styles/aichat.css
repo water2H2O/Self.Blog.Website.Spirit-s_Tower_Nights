@@ -1772,3 +1772,16 @@ body.ac-body footer .social-links {
 	font-size: 0.78em;
 	color: rgb(var(--gray));
 }
+/* 导入按钮：<label> 里藏 input，点它等同于点文件选择 */
+.ac-file-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	user-select: none;
+}
+
+.ac-file-btn-off {
+	opacity: 0.4;
+	pointer-events: none;
+}

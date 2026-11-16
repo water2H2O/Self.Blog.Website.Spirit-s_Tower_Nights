@@ -58,6 +58,21 @@ export function deleteSession(id: string): Promise<unknown> {
 	return transaction('readwrite', (store) => store.delete(id));
 }
 
+/** 批量写入（导入用）：一个事务里写完，避免逐条开事务 */
+export async function putSessions(sessions: Session[]): Promise<void> {
+	if (sessions.length === 0) return;
+	const db = await openDb();
+	if (!db) return;
+	await new Promise<void>((resolve) => {
+		const tx = db.transaction(STORE, 'readwrite');
+		const store = tx.objectStore(STORE);
+		for (const session of sessions) store.put(session);
+		tx.oncomplete = () => resolve();
+		tx.onerror = () => resolve();
+		tx.onabort = () => resolve();
+	});
+}
+
 /** 用云端快照整包替换本地会话（先清空再写入，确认步骤由调用方负责） */
 export async function replaceAllSessions(sessions: Session[]): Promise<void> {
 	const db = await openDb();

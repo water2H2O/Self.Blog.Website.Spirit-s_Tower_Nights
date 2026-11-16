@@ -36,6 +36,9 @@ export default function Settings({
 	onPull,
 	syncing,
 	syncMessage,
+	onImportFiles,
+	importing,
+	importMessage,
 }: {
 	providers: Provider[];
 	activeId: string | null;
@@ -51,6 +54,9 @@ export default function Settings({
 	onPull: () => void;
 	syncing: boolean;
 	syncMessage: string;
+	onImportFiles: (files: FileList | File[]) => void;
+	importing: boolean;
+	importMessage: string;
 }) {
 	const [tab, setTab] = useState<Tab>('model');
 	/** null 表示没在编辑；'new' 表示新增；否则是被编辑的 provider id */
@@ -132,6 +138,43 @@ export default function Settings({
 									</button>
 								</div>
 								{syncMessage && <p className="ac-field-hint ac-field-hint-block">{syncMessage}</p>}
+
+								<h4 className="ac-sub-title">导入官方导出</h4>
+								<p className="ac-field-hint ac-field-hint-block">
+									把 `deepseek_data-*.zip` 解压出来的 <code>chat_sessions</code> 文件夹整个选进来（或直接多选 .json）。
+									只导入文字与文件名，图片原件不会导入；同一个会话重复导入会按 id 跳过。
+								</p>
+								<div className="ac-row-btns">
+									<label className={`ac-primary ac-file-btn${importing ? ' ac-file-btn-off' : ''}`}>
+										{importing ? '导入中…' : '选择 chat_sessions 文件夹'}
+										<input
+											type="file"
+											multiple
+											hidden
+											disabled={importing}
+											onChange={(event) => {
+												if (event.target.files) onImportFiles(event.target.files);
+												event.target.value = '';
+											}}
+											{...({ webkitdirectory: '', directory: '' } as any)}
+										/>
+									</label>
+									<label className={`ac-text-btn ac-file-btn${importing ? ' ac-file-btn-off' : ''}`}>
+										选择 .json 文件
+										<input
+											type="file"
+											accept=".json,application/json"
+											multiple
+											hidden
+											disabled={importing}
+											onChange={(event) => {
+												if (event.target.files) onImportFiles(event.target.files);
+												event.target.value = '';
+											}}
+										/>
+									</label>
+								</div>
+								{importMessage && <p className="ac-field-hint ac-field-hint-block">{importMessage}</p>}
 							</Pane>
 						)}
 
