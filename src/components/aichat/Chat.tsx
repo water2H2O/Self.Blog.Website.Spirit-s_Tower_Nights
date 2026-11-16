@@ -597,10 +597,15 @@ export default function Chat() {
 		return (
 			<div className="ac-app ac-app-boot">
 				<div className="ac-gate">
-					<h1 className="ac-gate-title">aichat</h1>
+					<h1 className="ac-gate-title">Deepsleep-水塔特供</h1>
 					<p className="ac-gate-desc">
-						填一个 API Key 就能开始：官方 Key 直接可用，也可以填自己的兼容接口。
-						Key 只存在这个浏览器里，请求由浏览器直连上游，本站服务器不经手。
+						<del>水水自己</del>和 deepseek 一起写的网页版 AI 工具，
+						使用 deepseek 官方开源的 chat 仓库搭建。
+						<br />
+						输入自己的 API key 即可开始使用。
+					</p>
+					<p className="ac-gate-privacy">
+						Key 只存本地，请求由浏览器直连上游，本站服务器不接手！
 					</p>
 					<div className="ac-gate-card">
 						<ProviderForm initial={null} onSave={saveProviderAndActivate} submitLabel="开始使用" />
@@ -697,7 +702,7 @@ export default function Chat() {
 					<button className="ac-rail-toggle" type="button" onClick={() => setRailOpen((open) => !open)} aria-label="会话列表">
 						☰
 					</button>
-					<span className="ac-title">aichat</span>
+					<span className="ac-title">Deepsleep-水塔特供</span>
 					<span className="ac-hint">{busy ? '生成中…' : 'Enter 发送 · Shift+Enter 换行'}</span>
 				</div>
 
