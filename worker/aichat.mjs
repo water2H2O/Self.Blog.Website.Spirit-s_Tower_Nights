@@ -406,6 +406,16 @@ export async function handleAichat(request, env) {
 		return json({ authed: await checkSession(request, env), model: MODEL });
 	}
 
+	// 只报「有没有配」，不报值。部署后用它一眼看出是 secret 没挂上还是别的问题。
+	if (pathname === '/api/aichat/config' && method === 'GET') {
+		return json({
+			hasApiKey: Boolean(env.DEEPSEEK_API_KEY),
+			hasPass: Boolean(env.AICHAT_PASS),
+			hasSecret: Boolean(env.AICHAT_SECRET),
+			hasBucket: Boolean(env.SYNC),
+		});
+	}
+
 	if (pathname === '/api/aichat/login' && method === 'POST') {
 		let password = '';
 		try {
