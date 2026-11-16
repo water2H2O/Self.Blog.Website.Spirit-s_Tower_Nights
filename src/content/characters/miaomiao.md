@@ -28,7 +28,7 @@ relations:
 resources:
   - label: '3D 模型（可旋转查看）'
     href: '/worldview/characters/miaomiao/3d/'
-    note: '5.2 万面的网页版，拖动旋转、滚轮缩放；那页里还能下载 glb 和原始源文件。'
+    note: '5.2 万面的网页版，拖动旋转、滚轮缩放；glb 可下载，原始源文件需联系我。'
     size: '1.98 MB'
     preview: ''
     page: true

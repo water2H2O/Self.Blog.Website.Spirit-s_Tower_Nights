@@ -16,7 +16,6 @@ import Header from '../../../../components/Header.astro';
 import { SITE_TITLE } from '../../../../consts';
 
 const GLB = '/downloads/miaomiao.glb';
-const SRC_ZIP = '/downloads/淼渺-3D源文件.zip';
 const TRI = '52,138';
 const ORIGIN_TRI = '289,664';
 ---
@@ -152,6 +151,11 @@ const ORIGIN_TRI = '289,664';
 				font-weight: 600;
 				text-decoration: none;
 			}
+			/* 不提供下载的那一条：标题用普通文字，别做成链接的样子 */
+			.dl .dl-label {
+				font-weight: 600;
+				color: rgb(var(--gray-dark));
+			}
 			.dl .size {
 				font-size: 0.78em;
 				color: var(--accent);
@@ -207,12 +211,13 @@ const ORIGIN_TRI = '289,664';
 					</span>
 				</li>
 				<li>
-					<a href={SRC_ZIP} download>淼渺 · 3D 源文件.zip</a>
-					<span class="size">17.3 MB</span>
+					<span class="dl-label">淼渺 · 3D 源文件（不公开挂下载）</span>
+					<span class="size">约 17 MB</span>
 					<span class="desc">
 						原始导出：<code>模型.obj</code>（{ORIGIN_TRI} 三角面）、<code>模型.mtl</code>、
 						<code>color.png</code> / <code>Opacity.png</code> / <code>Transmittance.png</code>（均 4096×4096），
-						外加正 / 侧 / 背三张 2000×2000 参考渲染。想自己重做减面或调材质用这一份。
+						外加正 / 侧 / 背三张 2000×2000 参考渲染。
+						<strong>这是约稿文件，不放在站上直接下载</strong>——真要用（重做减面、调材质、二次创作）请先联系我。
 					</span>
 				</li>
 			</ul>
