@@ -108,3 +108,16 @@ open https://water2h2o.com/aichat
 - 想撤掉某台设备：改一次 `AICHAT_PASS` 即可。
 - R2 里的快照只有一份（`sync/owner.json`），上传是**整包覆盖**，没有版本历史；
   重要数据建议偶尔本地另存一份。
+
+## 验证 secret 到底挂上没有
+
+打开 `https://<你的域名>/api/aichat/config`，它只报布尔值、不返回值：
+
+```json
+{"hasApiKey":true,"hasPass":true,"hasSecret":true,"hasBucket":true}
+```
+
+- 三个 `true` 才算配好；任一为 `false` 说明那个 secret 没落到**这个** Worker 上。
+- 如果面板里明明加了却是 `false`，多半是只保存没点「部署」。用
+  `npx wrangler secret put <名字>` 写一次最稳（它会直接发一个带该 secret 的版本）。
+- `npx wrangler secret list` 里出现 `[]` 就说明这个 Worker 一个 secret 都没有。
