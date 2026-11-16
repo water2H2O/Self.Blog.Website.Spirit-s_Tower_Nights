@@ -1,0 +1,342 @@
+﻿---
+/**
+ * 淼渺的 3D 模型查看页：可旋转、可缩放，并提供网页版与原始源文件下载。
+ *
+ * 模型不是原始 OBJ 直接上网页——那份 29 万三角面、三张 4K 贴图、26 MB，
+ * 浏览器里转起来会卡。这里用的是 Blender 压过的版本：
+ * 减面到 5.2 万、贴图合成一张 2K，1.98 MB 的 .glb。
+ *
+ * three.js 放在 public/vendor/three/ 自托管，不引 CDN；
+ * 页面里用 importmap 把 'three' 指过去，脚本是 is:inline 的原生 ESM，
+ * 不参与 Astro 打包（否则构建期解析不了浏览器端的裸模块名）。
+ */
+import BaseHead from '../../../../components/BaseHead.astro';
+import Footer from '../../../../components/Footer.astro';
+import Header from '../../../../components/Header.astro';
+import { SITE_TITLE } from '../../../../consts';
+
+const GLB = '/downloads/miaomiao.glb';
+const SRC_ZIP = '/downloads/淼渺-3D源文件.zip';
+const TRI = '52,138';
+const ORIGIN_TRI = '289,664';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="淼渺 · 3D 模型"
+			description={`${SITE_TITLE} 的 3D 角色模型：可拖动旋转、滚轮缩放，并提供网页用 glb 与原始源文件下载。`}
+		/>
+		<script
+			type="importmap"
+			is:inline
+			set:html={JSON.stringify({ imports: { three: '/vendor/three/three.module.min.js' } })}
+		/>
+		<style>
+			main {
+				width: 900px;
+			}
+			.crumb {
+				display: inline-block;
+				margin-bottom: 0.6em;
+				font-size: 0.86em;
+				color: rgb(var(--gray));
+				text-decoration: none;
+			}
+			.crumb:hover {
+				color: var(--glow);
+			}
+			h1 {
+				margin: 0 0 0.4em;
+				font-size: 2rem;
+			}
+			.lead {
+				margin: 0 0 1.4em;
+				font-size: 0.88em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+			}
+			/* 查看器：正方形画布，深色底 + 细描边，和站内卡片一个调子 */
+			.stage {
+				position: relative;
+				aspect-ratio: 1 / 1;
+				max-height: 70vh;
+				margin: 0 auto;
+				border-radius: 14px;
+				border: 1px solid rgb(var(--border));
+				background: radial-gradient(120% 100% at 50% 0%, rgba(127, 233, 240, 8%), transparent 70%), rgba(12, 24, 34, 0.7);
+				overflow: hidden;
+				touch-action: none;
+			}
+			.stage canvas {
+				display: block;
+				width: 100%;
+				height: 100%;
+			}
+			.stage .hint,
+			.stage .state {
+				position: absolute;
+				left: 0;
+				right: 0;
+				text-align: center;
+				font-size: 0.74em;
+				color: rgb(var(--gray));
+				pointer-events: none;
+			}
+			.stage .hint {
+				bottom: 0.9em;
+				opacity: 0.7;
+			}
+			.stage .state {
+				top: 50%;
+				transform: translateY(-50%);
+			}
+			.stage .state[hidden] {
+				display: none;
+			}
+			.bar {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 0.6em;
+				margin: 1em 0 0;
+			}
+			.bar button {
+				padding: 0.4em 1em;
+				font: inherit;
+				font-size: 0.82em;
+				color: rgb(var(--gray));
+				background: rgba(175, 255, 255, 4%);
+				border: 1px solid rgba(175, 255, 255, 14%);
+				border-radius: 99px;
+				cursor: pointer;
+			}
+			.bar button:hover {
+				color: var(--glow);
+				border-color: var(--accent-dark);
+			}
+			.bar button[aria-pressed='true'] {
+				color: rgb(var(--black));
+				background: var(--accent);
+				border-color: var(--accent);
+				font-weight: 600;
+			}
+			.bar .meta {
+				margin-left: auto;
+				font-size: 0.74em;
+				color: rgb(var(--gray));
+			}
+			h2 {
+				margin: 2.2em 0 0.7em;
+				font-size: 1.2em;
+			}
+			.dl {
+				display: grid;
+				gap: 0.6em;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.dl li {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: baseline;
+				gap: 0.2em 0.8em;
+				padding: 0.8em 1em;
+				border-radius: 10px;
+				border: 1px solid rgb(var(--border));
+				background: rgba(18, 34, 46, 0.45);
+			}
+			.dl a {
+				font-weight: 600;
+				text-decoration: none;
+			}
+			.dl .size {
+				font-size: 0.78em;
+				color: var(--accent);
+				font-variant-numeric: tabular-nums;
+			}
+			.dl .desc {
+				flex: 1 1 100%;
+				font-size: 0.78em;
+				line-height: 1.7;
+				color: rgb(var(--gray));
+			}
+			.note {
+				margin-top: 1.4em;
+				font-size: 0.78em;
+				line-height: 1.9;
+				color: rgb(var(--gray));
+			}
+			.note strong {
+				color: #ffd68a;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<a class="crumb" href="/worldview/characters/miaomiao/">← 回到淼渺</a>
+			<h1>淼渺 · 3D 模型</h1>
+			<p class="lead">
+				拖动旋转，滚轮缩放。网页版是压过的版本：{TRI} 三角面、一张 2048 贴图、1.98 MB；
+				原始文件（{ORIGIN_TRI} 三角面、三张 4K 贴图）在页面底部可以下载。
+			</p>
+
+			<div class="stage" id="stage">
+				<canvas id="viewer"></canvas>
+				<p class="state" id="state">正在加载模型…</p>
+				<p class="hint">拖动旋转 · 滚轮缩放 · 双指缩放</p>
+			</div>
+
+			<div class="bar">
+				<button type="button" id="auto" aria-pressed="true">自动旋转</button>
+				<button type="button" id="reset">复位</button>
+				<span class="meta">{TRI} 面 · 2048 贴图 · 1.98 MB</span>
+			</div>
+
+			<h2>下载</h2>
+			<ul class="dl">
+				<li>
+					<a href={GLB} download>淼渺 · 网页版模型.glb</a>
+					<span class="size">1.98 MB</span>
+					<span class="desc">
+						glTF 二进制，贴图已内嵌。可以直接丢进 three.js / Blender / 其他支持 glTF 的软件。
+						已减面到 {TRI}，尺寸归一到 1 单位高。
+					</span>
+				</li>
+				<li>
+					<a href={SRC_ZIP} download>淼渺 · 3D 源文件.zip</a>
+					<span class="size">17.3 MB</span>
+					<span class="desc">
+						原始导出：<code>模型.obj</code>（{ORIGIN_TRI} 三角面）、<code>模型.mtl</code>、
+						<code>color.png</code> / <code>Opacity.png</code> / <code>Transmittance.png</code>（均 4096×4096），
+						外加正 / 侧 / 背三张 2000×2000 参考渲染。想自己重做减面或调材质用这一份。
+					</span>
+				</li>
+			</ul>
+
+			<p class="note">
+				<strong>关于授权：</strong>模型是我自己的角色资产，下载后可以随意研究、改造、做同人；
+				商用或再发布请先联系我。站内其它美术素材不在此范围内，见<a href="/license/">授权说明</a>。
+			</p>
+		</main>
+		<Footer />
+
+		<script type="module" is:inline>
+			const stage = document.getElementById('stage');
+			const canvas = document.getElementById('viewer');
+			const stateEl = document.getElementById('state');
+			const autoBtn = document.getElementById('auto');
+			const resetBtn = document.getElementById('reset');
+
+			/** 没有 WebGL 就退成一句话，别留个黑洞 */
+			function fail(msg) {
+				stateEl.hidden = false;
+				stateEl.textContent = msg;
+			}
+
+			let THREE, GLTFLoader, OrbitControls;
+			try {
+				THREE = await import('three');
+				({ GLTFLoader } = await import('/vendor/three/jsm/loaders/GLTFLoader.js'));
+				({ OrbitControls } = await import('/vendor/three/jsm/controls/OrbitControls.js'));
+			} catch (err) {
+				fail('3D 组件加载失败，可以直接下载下面的模型文件。');
+				console.error(err);
+				throw err;
+			}
+
+			let renderer;
+			try {
+				renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+			} catch (err) {
+				fail('这台设备跑不了 WebGL，可以直接下载模型文件看。');
+				throw err;
+			}
+			renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+			renderer.outputColorSpace = THREE.SRGBColorSpace;
+			renderer.toneMapping = THREE.ACESFilmicToneMapping;
+			renderer.toneMappingExposure = 1.05;
+
+			const scene = new THREE.Scene();
+			const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+			camera.position.set(0.9, 0.7, 1.9);
+
+			// 模型没有自带灯光，给一套柔和的三点光
+			scene.add(new THREE.HemisphereLight(0xdff2ff, 0x2a3b46, 2.2));
+			const key = new THREE.DirectionalLight(0xffffff, 2.4);
+			key.position.set(2.2, 3.4, 2.6);
+			scene.add(key);
+			const rim = new THREE.DirectionalLight(0x8fd8ff, 1.1);
+			rim.position.set(-2.4, 1.2, -2.2);
+			scene.add(rim);
+
+			const controls = new OrbitControls(camera, canvas);
+			controls.enableDamping = true;
+			controls.dampingFactor = 0.08;
+			controls.enablePan = false;
+			controls.minDistance = 1.1;
+			controls.maxDistance = 4.2;
+			controls.target.set(0, 0.5, 0);
+			controls.autoRotate = true;
+			controls.autoRotateSpeed = 1.6;
+
+			const HOME = controls.target.clone();
+			const HOME_POS = camera.position.clone();
+
+			const loader = new GLTFLoader();
+			loader.load(
+				'/downloads/miaomiao.glb',
+				(gltf) => {
+					const root = gltf.scene;
+					// 模型高度已归一到 1，把脚底对齐到 y=0，绕中轴自动居中
+					const box = new THREE.Box3().setFromObject(root);
+					root.position.y -= box.min.y;
+					root.position.x -= (box.min.x + box.max.x) / 2;
+					root.position.z -= (box.min.z + box.max.z) / 2;
+					scene.add(root);
+					controls.target.set(0, 0.5, 0);
+					HOME.copy(controls.target);
+					stateEl.hidden = true;
+				},
+				(evt) => {
+					if (evt.total) {
+						const pct = Math.round((evt.loaded / evt.total) * 100);
+						stateEl.textContent = `正在加载模型… ${pct}%`;
+					}
+				},
+				(err) => {
+					fail('模型加载失败，可以直接下载下面的文件。');
+					console.error(err);
+				},
+			);
+
+			function resize() {
+				const w = stage.clientWidth;
+				const h = stage.clientHeight;
+				renderer.setSize(w, h, false);
+				camera.aspect = w / h;
+				camera.updateProjectionMatrix();
+			}
+			new ResizeObserver(resize).observe(stage);
+			resize();
+
+			autoBtn.addEventListener('click', () => {
+				controls.autoRotate = !controls.autoRotate;
+				autoBtn.setAttribute('aria-pressed', String(controls.autoRotate));
+			});
+			resetBtn.addEventListener('click', () => {
+				controls.target.copy(HOME);
+				camera.position.copy(HOME_POS);
+				controls.update();
+			});
+
+			renderer.setAnimationLoop(() => {
+				controls.update();
+				renderer.render(scene, camera);
+			});
+		</script>
+	</body>
+</html>

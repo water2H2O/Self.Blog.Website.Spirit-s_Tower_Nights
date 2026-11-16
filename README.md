@@ -978,6 +978,31 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 两条路都写同一个 `src/data/token-usage.json`，写完照常提交推送即可。数据为空（`daily: []`）时
 **整块不渲染**，所以没跑过也不会在首页留个空框。
 
+## 3D 模型查看页（淼渺）
+
+`/worldview/characters/miaomiao/3d/` 是一个可拖动旋转、滚轮缩放的模型页，同时提供下载：
+网页用 `public/downloads/miaomiao.glb`（1.98 MB）与原始源文件 `public/downloads/淼渺-3D源文件.zip`（17.3 MB）。
+
+**原始导出有 29 万三角面、三张 4K 贴图、26 MB**，直接上网页会卡，所以走了一条压缩流水线：
+
+```bash
+node tools/build-3d-textures.mjs <原始素材目录>   # 4K 的 color + opacity → 一张 2048 RGBA
+blender -b --factory-startup --python tools/build-3d-glb.py   # 减面到 5.2 万、归一到 1 单位、导出 glb
+node tools/patch-glb-alpha.mjs public/downloads/miaomiao.glb  # alphaMode BLEND → MASK
+```
+
+**`patch-glb-alpha` 那步不能省**：Blender 5.3 的 glTF 导出器不再看 `blend_method`，材质只要接了
+Alpha 就统一写 `alphaMode: BLEND`；而这张透明度贴图基本全不透明（均值 253/255），BLEND 会让
+three.js 关掉深度写入，面片乱序叠在一起——浏览器里看就是一团"碎玻璃"。改成 MASK 后正常。
+
+前端侧：three.js **自托管**在 `public/vendor/three/`（`three.module.min.js` + `jsm/loaders/GLTFLoader.js`
++ `jsm/controls/OrbitControls.js` + `jsm/utils/BufferGeometryUtils.js`，共约 820 KB，不引 CDN）。
+页面里用 `<script type="importmap">` 把 `three` 指到那个文件，查看器脚本是 `is:inline` 的原生 ESM，
+**不参与 Astro 打包**——否则构建期会去解析浏览器端的裸模块名。
+
+注意 `GLTFLoader.js` 还 import 了同级的 `../utils/BufferGeometryUtils.js`，少一个整个 loader 就
+"Failed to fetch dynamically imported module"。
+
 ## 部署（Cloudflare Workers + 自定义域名）
 
 正式地址：**https://water2h2o.com**（域名在 Dynadot，DNS 托管在 Cloudflare）。

@@ -193,7 +193,7 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 						<h2>数字资源</h2>
 						<div class="res-list">
 							{resources.map((res) => (
-								<a class="res-card" href={encodeURI(res.href)} download>
+								<a class="res-card" href={encodeURI(res.href)} download={res.page ? undefined : true}>
 									{res.preview && (
 										<span class="res-thumb">
 											<img src={res.preview} alt="" loading="lazy" decoding="async" />
@@ -208,7 +208,7 @@ const relationList: { name: string; note: string; id?: string; color: string }[]
 										</span>
 										{res.note && <span class="res-note">{res.note}</span>}
 										<span class="res-meta">
-											{res.size && `${res.size} · `}点击下载
+											{res.size && `${res.size} · `}{res.page ? '打开页面' : '点击下载'}
 										</span>
 									</span>
 								</a>

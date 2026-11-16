@@ -26,6 +26,12 @@ relations:
   - to: 'fengxi-lingyue'
     note: '铃月镇的守护者，她恭敬地称她“铃月大人”；在交界地她曾用水之力替她稳住躁动的月之力碎片'
 resources:
+  - label: '3D 模型（可旋转查看）'
+    href: '/worldview/characters/miaomiao/3d/'
+    note: '5.2 万面的网页版，拖动旋转、滚轮缩放；那页里还能下载 glb 和原始源文件。'
+    size: '1.98 MB'
+    preview: ''
+    page: true
   - label: '鼠标指针套装'
     href: '/downloads/指针_药剂师淼渺.zip'
     note: '17 个动态指针（.ani）+ 安装说明，Windows 直接可用。'

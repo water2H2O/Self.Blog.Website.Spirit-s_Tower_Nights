@@ -52,6 +52,8 @@ const characterResource = z.object({
 	size: z.string().default(''),
 	/** 预览图（放在 public 下的路径） */
 	preview: z.string().default(''),
+	/** 指站内页面而不是下载文件（例如 3D 查看页），此时不加 download、文案换成「打开页面」 */
+	page: z.boolean().default(false),
 });
 
 /**
