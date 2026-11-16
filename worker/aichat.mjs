@@ -412,12 +412,20 @@ export async function handleAichat(request, env) {
 	}
 
 	// 只报「有没有配」，不报值。部署后用它一眼看出是 secret 没挂上还是别的问题。
+	// keys 用来排查名字拼错 / 带空格这种面板上看不出来的问题。
 	if (pathname === '/api/aichat/config' && method === 'GET') {
+		let keys = [];
+		try {
+			keys = Object.keys(env).sort();
+		} catch {
+			keys = [];
+		}
 		return json({
 			hasApiKey: Boolean(env.DEEPSEEK_API_KEY),
 			hasPass: Boolean(env.AICHAT_PASS),
 			hasSecret: Boolean(env.AICHAT_SECRET),
 			hasBucket: Boolean(env.SYNC),
+			keys,
 		});
 	}
 
