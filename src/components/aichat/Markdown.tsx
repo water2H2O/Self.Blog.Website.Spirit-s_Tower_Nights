@@ -20,7 +20,7 @@ import katex from 'katex';
 import { marked } from 'marked';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { protectMath } from './mdmath.ts';
+import { normalizeTables, protectMath } from './mdmath.ts';
 import type { MathToken } from './mdmath.ts';
 
 function renderMath(html: string, tokens: MathToken[]): string {
@@ -40,7 +40,7 @@ function renderMath(html: string, tokens: MathToken[]): string {
 }
 
 export function renderMarkdown(source: string): string {
-	const { text, tokens } = protectMath(source);
+	const { text, tokens } = protectMath(normalizeTables(source));
 	const raw = marked.parse(text, { gfm: true, breaks: true, async: false }) as string;
 	const clean = DOMPurify.sanitize(raw, { ADD_ATTR: ['target', 'rel'] });
 	return renderMath(clean, tokens);

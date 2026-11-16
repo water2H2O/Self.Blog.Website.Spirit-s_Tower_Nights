@@ -181,7 +181,14 @@ function ToolGroup({ group, streaming }: { group: ToolEntry[]; streaming: boolea
 	);
 }
 
-function Citations({ citations }: { citations: TextBlock['citations'] }) {
+function cleanTitle(citation: { title: string | null; url: string }): string {
+	const raw = (citation.title || hostOf(citation.url) || citation.url).replace(/\s+/g, ' ').trim();
+	// 上游的 title 有时自带「1. 」这种编号，和列表序号叠在一起会变成「1. 1. …」
+	return raw.replace(/^\d+[.、)]\s*/, '');
+}
+
+/** 整条消息的来源汇总：去重、折叠，只在末尾出现一次 */
+function Sources({ citations }: { citations: TextBlock['citations'] }) {
 	if (!citations || citations.length === 0) return null;
 	const seen = new Set<string>();
 	const unique = citations.filter((citation) => {
@@ -190,16 +197,20 @@ function Citations({ citations }: { citations: TextBlock['citations'] }) {
 		return true;
 	});
 	if (unique.length === 0) return null;
+
 	return (
-		<ol className="ac-citations">
-			{unique.map((citation, index) => (
-				<li key={citation.url}>
-					<a href={citation.url} target="_blank" rel="noreferrer noopener">
-						{index + 1}. {citation.title || hostOf(citation.url)}
-					</a>
-				</li>
-			))}
-		</ol>
+		<details className="ac-sources">
+			<summary>来源 · {unique.length} 条</summary>
+			<ol>
+				{unique.map((citation) => (
+					<li key={citation.url}>
+						<a href={citation.url} target="_blank" rel="noreferrer noopener" title={citation.title ?? citation.url}>
+							{cleanTitle(citation)}
+						</a>
+					</li>
+				))}
+			</ol>
+		</details>
 	);
 }
 
@@ -241,6 +252,10 @@ export default function MessageView({
 	const hasContent = message.content.length > 0;
 	// 引用会把正文切成多个块，先合并再分组，否则表格会被劈成两半
 	const items = groupContent(mergeAdjacentText(message.content));
+	// 来源统一在末尾汇总一次，不再每段回答后面挂一坨
+	const allCitations = message.content
+		.filter((block): block is TextBlock => block.type === 'text')
+		.flatMap((block) => block.citations ?? []);
 
 	return (
 		<div className="ac-row">
@@ -261,7 +276,6 @@ export default function MessageView({
 						return (
 							<div className="ac-block-text" key={index}>
 								<Markdown text={item.text} />
-								<Citations citations={item.citations} />
 							</div>
 						);
 					}
@@ -269,6 +283,7 @@ export default function MessageView({
 				})}
 
 				{message.streaming && <span className="ac-caret" aria-label="正在生成" />}
+				{!message.streaming && <Sources citations={allCitations} />}
 				{!message.streaming && !hasContent && !message.error && <p className="ac-tool-empty">（空回答）</p>}
 				{refused && <p className="ac-refusal">这次请求被内容审核拒答了。</p>}
 				{truncated && <p className="ac-truncated">输出达到长度上限，回答被截断。</p>}

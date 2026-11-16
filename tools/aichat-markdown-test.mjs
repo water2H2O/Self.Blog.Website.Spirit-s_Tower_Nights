@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 
 import { marked } from 'marked';
 
-import { protectMath } from '../src/components/aichat/mdmath.ts';
+import { normalizeTables, protectMath } from '../src/components/aichat/mdmath.ts';
 import { mergeAdjacentText } from '../src/components/aichat/merge.ts';
 
 // 1. 围栏代码块必须原样保留，且里面的 $ 不能被当成公式
@@ -89,4 +89,17 @@ console.log('markdown.test: 全部通过');
 		{ type: 'text', text: 'b' },
 	]);
 	assert.equal(mixed.length, 3, '中间有其它块时不能合并');
+}
+// 7. 模型在表格行之间插了空行时，要把它们接回一张表
+{
+	const src = ['| 维度 | R2 | S3 |', '| --- | --- | --- |', '| 出口费用 | 免费 | 收费 |', '', '| 存储类别 | 少 | 多 |', '', '正文段落'].join('\n');
+	const fixed = normalizeTables(src);
+	const html = marked.parse(fixed, { gfm: true, async: false });
+	assert.ok(html.includes('<table>'), '应渲染成表格');
+	assert.ok(html.includes('<td>免费</td>'), '被空行隔开的行要接回表格');
+	assert.ok(html.includes('正文段落'), '正文不能被吞');
+
+	// 代码块里的空行不能动
+	const fenced = ['```', '| a |', '', '| b |', '```'].join('\n');
+	assert.equal(normalizeTables(fenced), fenced, '围栏代码块内的空行原样保留');
 }

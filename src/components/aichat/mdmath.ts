@@ -54,3 +54,30 @@ export function protectMath(source: string): { text: string; tokens: MathToken[]
 
 	return { text: out, tokens };
 }
+
+/**
+ * 修掉「表格被空行劈开」。
+ *
+ * 模型有时会在表格行之间插空行（尤其是边搜边写的时候），而 GFM 规定空行
+ * 结束表格 —— 结果就是表头单独成表、后面的行全变成带竖线的段落。
+ * 这里只在「上一行和下一行都是表格行」时丢掉中间的空行，不碰其它内容。
+ */
+export function normalizeTables(source: string): string {
+	const lines = source.split('\n');
+	const out: string[] = [];
+	let inFence = false;
+	const isRow = (line: string | undefined) => Boolean(line && /^\s*\|.*\|\s*$/.test(line));
+
+	for (let i = 0; i < lines.length; i += 1) {
+		const line = lines[i];
+		if (/^\s*```/.test(line)) inFence = !inFence;
+
+		if (!inFence && line.trim() === '') {
+			let j = i + 1;
+			while (j < lines.length && lines[j].trim() === '') j += 1;
+			if (isRow(out[out.length - 1]) && isRow(lines[j])) continue;
+		}
+		out.push(line);
+	}
+	return out.join('\n');
+}

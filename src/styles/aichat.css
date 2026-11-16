@@ -751,24 +751,55 @@ main.aichat-main {
 	opacity: 0.6;
 	margin-right: 0.4em;
 }
-.ac-citations {
-	margin: 0.5em 0 0;
-	padding-left: 1.1em;
+/* 来源：整条消息只在末尾出现一次，默认折叠 */
+.ac-sources {
+	margin: 0.7em 0 0;
 	font-size: 0.74em;
-	line-height: 1.7;
 	color: rgb(var(--gray));
 }
 
-.ac-citations a {
-	color: rgb(var(--gray));
-	text-decoration: none;
-	border-bottom: 1px dotted rgba(175, 255, 255, 25%);
+.ac-sources > summary {
+	cursor: pointer;
+	list-style: none;
+	padding: 0.1em 0;
+	opacity: 0.85;
 }
 
-.ac-citations a:hover {
+.ac-sources > summary::-webkit-details-marker {
+	display: none;
+}
+
+.ac-sources > summary::before {
+	content: '▸ ';
 	color: var(--accent);
 }
 
+.ac-sources[open] > summary::before {
+	content: '▾ ';
+}
+
+.ac-sources ol {
+	margin: 0.35em 0 0;
+	padding-left: 1.5em;
+	line-height: 1.7;
+}
+
+.ac-sources li {
+	margin: 0.1em 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ac-sources a {
+	color: rgb(var(--gray));
+	text-decoration: none;
+	border-bottom: 1px dotted rgba(175, 255, 255, 20%);
+}
+
+.ac-sources a:hover {
+	color: var(--accent);
+}
 .ac-meta-line {
 	display: flex;
 	flex-wrap: wrap;
