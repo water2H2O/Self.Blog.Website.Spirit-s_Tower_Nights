@@ -174,13 +174,19 @@ export default {
 			return env.ASSETS.fetch(new Request(assetUrl, request));
 		}
 
-		// 子域不是入口的地方都送回主站，免得同一个页面在两个域名上各有一份
-		if (host === CHAT_HOST && !pathname.startsWith('/api/') && !pathname.startsWith('/_astro/')) {
-			const last = pathname.split('/').pop() ?? '';
-			if (!last.includes('.')) {
-				return Response.redirect(`https://water2h2o.com${pathname}${url.search}`, 302);
-			}
+		// 子域上的 /aichat/ 归一到根路径（应用只有一个地址）
+		if (host === CHAT_HOST && (pathname === '/aichat' || pathname === '/aichat/')) {
+			return Response.redirect(`https://${CHAT_HOST}/${url.search}`, 302);
 		}
+
+		/*
+		 * 注意：子域上访问主站的其它页面（比如 /worldview/）**不会**走到这里 ——
+		 * run_worker_first 只放行了 /、/aichat、/api/aichat/* 和 /teapot，其余是静态资源优先，
+		 * 会直接命中 dist 里的文件。这不是漏洞：那些页面自带 canonical 指向 water2h2o.com，
+		 * 搜索引擎不会把子域当成第二个站点收录。
+		 * 真要把子域做成「只出应用」，得把 run_worker_first 改成 true（所有请求都过 Worker），
+		 * 代价是主站每个图片、每条请求都多一次 Worker 调用，不值。
+		 */
 
 		// 主站的 /aichat/ 不再自己渲染，统一送到子域（应用只有一个地址）
 		if (SITE_HOSTS.has(host) && (pathname === '/aichat' || pathname === '/aichat/')) {
