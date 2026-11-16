@@ -118,6 +118,8 @@ export type Session = {
 	title: string;
 	createdAt: number;
 	updatedAt: number;
+	/** 置顶：不参与时间分组，固定排在最上面 */
+	pinned?: boolean;
 	messages: ChatMessage[];
 };
 

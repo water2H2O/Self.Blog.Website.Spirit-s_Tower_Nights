@@ -10,7 +10,6 @@
  * （同源 /api/aichat/*，密钥只在 Worker 的 secret 里）。
  */
 import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
 import Chat from '../components/aichat/Chat.tsx';
 // KaTeX 的样式和字体一起进构建产物，不引 CDN
 import 'katex/dist/katex.min.css';
@@ -67,7 +66,5 @@ import '../styles/aichat.css';
 				<p class="ac-loading">这个页面需要 JavaScript。</p>
 			</noscript>
 		</main>
-		<!-- 没有全站导航，但页脚的版权与授权声明照旧保留 -->
-		<Footer />
 	</body>
 </html>

@@ -19,7 +19,14 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, DragEvent, FormEvent, KeyboardEvent } from 'react';
+import type {
+	CSSProperties,
+	ChangeEvent,
+	DragEvent,
+	FormEvent,
+	KeyboardEvent,
+	PointerEvent as ReactPointerEvent,
+} from 'react';
 
 import { fileBlock, pickPurpose, pickRichPurpose, uploadFile } from './api.ts';
 import MessageView from './MessageView.tsx';
@@ -46,6 +53,55 @@ import { pullSnapshot, pushSnapshot } from './sync.ts';
 import type { Attachment, ChatMessage, ChatOptions, Session, TextBlock } from './types.ts';
 
 const OPTIONS_KEY = 'aichat:options';
+const SIDE_COOKIE = 'aichat_side';
+const SIDE_MIN = 160;
+const SIDE_MAX = 380;
+
+/** 侧栏宽度存 cookie（用户要求）：存的是像素数，下次打开沿用 */
+function readSideWidth(): number {
+	try {
+		const match = document.cookie.match(new RegExp(`(?:^|; )${SIDE_COOKIE}=(\\d+)`));
+		if (match) {
+			const value = Number(match[1]);
+			if (Number.isFinite(value)) return Math.min(SIDE_MAX, Math.max(SIDE_MIN, value));
+		}
+	} catch {
+		/* cookie 读不到就用默认值 */
+	}
+	return 196;
+}
+
+function writeSideWidth(width: number): void {
+	try {
+		document.cookie = `${SIDE_COOKIE}=${Math.round(width)}; path=/; max-age=31536000; SameSite=Lax`;
+	} catch {
+		/* 忽略 */
+	}
+}
+
+type GroupKey = 'today' | 'yesterday' | 'week' | 'older';
+
+const GROUPS: { key: GroupKey; label: string }[] = [
+	{ key: 'today', label: '今天' },
+	{ key: 'yesterday', label: '昨天' },
+	{ key: 'week', label: '7 天内' },
+	{ key: 'older', label: '更早' },
+];
+
+function dayStart(ts: number): number {
+	const date = new Date(ts);
+	date.setHours(0, 0, 0, 0);
+	return date.getTime();
+}
+
+function groupOf(ts: number): GroupKey {
+	const today = dayStart(Date.now());
+	const day = 24 * 60 * 60 * 1000;
+	if (ts >= today) return 'today';
+	if (ts >= today - day) return 'yesterday';
+	if (ts >= today - 6 * day) return 'week';
+	return 'older';
+}
 
 function newId(): string {
 	if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
@@ -117,6 +173,7 @@ export default function Chat() {
 	const [notice, setNotice] = useState('');
 	const [dragging, setDragging] = useState(false);
 	const [railOpen, setRailOpen] = useState(false);
+	const [sideWidth, setSideWidth] = useState(196);
 
 	const abortRef = useRef<AbortController | null>(null);
 	const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -141,7 +198,12 @@ export default function Chat() {
 
 	useEffect(() => {
 		setOptions(loadOptions());
+		setSideWidth(readSideWidth());
 	}, []);
+
+	useEffect(() => {
+		writeSideWidth(sideWidth);
+	}, [sideWidth]);
 
 	useEffect(() => {
 		try {
@@ -394,6 +456,33 @@ export default function Chat() {
 		setBusy(false);
 		setNotice('');
 	}, []);
+
+	const togglePin = useCallback(async (id: string) => {
+		const target = sessionsRef.current.find((session) => session.id === id);
+		if (!target) return;
+		const next: Session = { ...target, pinned: !target.pinned };
+		await saveSession(next);
+		setSessions((prev) => prev.map((session) => (session.id === id ? next : session)));
+	}, []);
+
+	/** 拖动侧栏右缘调宽度：拖动时只改 CSS 变量，松手才落 cookie */
+	const startResize = useCallback(
+		(event: ReactPointerEvent<HTMLDivElement>) => {
+			event.preventDefault();
+			const startX = event.clientX;
+			const startWidth = sideWidth;
+			const onMove = (moveEvent: PointerEvent) => {
+				setSideWidth(Math.min(SIDE_MAX, Math.max(SIDE_MIN, startWidth + moveEvent.clientX - startX)));
+			};
+			const onUp = () => {
+				window.removeEventListener('pointermove', onMove);
+				window.removeEventListener('pointerup', onUp);
+			};
+			window.addEventListener('pointermove', onMove);
+			window.addEventListener('pointerup', onUp);
+		},
+		[sideWidth],
+	);
 
 	// ---------------------------------------------------------------- 一轮对话
 
@@ -676,31 +765,61 @@ export default function Chat() {
 
 	// ---------------------------------------------------------------- 主界面
 
+	const byUpdated = (a: Session, b: Session) => b.updatedAt - a.updatedAt;
+	const pinnedSessions = sessions.filter((session) => session.pinned).sort(byUpdated);
+	const grouped = GROUPS.map((group) => ({
+		...group,
+		items: sessions.filter((session) => !session.pinned && groupOf(session.updatedAt) === group.key).sort(byUpdated),
+	}));
+
+	const renderSessionRow = (session: Session) => (
+		<div className={`ac-session${session.id === currentId ? ' ac-session-on' : ''}`} key={session.id}>
+			<button
+				className="ac-session-title"
+				type="button"
+				onClick={() => {
+					setCurrentId(session.id);
+					setRailOpen(false);
+				}}
+			>
+				{session.title}
+			</button>
+			<button
+				className={`ac-session-pin${session.pinned ? ' ac-session-pin-on' : ''}`}
+				type="button"
+				title={session.pinned ? '取消置顶' : '置顶'}
+				aria-label={session.pinned ? '取消置顶' : '置顶'}
+				onClick={() => void togglePin(session.id)}
+			>
+				{session.pinned ? '★' : '☆'}
+			</button>
+			<button className="ac-session-del" type="button" title="删除" onClick={() => void removeSession(session.id)}>
+				×
+			</button>
+		</div>
+	);
+
 	return (
-		<div className={`ac-app${railOpen ? ' ac-rail-open' : ''}`}>
+		<div
+			className={`ac-app${railOpen ? ' ac-rail-open' : ''}`}
+			style={{ ['--ac-side-w' as string]: `${sideWidth}px` } as React.CSSProperties}
+		>
 			<aside className="ac-side">
 				<button className="ac-new" type="button" onClick={startSession}>
 					＋ 新对话
 				</button>
 
 				<div className="ac-session-list">
-					{sessions.map((session) => (
-						<div className={`ac-session${session.id === currentId ? ' ac-session-on' : ''}`} key={session.id}>
-							<button
-								className="ac-session-title"
-								type="button"
-								onClick={() => {
-									setCurrentId(session.id);
-									setRailOpen(false);
-								}}
-							>
-								{session.title}
-							</button>
-							<button className="ac-session-del" type="button" title="删除" onClick={() => void removeSession(session.id)}>
-								×
-							</button>
+					{pinnedSessions.length > 0 && <p className="ac-group">置顶</p>}
+					{pinnedSessions.map(renderSessionRow)}
+
+					{grouped.map((group) => (
+						<div className="ac-group-block" key={group.key}>
+							{group.items.length > 0 && <p className="ac-group">{group.label}</p>}
+							{group.items.map(renderSessionRow)}
 						</div>
 					))}
+
 					{sessions.length === 0 && <p className="ac-side-empty">还没有对话</p>}
 				</div>
 
@@ -737,6 +856,9 @@ export default function Chat() {
 						</span>
 					</button>
 				</div>
+
+				{/* 拖这个 6px 的边调侧栏宽度，松手写进 cookie */}
+				<div className="ac-resizer" role="separator" aria-orientation="vertical" onPointerDown={startResize} />
 			</aside>
 
 			<section className="ac-main">
