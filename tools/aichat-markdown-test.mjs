@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import { marked } from 'marked';
 
 import { protectMath } from '../src/components/aichat/mdmath.ts';
+import { mergeAdjacentText } from '../src/components/aichat/merge.ts';
 
 // 1. 围栏代码块必须原样保留，且里面的 $ 不能被当成公式
 {
@@ -63,3 +64,29 @@ import { protectMath } from '../src/components/aichat/mdmath.ts';
 }
 
 console.log('markdown.test: 全部通过');
+
+// 6. 引用把正文切成两块时，表格必须能拼回一张完整的表
+{
+	const blocks = [
+		{ type: 'text', text: '| 对比维度 | R2 | S3 |\n| --- | --- | --- |\n| 出口费用', citations: [] },
+		{
+			type: 'text',
+			text: ' | 免费 | 收费 |\n| 生命周期 | 有限 | 完善 |\n',
+			citations: [{ type: 'web_search_result_location', url: 'https://example.com/x', title: '来源' }],
+		},
+	];
+	const merged = mergeAdjacentText(blocks);
+	assert.equal(merged.length, 1, '相邻正文块必须合并');
+	assert.equal(merged[0].citations.length, 1, '引用要保留');
+	const html = marked.parse(merged[0].text, { gfm: true, async: false });
+	assert.ok(html.includes('<table>'), '合并后必须渲染成表格');
+	assert.ok(html.includes('<td>免费</td>'), '表格数据不能掉成段落');
+
+	// 不能跨思考 / 工具块合并
+	const mixed = mergeAdjacentText([
+		{ type: 'text', text: 'a' },
+		{ type: 'thinking', thinking: 't' },
+		{ type: 'text', text: 'b' },
+	]);
+	assert.equal(mixed.length, 3, '中间有其它块时不能合并');
+}

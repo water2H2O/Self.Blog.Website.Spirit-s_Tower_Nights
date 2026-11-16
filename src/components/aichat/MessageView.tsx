@@ -8,6 +8,7 @@
  */
 
 import Markdown from './Markdown.tsx';
+import { mergeAdjacentText } from './merge.ts';
 import type {
 	ChatMessage,
 	ServerToolUse,
@@ -238,7 +239,8 @@ export default function MessageView({
 	const refused = message.stopReason === 'refusal';
 	const truncated = message.stopReason === 'max_tokens';
 	const hasContent = message.content.length > 0;
-	const items = groupContent(message.content);
+	// 引用会把正文切成多个块，先合并再分组，否则表格会被劈成两半
+	const items = groupContent(mergeAdjacentText(message.content));
 
 	return (
 		<div className="ac-row">
