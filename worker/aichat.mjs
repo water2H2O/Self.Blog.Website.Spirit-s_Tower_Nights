@@ -105,8 +105,13 @@ function cookieAttrs(request) {
 // ---------------------------------------------------------------- 会话
 
 export async function issueSession(request, env, password) {
-	if (!env.AICHAT_SECRET) return json({ error: 'config', message: '服务端未配置 AICHAT_SECRET' }, 503);
-	if (!env.AICHAT_PASS) return json({ error: 'config', message: '服务端未配置 AICHAT_PASS' }, 503);
+	const missing = [
+		!env.AICHAT_SECRET ? 'AICHAT_SECRET' : null,
+		!env.AICHAT_PASS ? 'AICHAT_PASS' : null,
+	].filter(Boolean);
+	if (missing.length > 0) {
+		return json({ error: 'config', message: `服务端未配置：${missing.join('、')}` }, 503);
+	}
 	if (!safeEqual(String(password ?? ''), env.AICHAT_PASS)) {
 		// 不给「口令错」之外的任何提示，也不区分「没配」
 		return json({ error: 'bad_password', message: '口令不对' }, 401);

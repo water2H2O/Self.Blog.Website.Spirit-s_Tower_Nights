@@ -94,6 +94,12 @@ main.aichat-main {
 	flex-wrap: wrap;
 }
 
+/* 错误提示要独占一行，别被挤在「进入」按钮右边 */
+.ac-gate-alt-form .ac-error {
+	flex: 0 0 100%;
+	margin: 0.2em 0 0;
+}
+
 .ac-gate-alt-form input {
 	flex: 1;
 	min-width: 8em;
