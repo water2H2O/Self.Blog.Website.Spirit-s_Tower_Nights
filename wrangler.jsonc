@@ -18,11 +18,22 @@
 		"not_found_handling": "404-page",
 		// 脚本里用 env.ASSETS.fetch() 回落到静态资源，必须有这个 binding
 		"binding": "ASSETS",
-		// 浏览器导航不能被 404-page 提前接走；仅这两个路径优先执行 Worker。
-		"run_worker_first": ["/teapot", "/teapot/"]
+		// 浏览器导航不能被 404-page 提前接走；只有下面这些路径优先执行 Worker。
+		// /api/aichat/* 是聊天后端：漏了这条，线上会直接当静态文件找不到 → 404。
+		"run_worker_first": ["/teapot", "/teapot/", "/api/aichat/*"]
 	},
 
 	"observability": {
 		"enabled": true
-	}
+	},
+
+	// 站点额度模式的云端快照（/api/aichat/sync）。
+	// 建桶：npx wrangler r2 bucket create aichat-sync
+	// 没配这个绑定时接口返回 503，其余功能不受影响。
+	"r2_buckets": [
+		{
+			"binding": "SYNC",
+			"bucket_name": "aichat-sync"
+		}
+	]
 }

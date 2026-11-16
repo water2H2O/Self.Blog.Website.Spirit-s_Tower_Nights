@@ -980,8 +980,12 @@ node tools/collect-local-usage.mjs --days=180 # 只留最近 N 天
 
 ## 3D 模型查看页（淼渺）
 
-`/worldview/characters/miaomiao/3d/` 是一个可拖动旋转、滚轮缩放的模型页，同时提供下载：
-网页用 `public/downloads/miaomiao.glb`（1.98 MB）与原始源文件 `public/downloads/淼渺-3D源文件.zip`（17.3 MB）。
+`/worldview/characters/miaomiao/3d/` 是一个可拖动旋转、滚轮缩放的模型页，页面提供网页用
+`public/downloads/miaomiao.glb`（1.98 MB）下载。
+
+**原始源文件（OBJ + 三张 4K 贴图 + 三视图，约 17 MB）不进仓库**：它是约稿文件，公开挂下载与授权口径冲突，
+而且会把仓库撑大一圈。需要的人来找我，链接以后放到外部托管再补（本站原则：**页面要加载的放仓库，
+纯下载用的大文件放外部**）。
 
 **原始导出有 29 万三角面、三张 4K 贴图、26 MB**，直接上网页会卡，所以走了一条压缩流水线：
 
@@ -1002,6 +1006,221 @@ three.js 关掉深度写入，面片乱序叠在一起——浏览器里看就�
 
 注意 `GLTFLoader.js` 还 import 了同级的 `../utils/BufferGeometryUtils.js`，少一个整个 loader 就
 "Failed to fetch dynamically imported module"。
+
+## 自建聊天前端（/aichat）
+
+> 首次上线看 [docs/aichat-deploy.md](docs/aichat-deploy.md)：建 R2 桶 → 配三个 secret → 推送 → 验证。
+
+2026-11-16 起 DeepSeek 对网页端和 App 的普通用户上了限额：单次输入约 4 万字、每日对话额度、
+存续超过 7 天且无活跃交互的会话不再支持接续。这些限制都在 C 端服务上，**API 侧没有**——
+上下文 1M、会话本来就是调用方自己存的。`/aichat` 就是为此准备的备用入口。
+
+**形态：一张静态页 + 一条 Worker 路由。** 没有引入 SSR，也没有第二个项目。
+页面刻意**不套全站 Header/Footer**——它以后要挂到 `aichat.water2h2o.com` 独立域名上，
+套着主站导航反而不对；整页撑满视口，滚动发生在应用内部。
+
+两种取用方式，界面上随时可以切：
+
+```
+① 自己的 API（默认给访客用）
+   浏览器 ──────────────直连──────────────▶ api.deepseek.com 或自定义兼容接口
+   key 只在 localStorage，本站服务器不经手，也不需要口令
+
+② 站点额度（只有自己用）
+   浏览器 ──POST /api/aichat/chat──▶ worker/index.mjs ──▶ api.deepseek.com
+            （同源 + 签名 cookie）      （唯一持有 key 的地方）
+```
+
+选 ① 的原因写在下面「Key 怎么放」里；它的代价是服务端的收窄和预算熔断不再生效，
+所以这些约束在 `request.ts` 里由前端自己再做一遍。
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/pages/aichat.astro` | 页面外壳（Header/Footer 与全站一致） |
+| `src/components/aichat/Chat.tsx` | 主界面：会话列表、流式、上传、开关 |
+| `src/components/aichat/MessageView.tsx` | 内容块渲染：思考 / 搜索卡片 / 引用 / 正文 |
+| `src/components/aichat/Markdown.tsx` | Markdown + KaTeX + Mermaid（mermaid 按需加载） |
+| `src/components/aichat/mdmath.ts` | 代码块保护 + 公式抽占位符（**别用 split 切代码块**，见文件注释） |
+| `src/components/aichat/stream.ts` | SSE 状态机 + 历史折装。**纯函数，可脱离浏览器单测** |
+| `src/components/aichat/cost.ts` | 按 usage 折算人民币，自动区分忙闲时 |
+| `src/components/aichat/db.ts` | IndexedDB 会话存储 |
+| `src/components/aichat/api.ts` | 文件上传与文件块构造 |
+| `src/components/aichat/request.ts` | 「自己的 API」模式的请求构造、provider 存取、错误翻译 |
+| `src/components/aichat/ProviderForm.tsx` | 官方 Key / 自定义接口的表单（入口页与设置共用） |
+| `src/components/aichat/Settings.tsx` | 设置弹窗：账号与余额 / 通用设置 / 模型 |
+| `src/components/aichat/sync.ts` | 云端快照的读写 |
+| `docs/aichat-official-export.md` | 官方导出包的结构与字段映射（导入器按它写） |
+| `src/styles/aichat.css` | 样式，类名统一 `ac-` 前缀 |
+| `worker/aichat.mjs` | 登录、请求收窄、SSE 逐字节转发、Files API 直通。**只用 Web 标准 API** |
+| `tools/aichat-dev-server.mjs` | 本地 Node 适配层（含 `AICHAT_MOCK` 假上游） |
+| `tools/aichat-stream-test.mjs` | 解析器单测，`node` 直接跑 |
+| `tools/aichat-markdown-test.mjs` | 代码块 / 公式预处理的回归测试（守「代码块消失」那个 bug） |
+| `.dev.vars.example` | 本地密钥模板，复制成 `.dev.vars`（已在 `.gitignore`） |
+
+### 本地怎么跑
+
+```bash
+dev.cmd aichat                      # 终端 1：接口，127.0.0.1:8787
+dev.cmd dev                         # 终端 2：Astro，http://localhost:4321/aichat
+node tools/aichat-stream-test.mjs   # 不用起服务：解析器与历史回传的单测
+node tools/aichat-markdown-test.mjs # 代码块必须原样保留（回归）
+```
+
+`astro dev` 不执行 Worker，所以 `astro.config.mjs` 里把 `/api/aichat` 代理到了 8787。两个都要开。
+
+没有 key 也想看界面：`AICHAT_MOCK=1`（写在 `.dev.vars` 或环境变量里），8787 会返回一段假的 SSE，
+里面思考块、搜索卡片、引用、标题、用量全都有，走的是和真实回答完全相同的解析路径，不花钱也不联网。
+
+三个参数：
+
+| 变量 | 说明 |
+| --- | --- |
+| `DEEPSEEK_API_KEY` | 上游密钥 |
+| `AICHAT_PASS` | 页面登录口令 |
+| `AICHAT_SECRET` | cookie 签名串，≥32 字节随机值 |
+
+**本地**写在 `.dev.vars`（已 gitignore，模板见 `.dev.vars.example`），重启 `dev.cmd aichat` 生效。
+
+**线上**用 wrangler 写，值不会进仓库也不会进 `wrangler.jsonc`：
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"   # 生成 AICHAT_SECRET
+npx wrangler secret put AICHAT_PASS        # 提示后粘贴口令，回车
+npx wrangler secret put AICHAT_SECRET      # 粘贴上面那串随机值
+npx wrangler secret put DEEPSEEK_API_KEY
+```
+
+几条注意：
+
+- **改口令会立刻让所有已发出的 cookie 失效**（签名里拌了 `AICHAT_PASS`，见
+  `worker/aichat.mjs` 的 `checkSession`），所以换口令不用担心旧设备还能登。
+- 口令走的是**固定的 HMAC cookie**，没有账号体系，也没有找回流程；忘了就再 `put` 一次。
+- `AICHAT_SECRET` 只在本地保存，Cloudflare 控制台也读不回明文；丢了就重新生成，
+  代价只是所有人重新登录一次。
+- 这三个 secret 对「站点额度」和「云端快照」都生效；BYOK 模式完全用不到它们。
+
+### Key 怎么放（两种模式）
+
+| | ① 自己的 API（浏览器直连） | ② 站点额度（服务端代理） |
+| --- | --- | --- |
+| key 位置 | 访客浏览器的 localStorage，明文 | Worker 的 secret，浏览器里没有 |
+| 支持接口 | 官方 Key；或任意 OpenAI / Anthropic 兼容接口 | 只有官方 |
+| 是否要登录 | 不用 | 要口令 |
+| 谁付钱 | 用户自己 | 站点 |
+| 服务端收窄 / 预算熔断 | **没有**，靠前端自觉 | 有（`max_tokens` 封顶、工具白名单、`user_id` 固定） |
+| 联网 / 读链接 / 文件 | 仅官方 Key | 有 |
+| 合规 | 你是客户端，不是服务提供方 | 对外开放时要自己承担内容安全义务 |
+
+自定义接口的字段：显示名称、API 地址（带不带 `/v1` 都行）、协议（`OpenAI Chat Completions`
+或 `Anthropic Messages`）、模型 ID、Key。OpenAI 协议走 `OpenAIStreamAssembler`
+（把 `delta.content` / `reasoning_content` 拼成正文与思考块）；Anthropic 协议直接复用
+官方那套解析。自定义接口下联网、读链接、文件上传、人民币估算都会自动关掉，
+因为无法保证对方提供对应的能力。
+
+选 ① 的直接依据是官方 CORS 实测：
+
+```text
+OPTIONS https://api.deepseek.com/anthropic/v1/messages
+  access-control-allow-origin: https://water2h2o.com      ← 回显任意 Origin
+  access-control-allow-headers: content-type, x-api-key, anthropic-version, anthropic-beta
+  access-control-allow-methods: POST
+```
+
+也就是说浏览器可以直连、SSE 直连、上传也直连，不需要中转。官方 `deepseek-ai/chat-demo`
+本身就是这个形态（README 明写 key 只存在浏览器里）。
+
+**必须知道的取舍**：
+
+- 明文存 localStorage，`XSS` 和恶意扩展都读得到；共用电脑上用完要「设置 → 清除并切回站点额度」。
+- key 会出现在 DevTools 的 Network 里（`x-api-key` 请求头），截图 / 录屏 / 共享屏幕会带出去。
+- 换浏览器、清缓存就要重新贴；key 不跟随账号。
+- 页面已经加了 `<meta name="referrer" content="no-referrer">`，key 永远不进 URL。
+- 直连模式下 `user_id` 仍固定成 `owner`（缓存命中价 ¥0.04/M vs 未命中 ¥2/M，差 50 倍）；
+  `max_tokens` 仍封顶 8192。这两条在 `src/components/aichat/request.ts` 里，
+  和 `worker/aichat.mjs` 的规则是同一套，改一处记得改另一处。
+
+### 云端快照（只有站点额度能用）
+
+自己用的时候，会话可以在服务器上存一份，换设备再拉回来。
+
+| 端点 | 行为 |
+| --- | --- |
+| `GET /api/aichat/sync` | 取快照；没有则 `{"sessions":[],"savedAt":null}` |
+| `PUT /api/aichat/sync` | 整包覆盖，body 为 `{"sessions":[…]}` |
+
+两个端点都要求有效的站点口令 cookie（BYOK 模式压根没有服务端会话，所以拿不到）。
+入口在**设置 → 账号与余额 → 云端快照**：`上传本机数据` / `从服务器恢复`（恢复前会确认，
+因为会覆盖本机）。
+
+存储用 **R2**，绑定名 `SYNC`，对象键 `sync/owner.json`：
+
+```bash
+npx wrangler r2 bucket create aichat-sync     # 只需一次
+npx wrangler deploy                          # 之后按 push 自动部署
+```
+
+为什么不是 KV / D1：官方导出的会话文本合计 28 MB，KV 单值上限 25 MiB 装不下；
+D1 单行也有大小限制。R2 是对象存储，一个对象就够，将来导入 200 MB 附件也不用改结构。
+
+没配绑定时接口返回 **503**（提示缺 `SYNC`），其余功能不受影响。本地开发用
+`tools/aichat-dev-server.mjs` 里的文件模拟（`.dev-sync.json`，已 gitignore）。
+
+### 为什么这么设计
+
+- **key 永远不下发**：前端只认 `/api/aichat/*`，`model`、`max_tokens`、`user_id` 全由服务端决定，
+  前端传什么都不算数。顺手把 `max_tokens` 封顶 8192，防止一次手滑刷余额。
+- **SSE 逐字节转发**：代理层一旦 `JSON.parse` 再重组，深度思考的长回答会把 Worker 的 CPU 时长耗光，
+  而且会弄坏 `thinking` 的 signature。
+- **`user_id` 固定成 `owner`**：KV 缓存按 `user_id` 隔离。命中价 ¥0.02/M，未命中 ¥1/M，差 50 倍，
+  随机 `user_id` 等于自己把缓存全作废。
+- **每轮带 `latest_reminder`**：`<日期>,<星期>,中国,Web,<语言>`，按官方建议紧贴在 user 消息前，
+  并且随历史回传——不回传的话前缀每轮都变，缓存同样全落空。
+- **`run_worker_first` 里必须加 `/api/aichat/*`**：漏了这条，请求会直接落到静态资源上变 404。
+- **持久化只在浏览器**：会话进 IndexedDB，附件只留 `file_id` 与文件名，原件既不下载也不落盘。
+  服务端不存任何对话，符合「只在网页端输出」的定位。
+- **assistant 的 content 原样存、原样回传**：阅读链接的网页正文不在块里，而是加密在
+  `web_fetch_tool_result.signature` 里。把它拆成 `{url, title}` 再拼回去，那些网页就不在后文
+  上下文里了；反过来，思考块（`thinking`）不回传。
+- **流式更新按 80ms 节流**：每来一个 token 就重新渲染整段 Markdown，长回答会把主线程卡死。
+- **文件上传走 multipart 直通**：Worker 不解析表单、不缓冲，`request.body` 直接转给上游。
+  文档解析期间上游可能几十秒不返回，中间层一旦攒包就会超时。
+  引用文件时要带 `anthropic-beta: files-api-2025-04-14`，这个头由服务端按需补。
+
+### 现在有什么
+
+- 第一次进入如果没有配置，会直接要求填一个 API Key（官方 Key 或自定义兼容接口），
+  也可以折叠展开用站点口令进入；
+- 可以存**多个 API**，顶栏下拉里随时切；切换只影响之后的提问，不改历史；
+- 界面参考 DSH 自己的设置：账号信息在左下角（点头像出「设置 / 退出登录」），
+  设置是弹窗，左侧分组为「账号与余额 / 通用设置 / 模型」；
+- 没有全站导航栏，但**页脚的版权与授权声明保留**；
+- 多会话：新建 / 切换 / 删除，标题由上游生成；会话存在 IndexedDB，刷新不丢；
+- 流式正文、思考过程折叠、停止生成、重新生成（会截断这条之后的内容）；
+- 联网搜索 / 深度思考搜索 / 阅读链接：可分别开关；渲染 `server_tool_use`、
+  `web_search_tool_result`（结果卡片）、`web_fetch_tool_result`（已读网页/错误码）、
+  `citations`（来源列表）；
+- 文件与图片：点击、拖拽、粘贴上传；图片按 `image` 块、文档按 `document` 块引用；
+  文档可选「图文混排」（`rich_layout_recognition`，能看图，但更贵）；
+- Markdown、代码块、表格、KaTeX 公式、Mermaid 图（mermaid 是动态 import，不进首屏）；
+- 每条回答的 token 用量与费用估算，自动按北京时间区分高峰/空闲（空闲半价）；
+- 余额/密钥/限流等上游错误会被翻译成人话，`401` 只提示检查服务端密钥，不泄漏任何细节。
+
+### 有意没做
+
+- 消息分支树：现在「重新生成」是覆盖式截断，不保留旧答案；
+- 编辑已发送的提问；
+- 语音输入 / 朗读；
+- 网页端导出历史的导入（格式不同，且没必要为此写一个迁移器）；
+- 每日消费熔断：目前只有 `max_tokens` 封顶（8192）和文件大小上限，
+  真要防跑飞还得在 Worker 里接 KV 记账，见下面的待办。
+
+### 成本参考
+
+`deepseek-flash` 忙时：缓存未命中 ¥2/M、命中 ¥0.04/M、输出 ¥8/M（空闲一律半价）。
+搜索与抓取另算，**¥5 / 千次**：深度思考搜索一轮最多约 20 次工具调用，自己心里有数。
+界面上每条回答下面都有 `≈ ¥0.0xx` 的估算，忙闲时按当前时刻算。
+
+注意：全家桶工具与图像理解目前**只有 `deepseek-flash` 支持**，`v4-pro` 两者都没有，所以这里不做模型切换。
 
 ## 部署（Cloudflare Workers + 自定义域名）
 

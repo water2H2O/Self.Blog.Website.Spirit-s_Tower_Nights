@@ -1,0 +1,15 @@
+# 复制为 .dev.vars 后填写（.dev.vars 已在 .gitignore 里，不会进仓库）
+# 本地开发：node tools/aichat-dev-server.mjs 会读这个文件
+# 线上：wrangler secret put DEEPSEEK_API_KEY / AICHAT_PASS / AICHAT_SECRET
+
+# 上游密钥（platform.deepseek.com → API keys）
+DEEPSEEK_API_KEY=
+
+# 页面登录口令，自己定，别用短口令
+AICHAT_PASS=
+
+# cookie 签名用的随机串，至少 32 字节。生成：node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+AICHAT_SECRET=
+
+# 可选：设成 1 时不调上游，返回一段假 SSE（用来调界面）
+# AICHAT_MOCK=1

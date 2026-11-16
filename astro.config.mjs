@@ -1,6 +1,7 @@
 // @ts-check
 
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
 import searchPages from './tools/search-pages-integration.mjs';
@@ -18,8 +19,22 @@ export default defineConfig({
 	// 与 Cloudflare 共用旧地址表：静态预览也能沿旧链接到达新地址和原章节。
 	redirects: blogRedirects,
 	// searchPages 在构建结束时把首页、关于、列表页等独立页面补进 search-index.json
-	integrations: [mdx(), sitemap(), searchPages()],
+	integrations: [mdx(), react(), sitemap(), searchPages()],
 	vite: {
+		// 开发时 /aichat 的接口要打到本地 Worker 模拟器（tools/aichat-dev-server.mjs，:8787）。
+		// `astro dev` 本身不跑 Worker，没有这条代理，页面上所有请求都会 404。
+		server: {
+			proxy: {
+				'/api/aichat': 'http://127.0.0.1:8787',
+			},
+		},
+		optimizeDeps: {
+			// 必须显式预打包：@astrojs/react 的 renderer 入口在 dev 里是裸文件，它内部
+			// `import { createRoot, hydrateRoot } from "react-dom/client"` 不会被扫描进
+			// 依赖图，浏览器于是直接拿到 CJS 版 client.js —— 报
+			// "does not provide an export named 'createRoot'"，island 水合直接失败。
+			include: ['react-dom/client'],
+		},
 		resolve: {
 			// Vite 在 Windows 上会调用 `exec("net use")` 来挑选 realpath 实现。
 			// 在 DSH 沙箱里带管道的子进程会被拒绝（spawn EPERM），该异常被 Vite

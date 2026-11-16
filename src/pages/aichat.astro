@@ -1,0 +1,73 @@
+---
+/**
+ * /aichat —— 自建聊天前端。
+ *
+ * 这个页面是「专门用途」，所以刻意不套全站的 Header/Footer：以后它要挂到
+ * aichat.water2h2o.com 独立域名上，套着主站导航反而不对。整页只有一个应用，
+ * 高度撑满视口，滚动发生在应用内部。
+ *
+ * 两种取用方式：浏览器直连（用户自己的 Key，请求不经过本站）与站点额度
+ * （同源 /api/aichat/*，密钥只在 Worker 的 secret 里）。
+ */
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Chat from '../components/aichat/Chat.tsx';
+// KaTeX 的样式和字体一起进构建产物，不引 CDN
+import 'katex/dist/katex.min.css';
+import '../styles/aichat.css';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title="aichat"
+			description="走 DeepSeek 官方 API 的聊天前端：可以联网、读链接、上传文件，历史只存在本机浏览器。"
+		/>
+		<meta name="robots" content="noindex" />
+		<!-- 不要把地址（未来可能带查询串）通过 Referer 带给任何第三方 -->
+		<meta name="referrer" content="no-referrer" />
+	</head>
+	<body class="ac-body">
+		<main class="aichat-main">
+			<!-- 水合失败时别只留一句「正在检查会话」，把真正的错误摆到页面上 -->
+			<div id="ac-boot-error" hidden></div>
+			<script is:inline>
+				(() => {
+					const show = (text) => {
+						const el = document.getElementById('ac-boot-error');
+						if (!el || el.dataset.shown) return;
+						el.dataset.shown = '1';
+						el.hidden = false;
+						el.textContent = '页面脚本出错：' + text;
+					};
+					addEventListener('error', (event) => show(event.message || String(event.error || 'unknown')));
+					addEventListener('unhandledrejection', (event) =>
+						show(String((event.reason && event.reason.message) || event.reason || 'unknown')),
+					);
+					// Astro 水合失败时是把错误丢进 console.error，不会冒泡成 error 事件，
+					// 所以顺手接管一下，把第一条错误摆到页面上，免得只能对着「正在检查会话」发呆。
+					const originalError = console.error.bind(console);
+					console.error = (...args) => {
+						originalError(...args);
+						try {
+							show(args.map((arg) => (arg && arg.message) || String(arg)).join(' ').slice(0, 600));
+						} catch {
+							/* 兜底提示自身不能再抛错 */
+						}
+					};
+					// 正常情况下一两秒内就该出界面；6 秒还在转圈，说明水合没启动
+					setTimeout(() => {
+						if (document.querySelector('.ac-loading')) show('6 秒内没有完成水合（island 没启动）');
+					}, 6000);
+				})();
+			</script>
+			<Chat client:load />
+			<noscript>
+				<p class="ac-loading">这个页面需要 JavaScript。</p>
+			</noscript>
+		</main>
+		<!-- 没有全站导航，但页脚的版权与授权声明照旧保留 -->
+		<Footer />
+	</body>
+</html>

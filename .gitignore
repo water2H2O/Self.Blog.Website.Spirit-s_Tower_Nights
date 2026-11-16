@@ -16,6 +16,8 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+# 本地开发密钥（聊天后端用；.dev.vars.example 是模板，可以进仓库）
+.dev.vars
 
 # macOS-specific files
 .DS_Store
@@ -36,3 +38,6 @@ __pycache__/
 
 # DeepSeek usage token (local credential, never commit)
 tools/.deepseek-user-token
+
+# 本地同步快照（模拟 R2，仅开发用）
+.dev-sync.json

@@ -7,7 +7,13 @@
  *
  * 为什么要 Worker：静态托管只能返 200/404，状态码是服务端才能给的。
  * 部署配置见 wrangler.jsonc 的 main 与 assets.binding。
+ *
+ * 第二条特殊路径是 /api/aichat/*：自建聊天前端的服务端（登录、请求收窄、
+ * SSE 转发）。实现在 ./aichat.mjs，那边只用 Web 标准 API，所以本地也能用
+ * Node 直接跑同一份代码。
  */
+
+import { handleAichat } from './aichat.mjs';
 
 const TEAPOT_HTML = `<!doctype html>
 <html lang="zh-CN">
@@ -147,6 +153,11 @@ const TEAPOT_HTML = `<!doctype html>
 export default {
 	async fetch(request, env) {
 		const { pathname } = new URL(request.url);
+
+		// 聊天后端：登录、会话、SSE 转发。密钥只在这里出现，永远不下发到浏览器。
+		if (pathname.startsWith('/api/aichat/')) {
+			return handleAichat(request, env);
+		}
 
 		if (pathname === '/teapot' || pathname === '/teapot/') {
 			const head = request.method === 'HEAD';
