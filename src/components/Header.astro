@@ -26,6 +26,11 @@ const mainLinks = [
 	{ href: '/project/', label: '企划' },
 	{ href: '/blog/', label: '随笔' },
 	{ href: '/about/', label: '关于' },
+	/**
+	 * 聊天应用挂在子域上（另一个 host），是这里唯一的外链。
+	 * 放最后、带一个 ↗，点开是新标签页 —— 别让人以为点了会跳到站内某个页面。
+	 */
+	{ href: 'https://chat.water2h2o.com/', label: '对话', external: true },
 ];
 
 /**
@@ -225,8 +230,11 @@ if (inWorldview) {
 						href={link.href}
 						class:list={[{ active: isActive(link.href) }]}
 						aria-current={isActive(link.href) ? 'page' : null}
+						target={link.external ? '_blank' : null}
+						rel={link.external ? 'noreferrer' : null}
 					>
 						{link.label}
+						{link.external && <span class="out" aria-hidden="true">↗</span>}
 					</a>
 				))
 			}
@@ -819,6 +827,13 @@ if (inWorldview) {
 			border-bottom: none;
 			border-left: 2px solid transparent;
 			border-radius: 9px;
+		}
+		/* 唯一的外链（聊天应用在子域上）：那个 ↗ 上标提醒"这是另一个站点" */
+		nav.main .internal-links a .out {
+			font-size: 0.72em;
+			vertical-align: super;
+			opacity: 0.65;
+			margin-left: 0.1em;
 		}
 		nav.main .internal-links a.active {
 			border-bottom: none;

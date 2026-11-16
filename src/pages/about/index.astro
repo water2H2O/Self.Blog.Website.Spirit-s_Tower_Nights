@@ -29,6 +29,12 @@ const works = [
 	{ href: '/worldview/', title: PROJECT_TITLE, mark: '设定与故事', text: '从种族、角色到他们经历的故事，这是我慢慢搭起来的原创世界。' },
 	{ href: '/worldview/music/', title: '回响之殿', mark: 'OC 音乐', text: '和曲师们一起，把角色的心事与经历写进音乐里。' },
 	{ href: '/project/', title: '其他企划', mark: '一起做点喜欢的事', text: '参与和制作的项目，还有与朋友们一起养出来的想法。' },
+	{
+		href: 'https://chat.water2h2o.com/',
+		title: 'Deepsleep-水塔特供',
+		mark: '自建 AI 工具',
+		text: '和 deepseek 一起写的网页版对话前端，填自己的 API key 就能用；Key 只留在本地，请求不过本站服务器。',
+	},
 ];
 const contacts = [
 	{ label: 'B 站', name: BILIBILI_NAME, href: BILIBILI_URL, note: '音乐 PV、表情包小剧场' },
@@ -71,7 +77,7 @@ const contacts = [
 					</div>
 					<div class="work-links">
 						{works.map((work) => (
-							<a class="work-card" href={work.href}><span class="eyebrow">{work.mark}</span><h3>{work.title}<span aria-hidden="true">↗</span></h3><p>{work.text}</p></a>
+							<a class="work-card" href={work.href} target={work.href.startsWith('http') ? '_blank' : null} rel={work.href.startsWith('http') ? 'noreferrer' : null}><span class="eyebrow">{work.mark}</span><h3>{work.title}<span aria-hidden="true">↗</span></h3><p>{work.text}</p></a>
 						))}
 					</div>
 				</section>
