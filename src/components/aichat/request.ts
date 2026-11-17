@@ -192,7 +192,7 @@ export function bodyOf(provider: Provider, messages: WireMessage[], options: Cha
 	const tools: { type: string; name: string }[] = [];
 	if (provider.kind === 'deepseek') {
 		if (options.webSearch) tools.push({ type: 'deepseek_web_search', name: 'deepseek_web_search' });
-		if (options.readUrl) tools.push({ type: 'deepseek_read_url', name: 'deepseek_read_url' });
+		tools.push({ type: 'deepseek_read_url', name: 'deepseek_read_url' });
 	}
 
 	return {
@@ -201,6 +201,7 @@ export function bodyOf(provider: Provider, messages: WireMessage[], options: Cha
 		stream: true,
 		max_tokens: MAX_TOKENS_DEFAULT,
 		thinking: { type: options.thinking ? 'enabled' : 'disabled' },
+		...(provider.kind === 'deepseek' && options.thinking ? { reasoning_effort: 'low' } : {}),
 		// KV 缓存按 user_id 隔离：固定值才能让多轮持续命中（命中价是未命中的 1/50）
 		metadata: { user_id: 'owner' },
 		...(tools.length > 0 ? { tools } : {}),

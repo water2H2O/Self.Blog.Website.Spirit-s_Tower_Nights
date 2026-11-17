@@ -1842,3 +1842,38 @@ main.aichat-main {
 		display: none;
 	}
 }
+/* 手机端：安全区、可触摸按钮、紧凑输入区与不溢出的弹层。 */
+@media (max-width: 720px) {
+  body.ac-body { font-size: 16px; }
+  body.ac-body main.aichat-main { width: 100%; max-width: none; height: 100dvh; padding: 0; }
+  .ac-app { width: 100%; }
+  .ac-bar { padding: max(10px, env(safe-area-inset-top)) 12px 10px; gap: 10px; }
+  .ac-bar .ac-hint { display: none; }
+  .ac-rail-toggle { min-width: 44px; min-height: 44px; }
+  .ac-scroll { padding: 14px 12px; }
+  .ac-composer { padding: 10px 12px max(10px, env(safe-area-inset-bottom)); flex-shrink: 0; }
+  .ac-composer-row { gap: 6px; }
+  .ac-composer textarea { font-size: 16px; padding: 10px; }
+  .ac-send, .ac-icon-btn { min-width: 44px; min-height: 44px; padding: 0 10px; }
+  .ac-composer-foot { flex-wrap: wrap; gap: 8px; }
+  .ac-toggles { gap: 12px; font-size: 13px; }
+  .ac-toggles label { min-height: 36px; }
+  .ac-picker { margin-left: auto; max-width: 100%; }
+  .ac-picker-btn { min-height: 36px; max-width: 100%; }
+  .ac-picker-label { max-width: 160px; }
+  .ac-picker-pop { width: min(290px, calc(100vw - 32px)); max-height: min(350px, 55dvh); box-sizing: border-box; }
+  .ac-side { width: min(300px, 82vw); flex-basis: auto; }
+  .ac-session-pin, .ac-session-del { opacity: .7; min-width: 32px; min-height: 40px; }
+  .ac-mask { padding: 10px; }
+  .ac-modal { max-height: calc(100dvh - 20px); width: 100%; }
+  .ac-modal-pane { padding: 14px; }
+  .ac-modal-nav button { white-space: nowrap; min-height: 44px; }
+  .ac-provider-row { flex-wrap: wrap; }
+  .ac-provider-meta { width: 100%; }
+  .ac-provider-ops { margin-left: auto; }
+  .ac-app.ac-app-boot { padding: 20px 12px; box-sizing: border-box; }
+  .ac-gate { width: 100%; box-sizing: border-box; margin: 0; }
+  .ac-gate-card { padding: 12px; }
+  .ac-empty { box-sizing: border-box; padding: 24px 8px; }
+  .ac-md pre, .ac-md table, .ac-code { max-width: 100%; }
+}

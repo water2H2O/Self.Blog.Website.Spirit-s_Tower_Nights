@@ -184,8 +184,6 @@ export default function Settings({
 								{[
 									{ key: 'thinking' as const, label: '深度思考', desc: '开启思考模式；联网工具会变成深度思考搜索。' },
 									{ key: 'webSearch' as const, label: '联网搜索', desc: '模型按需搜索网页并在回答里给出引用。' },
-									{ key: 'readUrl' as const, label: '阅读链接', desc: '自动识别消息里的链接并抓取正文。' },
-									{ key: 'richLayout' as const, label: '文档识图', desc: '上传 PDF/Office 时用图文混排解析（更贵、更占 token）。' },
 								].map((item) => (
 									<label className="ac-check" key={item.key}>
 										<input

@@ -122,11 +122,11 @@ function buildReminder(): string {
 }
 
 function loadOptions(): ChatOptions {
-	const fallback: ChatOptions = { thinking: true, webSearch: true, readUrl: true };
+	const fallback: ChatOptions = { thinking: true, webSearch: true, readUrl: true, richLayout: true };
 	try {
 		const raw = localStorage.getItem(OPTIONS_KEY);
 		if (!raw) return fallback;
-		return { ...fallback, ...JSON.parse(raw) };
+		return { ...fallback, ...JSON.parse(raw), readUrl: true, richLayout: true };
 	} catch {
 		return fallback;
 	}
@@ -165,7 +165,7 @@ export default function Chat() {
 
 	const [sessions, setSessions] = useState<Session[]>([]);
 	const [currentId, setCurrentId] = useState<string | null>(null);
-	const [options, setOptions] = useState<ChatOptions>({ thinking: true, webSearch: true, readUrl: true });
+	const [options, setOptions] = useState<ChatOptions>({ thinking: true, webSearch: true, readUrl: true, richLayout: true });
 	const [input, setInput] = useState('');
 	const [pending, setPending] = useState<Attachment[]>([]);
 	const [uploading, setUploading] = useState(false);
@@ -682,7 +682,7 @@ export default function Chat() {
 				const uploaded: Attachment[] = [];
 				for (const file of list) {
 					const base = pickPurpose(file);
-					const purpose = base.kind === 'document' && options.richLayout ? pickRichPurpose(file) : base.purpose;
+					const purpose = base.kind === 'document' ? pickRichPurpose(file) : base.purpose;
 					const stored = await uploadFile(file, purpose, active);
 					uploaded.push({ fileId: stored.fileId, name: stored.filename, kind: stored.kind, bytes: stored.bytes });
 				}
@@ -973,41 +973,8 @@ export default function Chat() {
 
 					<div className="ac-composer-foot">
 					<div className="ac-toggles">
-						<label className={tools ? '' : 'ac-toggle-off'}>
-							<input
-								type="checkbox"
-								checked={options.thinking}
-								onChange={(event) => setOptions((o) => ({ ...o, thinking: event.target.checked }))}
-							/>
-							深度思考
-						</label>
-						<label className={tools ? '' : 'ac-toggle-off'}>
-							<input
-								type="checkbox"
-								checked={tools && options.webSearch}
-								disabled={!tools}
-								onChange={(event) => setOptions((o) => ({ ...o, webSearch: event.target.checked }))}
-							/>
-							联网搜索
-						</label>
-						<label className={tools ? '' : 'ac-toggle-off'}>
-							<input
-								type="checkbox"
-								checked={tools && options.readUrl}
-								disabled={!tools}
-								onChange={(event) => setOptions((o) => ({ ...o, readUrl: event.target.checked }))}
-							/>
-							读链接
-						</label>
-						<label className={tools ? '' : 'ac-toggle-off'}>
-							<input
-								type="checkbox"
-								checked={tools && Boolean(options.richLayout)}
-								disabled={!tools}
-								onChange={(event) => setOptions((o) => ({ ...o, richLayout: event.target.checked }))}
-							/>
-							文档识图
-						</label>
+						<label><input type="checkbox" checked={options.thinking} onChange={(event) => setOptions((o) => ({ ...o, thinking: event.target.checked }))} />深度思考</label>
+						<label><input type="checkbox" checked={tools && options.webSearch} disabled={!tools} onChange={(event) => setOptions((o) => ({ ...o, webSearch: event.target.checked }))} />联网搜索</label>
 					</div>
 
 					<ModelPicker

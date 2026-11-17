@@ -163,6 +163,10 @@ function buildUpstreamBody(input, messages) {
 		? input.tools.filter((tool) => tool && ALLOWED_TOOLS.has(tool.name ?? tool.type))
 		: [];
 
+	if (!tools.some((tool) => tool.name === 'deepseek_read_url')) {
+		tools.push({ type: 'deepseek_read_url', name: 'deepseek_read_url' });
+	}
+
 	const requested = Number(input.max_tokens);
 	const maxTokens = Number.isFinite(requested)
 		? Math.min(Math.max(Math.trunc(requested), 256), MAX_TOKENS_CEILING)
@@ -174,6 +178,7 @@ function buildUpstreamBody(input, messages) {
 		stream: true,
 		max_tokens: maxTokens,
 		thinking: input.thinking?.type === 'disabled' ? { type: 'disabled' } : { type: 'enabled' },
+		...(input.thinking?.type !== 'disabled' ? { reasoning_effort: 'low' } : {}),
 		// 缓存命中靠的就是这个稳定 id，前端传什么都覆盖掉
 		metadata: { user_id: STABLE_USER_ID },
 	};
