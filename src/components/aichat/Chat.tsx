@@ -277,6 +277,58 @@ export default function Chat() {
 		);
 	}, []);
 
+	// 站点额度：空闲时合并云端再上传，避免用过期本地快照直接覆盖其它设备。
+	const autoSyncLock = useRef(false);
+	const lastSyncSignature = useRef('');
+	useEffect(() => {
+		if (!booted || !serverAuthed || active || busy || importing) return;
+		let disposed = false;
+		const synchronize = async () => {
+			if (autoSyncLock.current || document.visibilityState === 'hidden') return;
+			autoSyncLock.current = true;
+			setSyncing(true);
+			try {
+				const remote = await pullSnapshot();
+				if (disposed) return;
+				const local = await listSessions();
+				const merged = new Map<string, Session>();
+				for (const row of [...remote.sessions, ...local, ...sessionsRef.current]) {
+					const prev = merged.get(row.id);
+					if (!prev || row.updatedAt >= prev.updatedAt) merged.set(row.id, row);
+				}
+				const rows = [...merged.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+				const signature = JSON.stringify(rows);
+				await putSessions(rows);
+				if (disposed) return;
+				if (JSON.stringify(sessionsRef.current) !== signature) setSessions(rows);
+				setCurrentId((id) => id ?? rows[0]?.id ?? null);
+				if (signature !== lastSyncSignature.current || JSON.stringify(remote.sessions) !== signature) {
+					await pushSnapshot(rows);
+				}
+				lastSyncSignature.current = signature;
+				setSyncMessage(`已自动同步 ${rows.length} 个会话 · ${new Date().toLocaleTimeString()}`);
+			} catch (error) {
+				if (!disposed) setSyncMessage(`自动同步失败，数据仍保留在本机：${String((error as Error)?.message ?? error)}`);
+			} finally {
+				autoSyncLock.current = false;
+				setSyncing(false);
+			}
+		};
+		// 对话结束/本地变更后留出 IndexedDB 写入时间，再同步。
+		const timer = window.setTimeout(() => void synchronize(), 1500);
+		const interval = window.setInterval(() => void synchronize(), 60000);
+		const onVisible = () => { if (document.visibilityState === 'visible') void synchronize(); };
+		window.addEventListener('online', onVisible);
+		document.addEventListener('visibilitychange', onVisible);
+		return () => {
+			disposed = true;
+			window.clearTimeout(timer);
+			window.clearInterval(interval);
+			window.removeEventListener('online', onVisible);
+			document.removeEventListener('visibilitychange', onVisible);
+		};
+	}, [booted, serverAuthed, active, busy, importing, sessions]);
+
 	// ---------------------------------------------------------------- 配置
 
 	const persistProviders = useCallback((next: ProviderState) => {
@@ -462,7 +514,7 @@ export default function Chat() {
 	const togglePin = useCallback(async (id: string) => {
 		const target = sessionsRef.current.find((session) => session.id === id);
 		if (!target) return;
-		const next: Session = { ...target, pinned: !target.pinned };
+		const next: Session = { ...target, pinned: !target.pinned, updatedAt: Date.now() };
 		await saveSession(next);
 		setSessions((prev) => prev.map((session) => (session.id === id ? next : session)));
 	}, []);
@@ -691,7 +743,7 @@ export default function Chat() {
 	const renameSession = async (session: Session) => {
 		const title = window.prompt('会话名称', session.title);
 		if (!title?.trim()) return;
-		const renamed = { ...session, title: title.trim() };
+		const renamed = { ...session, title: title.trim(), updatedAt: Date.now() };
 		await saveSession(renamed);
 		setSessions((prev) => prev.map((s) => s.id === renamed.id ? renamed : s));
 	};

@@ -126,8 +126,8 @@ export default function Settings({
 
 								<h4 className="ac-sub-title">云端快照</h4>
 								<p className="ac-field-hint ac-field-hint-block">
-									把本机会话整包存到服务器，换设备时再拉回来。只传文字与文件引用，不传图片原件。
-									需要站点口令（自己的 API 模式没有服务端会话）。
+									使用站点额度时，会在进入页面、对话结束后自动合并并上传会话；每分钟、切回页面或网络恢复时检查云端更新。
+									只同步文字与文件引用，不传 API Key 或图片原件。自己的 API 模式不自动上传；下方按钮用于手动备份和恢复。
 								</p>
 								<div className="ac-row-btns">
 									<button className="ac-primary" type="button" onClick={onPush} disabled={!serverAuthed || syncing}>
