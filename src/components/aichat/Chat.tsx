@@ -32,6 +32,7 @@ import { fileBlock, pickPurpose, pickRichPurpose, uploadFile } from './api.ts';
 import MessageView from './MessageView.tsx';
 import ModelPicker from './ModelPicker.tsx';
 import ProviderForm from './ProviderForm.tsx';
+import { lockVault } from './vault.ts';
 import Settings from './Settings.tsx';
 import { deleteSession, listSessions, putSessions, replaceAllSessions, saveSession } from './db.ts';
 import { collectSessions } from './importer.ts';
@@ -395,6 +396,8 @@ export default function Chat() {
 	);
 
 	const signOut = useCallback(async () => {
+		lockVault();
+		setProviders({ list: [], activeId: null });
 		await fetch('/api/aichat/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => null);
 		setServerAuthed(false);
 		if (!active) {

@@ -6,7 +6,9 @@
 
 import { useState } from 'react';
 
-import { newProviderId } from './request.ts';
+import { newProviderId, loadProviderState } from './request.ts';
+import VaultUnlock from './VaultUnlock.tsx';
+import { configureVault, hasVault } from './vault.ts';
 import type { Provider, Protocol } from './request.ts';
 
 type Tab = 'official' | 'custom';
@@ -35,8 +37,13 @@ export default function ProviderForm({
 			? officialKey.trim().length > 8
 			: customKey.trim().length > 0 && baseUrl.trim().length > 0 && model.trim().length > 0;
 
-	const submit = () => {
+	const [remember, setRemember] = useState(false);
+	const [vaultPassword, setVaultPassword] = useState('');
+	const [error, setError] = useState('');
+	const submit = async () => {
 		if (!canSave) return;
+		try { await configureVault(remember, vaultPassword); }
+		catch (e) { setError(String((e as Error).message)); return; }
 		const id = initial?.id ?? newProviderId();
 		if (tab === 'official') {
 			onSave({
@@ -60,6 +67,7 @@ export default function ProviderForm({
 
 	return (
 		<div className="ac-provider">
+			<VaultUnlock onUnlock={() => { const saved = loadProviderState(); for (const p of saved.list) onSave(p); }} />
 			<div className="ac-seg" role="tablist">
 				<button
 					type="button"
@@ -157,6 +165,12 @@ export default function ProviderForm({
 				</>
 			)}
 
+			<label className="ac-check"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /><span>保持登录（口令加密保存 API 配置）</span></label>
+			{remember && <>
+				<p className="ac-error" role="alert">警告：配置会保存在此设备。不要在共享电脑勾选；解锁后仍无法防止恶意脚本或扩展读取 Key。忘记口令无法找回。</p>
+				<label className="ac-field"><span>本地加密口令（至少 12 个字符，下次打开需要解锁）</span><input type="password" autoComplete="new-password" value={vaultPassword} onChange={(e) => setVaultPassword(e.target.value)} /></label>
+			</>}
+			{error && <p className="ac-error" role="alert">{error}</p>}
 			<div className="ac-row-btns">
 				<button className="ac-primary" type="button" onClick={submit} disabled={!canSave}>
 					{submitLabel}

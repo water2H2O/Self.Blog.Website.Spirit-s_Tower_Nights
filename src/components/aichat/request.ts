@@ -1,3 +1,4 @@
+import { currentVaultState, storeVaultState } from './vault.ts';
 /**
  * 「用自己的 API」——可以存多个，对话里随时切换。
  *
@@ -70,11 +71,14 @@ function normalize(raw: unknown): Provider | null {
 
 export function loadProviderState(): ProviderState {
 	try {
+		const unlocked = currentVaultState();
+		if (unlocked) return unlocked as ProviderState;
 		const raw = localStorage.getItem(STORAGE);
 		if (raw) {
 			const parsed = JSON.parse(raw) as { list?: unknown[]; activeId?: string | null };
 			const list = (parsed?.list ?? []).map(normalize).filter((item): item is Provider => Boolean(item));
 			const activeId = list.some((item) => item.id === parsed?.activeId) ? (parsed.activeId as string) : (list[0]?.id ?? null);
+			localStorage.removeItem(STORAGE);
 			return { list, activeId };
 		}
 
@@ -82,6 +86,7 @@ export function loadProviderState(): ProviderState {
 		const legacyRaw = localStorage.getItem(LEGACY_PROVIDER);
 		const legacyKey = localStorage.getItem(LEGACY_KEY);
 		const migrated = normalize(legacyRaw ? JSON.parse(legacyRaw) : legacyKey ? { kind: 'deepseek', apiKey: legacyKey } : null);
+		localStorage.removeItem(LEGACY_PROVIDER); localStorage.removeItem(LEGACY_KEY);
 		if (migrated) return { list: [migrated], activeId: migrated.id };
 	} catch {
 		/* 隐私模式下读不到，当作没配置 */
@@ -91,7 +96,8 @@ export function loadProviderState(): ProviderState {
 
 export function saveProviderState(state: ProviderState): void {
 	try {
-		localStorage.setItem(STORAGE, JSON.stringify(state));
+		void storeVaultState(state).catch(() => window.alert('加密配置保存失败，请检查浏览器存储空间'));
+		localStorage.removeItem(STORAGE);
 		localStorage.removeItem(LEGACY_PROVIDER);
 		localStorage.removeItem(LEGACY_KEY);
 	} catch {
