@@ -1,5 +1,7 @@
 # 水塔夜谈 · Spirit's Tower Nights
 
+> 聊天滚动：切换会话总是滚到最底部（`scroll.ts` 的 `shouldStickToBottom`，有单测）；同一会话内正文开始输出后停止追随，保留阅读位置。上下文长度现状：仅 Worker 拒绝式护栏（400 条消息、2 MB 请求体 → 413「对话上下文过长」），输出上限 4096/8192；**没有**输入侧 token 估算、裁剪或上下文占用提示，长对话只能靠报错兜底。
+
 > 新对话为临时空白页：进入默认不选历史；重复点击显示 toast，不创建记录；首次发送才建会话，空会话不参与本地保存和自动云端合并。旧空会话在列表中隐藏。空状态使用 border-box 弹性居中，避免右侧多余滚动条。
 
 > 浏览器直连自定义 API 需服务商允许跨域 OPTIONS 预检（Origin: https://chat.water2h2o.com，OpenAI 请求头 authorization/content-type）。403 无 CORS 头会被浏览器显示为 Failed to fetch，不能用切换协议绕过。启动慢提示以 astro-island 的 ssr 标记判断，水合成功自动移除，不再把配置检查误报为水合失败。

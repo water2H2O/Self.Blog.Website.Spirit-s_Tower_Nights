@@ -32,6 +32,7 @@ import { fileBlock, pickPurpose, pickRichPurpose, uploadFile } from './api.ts';
 import MessageView from './MessageView.tsx';
 import ModelPicker from './ModelPicker.tsx';
 import ProviderForm from './ProviderForm.tsx';
+import { shouldStickToBottom } from './scroll.ts';
 import { lockVault } from './vault.ts';
 import Settings from './Settings.tsx';
 import { deleteSession, listSessions, putSessions, replaceAllSessions, saveSession } from './db.ts';
@@ -267,12 +268,30 @@ export default function Chat() {
 		return () => window.clearTimeout(timer);
 	}, [sessions, currentId]);
 
+	// 切换会话时默认滚到最底部；同一会话内正文开始输出后不再追随（保留阅读位置）。
+	const scrollSessionRef = useRef<string | null>(null);
 	useEffect(() => {
 		const el = scrollerRef.current;
+		if (!el) return;
+
+		const switched = scrollSessionRef.current !== currentId;
+		scrollSessionRef.current = currentId;
+
 		const last = messages[messages.length - 1];
-		const writing = last?.role === 'assistant' && last.content.some((b) => b.type === 'text' && b.text.length > 0);
-		if (el && !writing) el.scrollTop = el.scrollHeight;
-	}, [messages]);
+		const stick = shouldStickToBottom({
+			switched,
+			streaming: Boolean(last?.streaming),
+			hasText: Boolean(last?.content?.some((block) => block.type === 'text' && block.text.length > 0)),
+		});
+		if (!stick) return;
+
+		const toBottom = () => {
+			el.scrollTop = el.scrollHeight;
+		};
+		toBottom();
+		// Markdown 排版/图片加载会再改变高度，下一帧再补一次
+		requestAnimationFrame(toBottom);
+	}, [messages, currentId]);
 
 	const patchSession = useCallback((sessionId: string, updater: (session: Session) => Session) => {
 		setSessions((prev) =>
