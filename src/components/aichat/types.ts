@@ -120,6 +120,13 @@ export type Session = {
 	updatedAt: number;
 	/** 置顶：不参与时间分组，固定排在最上面 */
 	pinned?: boolean;
+	/**
+	 * 压缩摘要：compactedBefore 之前的消息不再发送给模型，改发这段摘要。
+	 * 消息本身仍留在 messages 里，界面上可以继续翻看。
+	 */
+	summary?: string;
+	/** 从这条下标开始的消息才真正发给模型 */
+	compactedBefore?: number;
 	messages: ChatMessage[];
 };
 
@@ -129,4 +136,8 @@ export type ChatOptions = {
 	readUrl: boolean;
 	/** 文档是否用 rich_layout_recognition 解析（能看图，但更贵、更占 token） */
 	richLayout?: boolean;
+	/** 上下文估算 token 超过这个值就压缩历史，默认 120000 */
+	compactAt?: number;
+	/** 接近阈值时自动压缩；关掉就只在手动点「压缩」时执行 */
+	autoCompact?: boolean;
 };

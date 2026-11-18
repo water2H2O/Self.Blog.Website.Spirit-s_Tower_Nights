@@ -1891,3 +1891,29 @@ main.aichat-main { max-width: none; }
 .ac-empty { min-height: 0; flex: 1; box-sizing: border-box; }
 .ac-composer { box-sizing: border-box; }
 .ac-toast { position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 100; padding: 10px 18px; border-radius: 10px; background: #22404f; color: #eaf8fc; border: 1px solid #7fe9f055; box-shadow: 0 6px 24px #0006; font-size: 14px; pointer-events: none; white-space: nowrap; }
+/* 上下文占用与压缩后的提示 */
+.ac-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgb(var(--gray));
+  margin-right: auto;
+}
+.ac-context .ac-text-btn { font-size: 12px; padding: 2px 6px; }
+.ac-context-warn { color: #ffd479; }
+.ac-context-danger { color: #ff9a9a; }
+.ac-compact-note {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(127, 233, 240, 22%);
+  border-radius: 10px;
+  background: rgba(127, 233, 240, 6%);
+  font-size: 13px;
+  color: rgb(var(--gray));
+}
+.ac-compact-note summary { cursor: pointer; color: var(--accent); }
+.ac-compact-note > div { margin-top: 8px; white-space: pre-wrap; line-height: 1.75; }
+@media (max-width: 720px) {
+  .ac-context { order: 3; width: 100%; margin: 6px 0 0; }
+}

@@ -266,12 +266,24 @@ export class OpenAIStreamAssembler implements Assembler {
  *      其余块原样回传，包括 web_fetch_tool_result 的 signature。
  *   3. 空回答跳过，避免把半截消息拼进上下文。
  */
-export function toApiMessages(messages: ChatMessage[]): WireMessage[] {
+export function toApiMessages(messages: ChatMessage[], summary?: string): WireMessage[] {
 	const out: WireMessage[] = [];
+	const trimmed = summary?.trim();
+	let prefixPending = trimmed ? `【此前对话的压缩摘要】\n${trimmed}\n\n` : '';
+
+	// 摘要挂在第一条 user 消息正文前面，保持「latest_reminder → user」的顺序不变
+	const withPrefix = (content: unknown): unknown => {
+		if (!prefixPending) return content;
+		const prefix = prefixPending;
+		prefixPending = '';
+		if (Array.isArray(content)) return [{ type: 'text', text: prefix }, ...content];
+		return `${prefix}${String(content ?? '')}`;
+	};
+
 	for (const message of messages) {
 		if (message.role === 'user') {
 			if (message.reminder) out.push({ role: 'latest_reminder', content: message.reminder });
-			out.push({ role: 'user', content: message.content });
+			out.push({ role: 'user', content: withPrefix(message.content) });
 			continue;
 		}
 		const content = message.content.filter((block) => block.type !== 'thinking');
@@ -280,5 +292,7 @@ export function toApiMessages(messages: ChatMessage[]): WireMessage[] {
 		if (!hasText && !hasTool) continue;
 		out.push({ role: 'assistant', content });
 	}
+
+	if (prefixPending) out.push({ role: 'user', content: prefixPending });
 	return out;
 }

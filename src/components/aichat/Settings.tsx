@@ -197,6 +197,39 @@ export default function Settings({
 										</span>
 									</label>
 								))}
+
+								<h4 className="ac-sub-title">上下文压缩</h4>
+								<p className="ac-field-hint ac-field-hint-block">
+									按字符估算上下文长度，接近阈值时把更早的对话总结成摘要，再继续发送。
+									原始消息仍保留在本机，只是不再占用每轮请求。
+								</p>
+								<label className="ac-field">
+									<span className="ac-field-label">压缩阈值（估算 tokens）</span>
+									<input
+										type="number"
+										min={10000}
+										max={900000}
+										step={10000}
+										value={options.compactAt ?? 120000}
+										onChange={(event) => {
+											const raw = Number(event.target.value);
+											const value = Number.isFinite(raw) ? Math.min(900000, Math.max(10000, Math.round(raw))) : 120000;
+											onSaveOptions({ ...options, compactAt: value });
+										}}
+									/>
+									<span className="ac-field-hint">默认 120000；模型上下文 1M，留足余量更省钱。</span>
+								</label>
+								<label className="ac-check">
+									<input
+										type="checkbox"
+										checked={options.autoCompact ?? true}
+										onChange={(event) => onSaveOptions({ ...options, autoCompact: event.target.checked })}
+									/>
+									<span>
+										<strong>自动压缩</strong>
+										<em>发送前超过阈值就自动总结历史；关闭后只能手动点输入框上方的「压缩」。</em>
+									</span>
+								</label>
 							</Pane>
 						)}
 

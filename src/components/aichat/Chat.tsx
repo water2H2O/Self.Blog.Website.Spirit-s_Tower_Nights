@@ -33,6 +33,7 @@ import MessageView from './MessageView.tsx';
 import ModelPicker from './ModelPicker.tsx';
 import ProviderForm from './ProviderForm.tsx';
 import { shouldStickToBottom } from './scroll.ts';
+import { estimateContextTokens, formatTokens, planCompaction, summaryPrompt } from './context.ts';
 import { lockVault } from './vault.ts';
 import Settings from './Settings.tsx';
 import { deleteSession, listSessions, putSessions, replaceAllSessions, saveSession } from './db.ts';
@@ -55,6 +56,8 @@ import { pullSnapshot, pushSnapshot } from './sync.ts';
 import type { Attachment, ChatMessage, ChatOptions, Session, TextBlock } from './types.ts';
 
 const OPTIONS_KEY = 'aichat:options';
+/** 默认压缩阈值（估算 tokens）；模型上下文是 1M，这里留足安全余量 */
+const DEFAULT_COMPACT_AT = 120_000;
 const SIDE_COOKIE = 'aichat_side';
 const SIDE_MIN = 160;
 const SIDE_MAX = 380;
@@ -566,10 +569,72 @@ export default function Chat() {
 		[sideWidth],
 	);
 
+	// ---------------------------------------------------------------- 上下文压缩
+
+	/** 发一条单轮请求并收集完整回答（压缩摘要用，不显示在对话里） */
+	const askOnce = useCallback(
+		async (prompt: string): Promise<string> => {
+			const wire = [{ role: 'user', content: prompt }];
+			const useOpenAI = active?.kind === 'custom' && active.protocol === 'openai';
+			const assembler: Assembler = useOpenAI ? new OpenAIStreamAssembler() : new StreamAssembler();
+			const res = active
+				? await fetch(endpointOf(active), {
+						method: 'POST',
+						headers: headersOf(active, wire),
+						body: JSON.stringify({
+							...(bodyOf(active, wire, { thinking: false, webSearch: false, readUrl: false }) as Record<string, unknown>),
+							max_tokens: 1200,
+						}),
+					})
+				: await fetch('/api/aichat/chat', {
+						method: 'POST',
+						credentials: 'same-origin',
+						headers: { 'content-type': 'application/json' },
+						body: JSON.stringify({ messages: wire, thinking: { type: 'disabled' }, max_tokens: 1200 }),
+					});
+			if (!res.ok || !res.body) {
+				const data = await res.json().catch(() => ({}));
+				throw new Error(data?.message ?? `压缩请求失败（${res.status}）`);
+			}
+			const reader = res.body.getReader();
+			const decoder = new TextDecoder();
+			for (;;) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				assembler.push(decoder.decode(value, { stream: true }));
+			}
+			return assembler
+				.collect()
+				.filter((block): block is TextBlock => block.type === 'text')
+				.map((block) => block.text)
+				.join('\n')
+				.trim();
+		},
+		[active],
+	);
+
+	/** 把会话较早的部分总结成摘要；原始消息保留，只是不再发送 */
+	const compactSession = useCallback(
+		async (session: Session): Promise<Session | null> => {
+			const plan = planCompaction(session);
+			if (!plan) return null;
+			setToast('正在压缩上下文…');
+			const summary = await askOnce(summaryPrompt(plan.transcript, session.title));
+			if (!summary) throw new Error('模型没有返回摘要');
+			const next: Session = { ...session, summary, compactedBefore: plan.cut, updatedAt: Date.now() };
+			await saveSession(next);
+			setSessions((prev) => prev.map((item) => (item.id === next.id ? next : item)));
+			const folded = plan.cut - (session.compactedBefore ?? 0);
+			setToast(`已压缩 ${folded} 条更早的消息`);
+			return next;
+		},
+		[askOnce],
+	);
+
 	// ---------------------------------------------------------------- 一轮对话
 
 	const runTurn = useCallback(
-		async (sessionId: string, history: ChatMessage[], opts: ChatOptions, provider: Provider | null) => {
+		async (sessionId: string, history: ChatMessage[], opts: ChatOptions, provider: Provider | null, summary?: string) => {
 			const assistantId = newId();
 			const assistant: ChatMessage = {
 				id: assistantId,
@@ -585,7 +650,7 @@ export default function Chat() {
 			setBusy(true);
 			setNotice('');
 
-			const wire = toApiMessages(history);
+			const wire = toApiMessages(history, summary);
 			const useOpenAI = provider?.kind === 'custom' && provider.protocol === 'openai';
 			const assembler: Assembler = useOpenAI ? new OpenAIStreamAssembler() : new StreamAssembler();
 
@@ -726,19 +791,31 @@ export default function Chat() {
 		};
 
 		const base = current ?? makeSession();
-		const history = [...base.messages, userMessage];
+		let source: Session = base;
+		// 站点额度/官方接口：接近阈值先压缩，再发送本轮
+		if (current && (options.autoCompact ?? true)) {
+			const threshold = options.compactAt ?? DEFAULT_COMPACT_AT;
+			if (estimateContextTokens(current) >= threshold && planCompaction(current)) {
+				try {
+					source = (await compactSession(current, options)) ?? current;
+				} catch (error) {
+					setNotice(`自动压缩失败，按原上下文发送：${String((error as Error)?.message ?? error)}`);
+				}
+			}
+		}
+		const history = [...source.messages, userMessage];
 		if (!current) {
 			const fresh: Session = { ...base, title: titleFrom([userMessage]), messages: history, updatedAt: Date.now() };
 			setSessions((prev) => [fresh, ...prev]);
 			setCurrentId(fresh.id);
 		} else {
-			patchSession(base.id, (session) => ({ ...session, messages: history }));
+			patchSession(source.id, (session) => ({ ...session, messages: history }));
 		}
 
 		setInput('');
 		setPending([]);
-		await runTurn(base.id, history, options, active);
-	}, [busy, uploading, input, pending, current, options, patchSession, runTurn, active]);
+		await runTurn(base.id, history, options, active, source.summary);
+	}, [busy, uploading, input, pending, current, options, patchSession, runTurn, active, compactSession]);
 
 	const regenerate = useCallback(
 		(message: ChatMessage) => {
@@ -880,8 +957,21 @@ export default function Chat() {
 		items: sessions.filter((session) => !session.pinned && groupOf(session.updatedAt) === group.key).sort(byUpdated),
 	}));
 
-	const renderSessionRow = (session: Session) => (
-		<div className={`ac-session${session.id === currentId ? ' ac-session-on' : ''}`} key={session.id}>
+	// 上下文占用与压缩
+	const compactThreshold = options.compactAt ?? DEFAULT_COMPACT_AT;
+	const contextTokens = estimateContextTokens(current);
+	const contextRatio = compactThreshold > 0 ? contextTokens / compactThreshold : 0;
+	const canCompact = Boolean(current && planCompaction(current));
+	const manualCompact = async () => {
+		if (!current || busy) return;
+		try {
+			await compactSession(current);
+		} catch (error) {
+			setNotice(`压缩失败：${String((error as Error)?.message ?? error)}`);
+		}
+	};
+
+	const renderSessionRow = (session: Session) => (		<div className={`ac-session${session.id === currentId ? ' ac-session-on' : ''}`} key={session.id}>
 			<button
 				className="ac-session-title"
 				type="button"
@@ -982,6 +1072,14 @@ export default function Chat() {
 				</div>
 
 				<div className="ac-scroll" ref={scrollerRef}>
+					{current?.summary && (
+						<details className="ac-compact-note">
+							<summary>
+								已压缩 {current.compactedBefore ?? 0} 条更早消息（仍可翻看，但不再发送给模型）
+							</summary>
+							<div>{current.summary}</div>
+						</details>
+					)}
 					{messages.length === 0 && (
 						<div className="ac-empty">
 							<p className="ac-empty-title">问点什么吧</p>
@@ -1084,6 +1182,16 @@ export default function Chat() {
 					</div>
 
 					<div className="ac-composer-foot">
+					<div className="ac-context" title="按字符数估算，不是精确计费口径">
+						<span className={contextRatio >= 0.9 ? 'ac-context-danger' : contextRatio >= 0.7 ? 'ac-context-warn' : ''}>
+							上下文 ~{formatTokens(contextTokens)} / {formatTokens(compactThreshold)}
+						</span>
+						{canCompact && (
+							<button className="ac-text-btn" type="button" disabled={busy} onClick={() => void manualCompact()}>
+								压缩
+							</button>
+						)}
+					</div>
 					<div className="ac-toggles">
 						<label><input type="checkbox" checked={options.thinking} onChange={(event) => setOptions((o) => ({ ...o, thinking: event.target.checked }))} />深度思考</label>
 						<label><input type="checkbox" checked={tools && options.webSearch} disabled={!tools} onChange={(event) => setOptions((o) => ({ ...o, webSearch: event.target.checked }))} />联网搜索</label>
