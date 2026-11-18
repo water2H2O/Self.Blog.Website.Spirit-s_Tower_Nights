@@ -217,10 +217,12 @@ function Sources({ citations }: { citations: TextBlock['citations'] }) {
 export default function MessageView({
 	message,
 	onRegenerate,
+	onEdit,
 	showCost = true,
 }: {
 	message: ChatMessage;
 	onRegenerate?: (message: ChatMessage) => void;
+	onEdit?: (message: ChatMessage) => void;
 	/** 自定义接口的计价未知，隐藏人民币估算 */
 	showCost?: boolean;
 }) {
@@ -242,6 +244,7 @@ export default function MessageView({
 						</div>
 					)}
 					{text && <div className="ac-user-text">{text}</div>}
+					{onEdit && <button className="ac-text-btn" type="button" onClick={() => onEdit(message)}>修改并创建分支</button>}
 				</div>
 			</div>
 		);
@@ -266,7 +269,7 @@ export default function MessageView({
 					}
 					if (item.type === 'thinking') {
 						return (
-							<details className="ac-think" key={index} open={Boolean(message.streaming)}>
+							<details className="ac-think" key={index} open={Boolean(message.streaming) && !message.content.some((b) => b.type === 'text' && b.text.length > 0)}>
 								<summary>思考过程</summary>
 								<div className="ac-think-body">{item.thinking}</div>
 							</details>
@@ -288,6 +291,7 @@ export default function MessageView({
 				{refused && <p className="ac-refusal">这次请求被内容审核拒答了。</p>}
 				{truncated && <p className="ac-truncated">输出达到长度上限，回答被截断。</p>}
 				{message.error && <p className="ac-error">{message.error}</p>}
+				{!message.streaming && onRegenerate && <button className="ac-text-btn" type="button" onClick={() => onRegenerate(message)}>重新生成 · 新分支</button>}
 
 				{message.usage && !message.streaming && (
 					<div className="ac-meta-line">
@@ -302,11 +306,7 @@ export default function MessageView({
 							</span>
 						)}
 						{showCost && <span className="ac-cost">≈ {fmtCost(costOf(message.usage))}</span>}
-						{onRegenerate && (
-							<button className="ac-text-btn" type="button" onClick={() => onRegenerate(message)}>
-								重新生成
-							</button>
-						)}
+
 					</div>
 				)}
 			</div>

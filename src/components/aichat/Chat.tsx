@@ -266,7 +266,9 @@ export default function Chat() {
 
 	useEffect(() => {
 		const el = scrollerRef.current;
-		if (el) el.scrollTop = el.scrollHeight;
+		const last = messages[messages.length - 1];
+		const writing = last?.role === 'assistant' && last.content.some((b) => b.type === 'text' && b.text.length > 0);
+		if (el && !writing) el.scrollTop = el.scrollHeight;
 	}, [messages]);
 
 	const patchSession = useCallback((sessionId: string, updater: (session: Session) => Session) => {
@@ -663,10 +665,36 @@ export default function Chat() {
 			if (!current || busy) return;
 			const index = current.messages.findIndex((item) => item.id === message.id);
 			if (index <= 0) return;
-			void runTurn(current.id, current.messages.slice(0, index), options, active);
+			const branch: Session = { ...makeSession(), title: `${current.title} · 分支`, messages: current.messages.slice(0, index) };
+			setSessions((prev) => [branch, ...prev]);
+			setCurrentId(branch.id);
+			void saveSession(branch);
+			void runTurn(branch.id, branch.messages, options, active);
 		},
 		[busy, current, options, runTurn, active],
 	);
+
+	const editMessage = (message: ChatMessage) => {
+		if (!current || busy) return;
+		const index = current.messages.findIndex((m) => m.id === message.id);
+		const original = message.content.filter((b): b is TextBlock => b.type === 'text').map((b) => b.text).join('\n');
+		const text = window.prompt('修改提问：将创建新分支，原对话保留', original);
+		if (!text?.trim() || index < 0) return;
+		const edited: ChatMessage = { ...message, id: newId(), content: [...message.content.filter((b) => b.type !== 'text'), { type: 'text', text: text.trim() }] };
+		const branch: Session = { ...makeSession(), title: `${current.title} · 分支`, messages: [...current.messages.slice(0, index), edited] };
+		setSessions((prev) => [branch, ...prev]);
+		setCurrentId(branch.id);
+		void saveSession(branch);
+		void runTurn(branch.id, branch.messages, options, active);
+	};
+
+	const renameSession = async (session: Session) => {
+		const title = window.prompt('会话名称', session.title);
+		if (!title?.trim()) return;
+		const renamed = { ...session, title: title.trim() };
+		await saveSession(renamed);
+		setSessions((prev) => prev.map((s) => s.id === renamed.id ? renamed : s));
+	};
 
 	const attachFiles = useCallback(
 		async (files: FileList | File[]) => {
@@ -793,6 +821,7 @@ export default function Chat() {
 			>
 				{session.pinned ? '★' : '☆'}
 			</button>
+			<button className="ac-text-btn" type="button" title="重命名会话" onClick={() => void renameSession(session)}>✎</button>
 			<button className="ac-session-del" type="button" title="删除" onClick={() => void removeSession(session.id)}>
 				×
 			</button>
@@ -861,6 +890,7 @@ export default function Chat() {
 				<div className="ac-resizer" role="separator" aria-orientation="vertical" onPointerDown={startResize} />
 			</aside>
 
+			{railOpen && <button className="ac-sidebar-backdrop" aria-label="关闭侧边栏" onClick={() => setRailOpen(false)} />}
 			<section className="ac-main">
 				<div className="ac-bar">
 					<button className="ac-rail-toggle" type="button" onClick={() => setRailOpen((open) => !open)} aria-label="会话列表">
@@ -886,7 +916,8 @@ export default function Chat() {
 							key={message.id}
 							message={message}
 							showCost={!active || active.kind === 'deepseek'}
-							onRegenerate={message.role === 'assistant' && index === messages.length - 1 ? regenerate : undefined}
+							onRegenerate={!busy && message.role === 'assistant' ? regenerate : undefined}
+							onEdit={!busy && message.role === 'user' ? editMessage : undefined}
 						/>
 					))}
 				</div>

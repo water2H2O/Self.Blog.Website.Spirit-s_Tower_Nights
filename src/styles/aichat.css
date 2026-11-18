@@ -1877,3 +1877,9 @@ main.aichat-main {
   .ac-empty { box-sizing: border-box; padding: 24px 8px; }
   .ac-md pre, .ac-md table, .ac-code { max-width: 100%; }
 }
+.ac-sidebar-backdrop { display: none; }
+.ac-scroll { overflow-anchor: none; }
+@media (max-width: 860px) {
+  .ac-sidebar-backdrop { display: block; position: absolute; inset: 0; z-index: 4; border: 0; background: rgba(0,0,0,.4); cursor: pointer; }
+  .ac-rail-open .ac-side { z-index: 5; }
+}
