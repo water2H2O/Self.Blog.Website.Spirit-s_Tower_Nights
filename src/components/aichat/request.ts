@@ -122,7 +122,8 @@ export function isOfficial(provider: Provider | null): boolean {
 
 /** 联网/读链接/文件上传都依赖 DeepSeek 的服务端工具，自定义接口没有 */
 export function supportsServerTools(provider: Provider | null): boolean {
-	return isOfficial(provider);
+	// null 表示已登录后的站点额度，后端同样使用官方 DeepSeek 全家桶。
+	return provider === null || isOfficial(provider);
 }
 
 // ---------------------------------------------------------------- 请求
