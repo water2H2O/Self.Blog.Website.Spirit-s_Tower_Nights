@@ -1883,3 +1883,11 @@ main.aichat-main {
   .ac-sidebar-backdrop { display: block; position: absolute; inset: 0; z-index: 4; border: 0; background: rgba(0,0,0,.4); cursor: pointer; }
   .ac-rail-open .ac-side { z-index: 5; }
 }
+/* 新对话空状态不因 padding + min-height 撑出多余滚动条。 */
+body.ac-body { margin: 0; width: 100%; }
+main.aichat-main { max-width: none; }
+.ac-main, .ac-scroll { box-sizing: border-box; min-width: 0; }
+.ac-scroll:has(> .ac-empty) { display: flex; flex-direction: column; }
+.ac-empty { min-height: 0; flex: 1; box-sizing: border-box; }
+.ac-composer { box-sizing: border-box; }
+.ac-toast { position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 100; padding: 10px 18px; border-radius: 10px; background: #22404f; color: #eaf8fc; border: 1px solid #7fe9f055; box-shadow: 0 6px 24px #0006; font-size: 14px; pointer-events: none; white-space: nowrap; }

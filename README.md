@@ -1,5 +1,7 @@
 # 水塔夜谈 · Spirit's Tower Nights
 
+> 新对话为临时空白页：进入默认不选历史；重复点击显示 toast，不创建记录；首次发送才建会话，空会话不参与本地保存和自动云端合并。旧空会话在列表中隐藏。空状态使用 border-box 弹性居中，避免右侧多余滚动条。
+
 > 浏览器直连自定义 API 需服务商允许跨域 OPTIONS 预检（Origin: https://chat.water2h2o.com，OpenAI 请求头 authorization/content-type）。403 无 CORS 头会被浏览器显示为 Failed to fetch，不能用切换协议绕过。启动慢提示以 astro-island 的 ssr 标记判断，水合成功自动移除，不再把配置检查误报为水合失败。
 
 > API 配置安全更新：默认只驻留内存；勾选“保持登录”显示红色警告并要求至少 12 字符本地口令。PBKDF2-SHA256（310000 次，随机盐）派生 AES-256-GCM 密钥，每次写入随机 IV；localStorage 只保存密文，口令与派生密钥不落盘。重新打开需解锁，退出锁定；旧版明文配置读入后删除，需重新选择加密保存。该口令不同于站点口令，忘记无法恢复；不防解锁后的 XSS/恶意扩展。

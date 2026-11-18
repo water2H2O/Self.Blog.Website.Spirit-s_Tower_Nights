@@ -172,6 +172,8 @@ export default function Chat() {
 	const [uploading, setUploading] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const [notice, setNotice] = useState('');
+	const [toast, setToast] = useState('');
+	useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 2200); return () => window.clearTimeout(timer); }, [toast]);
 	const [dragging, setDragging] = useState(false);
 	const [railOpen, setRailOpen] = useState(false);
 	const [sideWidth, setSideWidth] = useState(196);
@@ -247,8 +249,8 @@ export default function Chat() {
 		let alive = true;
 		listSessions().then((rows) => {
 			if (!alive) return;
-			setSessions(rows);
-			setCurrentId((id) => id ?? rows[0]?.id ?? null);
+			setSessions(rows.filter((row) => row.messages.length > 0));
+			// Keep initial unsaved new-chat page; do not select history automatically.
 		});
 		return () => {
 			alive = false;
@@ -260,7 +262,7 @@ export default function Chat() {
 		if (!currentId) return;
 		const timer = window.setTimeout(() => {
 			const session = sessionsRef.current.find((item) => item.id === currentId);
-			if (session) void saveSession(session);
+			if (session && session.messages.length > 0) void saveSession(session);
 		}, 800);
 		return () => window.clearTimeout(timer);
 	}, [sessions, currentId]);
@@ -293,7 +295,7 @@ export default function Chat() {
 				if (disposed) return;
 				const local = await listSessions();
 				const merged = new Map<string, Session>();
-				for (const row of [...remote.sessions, ...local, ...sessionsRef.current]) {
+				for (const row of [...remote.sessions, ...local, ...sessionsRef.current].filter((row) => row.messages.length > 0)) {
 					const prev = merged.get(row.id);
 					if (!prev || row.updatedAt >= prev.updatedAt) merged.set(row.id, row);
 				}
@@ -301,8 +303,8 @@ export default function Chat() {
 				const signature = JSON.stringify(rows);
 				await putSessions(rows);
 				if (disposed) return;
-				if (JSON.stringify(sessionsRef.current) !== signature) setSessions(rows);
-				setCurrentId((id) => id ?? rows[0]?.id ?? null);
+				if (JSON.stringify(sessionsRef.current) !== signature) setSessions(rows.filter((row) => row.messages.length > 0));
+				// Keep initial unsaved new-chat page; do not select history automatically.
 				if (signature !== lastSyncSignature.current || JSON.stringify(remote.sessions) !== signature) {
 					await pushSnapshot(rows);
 				}
@@ -414,7 +416,7 @@ export default function Chat() {
 		setSyncing(true);
 		setSyncMessage('');
 		try {
-			const rows = sessionsRef.current;
+			const rows = sessionsRef.current.filter((row) => row.messages.length > 0);
 			const result = await pushSnapshot(rows);
 			setSyncMessage(`已上传 ${rows.length} 个会话（${new Date(result.savedAt).toLocaleString()}）`);
 		} catch (error) {
@@ -432,7 +434,7 @@ export default function Chat() {
 			const snapshot = await pullSnapshot();
 			const rows = (snapshot.sessions ?? []).slice().sort((a, b) => b.updatedAt - a.updatedAt);
 			await replaceAllSessions(rows);
-			setSessions(rows);
+			setSessions(rows.filter((row) => row.messages.length > 0));
 			setCurrentId(rows[0]?.id ?? null);
 			setSyncMessage(
 				rows.length > 0
@@ -488,12 +490,16 @@ export default function Chat() {
 	// ---------------------------------------------------------------- 会话
 
 	const startSession = useCallback(() => {
-		const session = makeSession();
-		setSessions((prev) => [session, ...prev]);
-		setCurrentId(session.id);
+		if (!current || current.messages.length === 0) {
+			setToast('当前已在新对话中');
+		} else {
+			setCurrentId(null);
+			setInput('');
+			setPending([]);
+		}
 		setRailOpen(false);
 		inputRef.current?.focus();
-	}, []);
+	}, [current]);
 
 	const removeSession = useCallback(
 		async (id: string) => {
@@ -888,6 +894,7 @@ export default function Chat() {
 			className={`ac-app${railOpen ? ' ac-rail-open' : ''}`}
 			style={{ ['--ac-side-w' as string]: `${sideWidth}px` } as React.CSSProperties}
 		>
+			{toast && <div className="ac-toast" role="status" aria-live="polite">{toast}</div>}
 			<aside className="ac-side">
 				<button className="ac-new" type="button" onClick={startSession}>
 					＋ 新对话
