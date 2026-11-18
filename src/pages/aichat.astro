@@ -55,9 +55,21 @@ import '../styles/aichat.css';
 							/* 兜底提示自身不能再抛错 */
 						}
 					};
-					// 正常情况下一两秒内就该出界面；6 秒还在转圈，说明水合没启动
+					document.addEventListener('astro:hydrate', () => {
+						const el = document.getElementById('ac-boot-error');
+						if (el && el.textContent.includes('加载较慢')) { el.hidden = true; delete el.dataset.shown; }
+					}, true);
+					// 只检查组件水合标记，不把异步配置检查误判成水合失败。
 					setTimeout(() => {
-						if (document.querySelector('.ac-loading')) show('6 秒内没有完成水合（island 没启动）');
+						const island = document.querySelector('astro-island');
+						if (island && island.hasAttribute('ssr')) {
+							show('页面组件加载较慢，请检查网络后刷新');
+						}
+						// astro:hydrate 成功后清除启动阶段的临时提示。
+						if (island && !island.hasAttribute('ssr')) {
+							const el = document.getElementById('ac-boot-error');
+							if (el && el.textContent.includes('加载较慢')) { el.hidden = true; delete el.dataset.shown; }
+						}
 					}, 6000);
 				})();
 			</script>

@@ -668,7 +668,7 @@ export default function Chat() {
 									error: aborted
 										? undefined
 										: provider
-											? `直连失败：${String((error as Error)?.message ?? error)}（检查地址、协议与跨域）`
+											? `直连失败：${String((error as Error)?.message ?? error)}（网络或跨域预检被拒绝；请让 API 服务商允许本站 Origin 和 OPTIONS 请求，切换协议不能绕过 CORS）`
 											: String((error as Error)?.message ?? error),
 								}
 							: item,
