@@ -651,7 +651,6 @@ main.aichat-main {
 	margin-top: 0.35em;
 	max-height: 22em;
 	overflow-y: auto;
-	white-space: pre-wrap;
 	font-size: 0.88em;
 	line-height: 1.8;
 	color: rgb(var(--gray));

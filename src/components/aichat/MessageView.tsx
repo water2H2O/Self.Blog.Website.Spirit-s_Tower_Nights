@@ -271,7 +271,7 @@ export default function MessageView({
 						return (
 							<details className="ac-think" key={index} open={Boolean(message.streaming) && !message.content.some((b) => b.type === 'text' && b.text.length > 0)}>
 								<summary>思考过程</summary>
-								<div className="ac-think-body">{item.thinking}</div>
+								<div className="ac-think-body"><Markdown text={item.thinking} /></div>
 							</details>
 						);
 					}
