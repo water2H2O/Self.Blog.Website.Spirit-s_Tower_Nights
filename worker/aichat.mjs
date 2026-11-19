@@ -28,9 +28,8 @@ const SESSION_TTL = 60 * 60 * 24 * 30; // 30 天
 /** 模型不让前端选：全家桶工具只有 flash 支持，pro 连图像理解都没有 */
 const MODEL = 'deepseek-flash';
 
-/** max_tokens 由服务端封顶，防止一次手滑把余额刷光 */
+/** 显式指定的输出预算上限，适用于压缩摘要等请求。 */
 const MAX_TOKENS_CEILING = 8192;
-const MAX_TOKENS_DEFAULT = 4096;
 
 /** 允许前端开启的服务端工具；其余一律丢掉 */
 const ALLOWED_TOOLS = new Set(['deepseek_web_search', 'deepseek_read_url']);
@@ -168,17 +167,18 @@ function buildUpstreamBody(input, messages) {
 	}
 
 	const requested = Number(input.max_tokens);
-	const maxTokens = Number.isFinite(requested)
+	// 普通对话使用模型默认输出预算。摘要等显式请求仍可指定较小预算。
+	const maxTokens = typeof input.max_tokens === 'number' && Number.isFinite(requested)
 		? Math.min(Math.max(Math.trunc(requested), 256), MAX_TOKENS_CEILING)
-		: MAX_TOKENS_DEFAULT;
+		: undefined;
 
 	const body = {
 		model: MODEL,
 		messages,
 		stream: true,
-		max_tokens: maxTokens,
+		...(maxTokens === undefined ? {} : { max_tokens: maxTokens }),
 		thinking: input.thinking?.type === 'disabled' ? { type: 'disabled' } : { type: 'enabled' },
-		...(input.thinking?.type !== 'disabled' ? { reasoning_effort: 'low' } : {}),
+		...(input.thinking?.type !== 'disabled' ? { output_config: { effort: 'low' } } : {}),
 		// 缓存命中靠的就是这个稳定 id，前端传什么都覆盖掉
 		metadata: { user_id: STABLE_USER_ID },
 	};

@@ -6,16 +6,14 @@ import { currentVaultState, storeVaultState } from './vault.ts';
  * baseUrl / protocol / model 三项。存成数组 + 一个 activeId，切换只改
  * activeId，不改历史。
  *
- * 服务端那条路（worker/aichat.mjs）会把请求收窄成白名单再转发；浏览器直连时
- * 没有中间人，这些约束必须由前端自己再做一遍 —— 否则一个手滑的 max_tokens
- * 就能把用户自己的额度刷掉。这里的常量和 worker/aichat.mjs 是同一套规则。
+ * 普通对话由上游决定输出预算。自定义 Anthropic 接口保留协议需要的 max_tokens。
  */
 
 import type { ChatOptions } from './types.ts';
 
 export const MODEL = 'deepseek-flash';
-export const MAX_TOKENS_CEILING = 8192;
-export const MAX_TOKENS_DEFAULT = 4096;
+// 第三方 Anthropic Messages 端点可能要求显式传入 max_tokens。
+const CUSTOM_ANTHROPIC_MAX_TOKENS = 8192;
 export const FILES_BETA = 'files-api-2025-04-14';
 
 export type Protocol = 'anthropic' | 'openai';
@@ -192,7 +190,6 @@ export function bodyOf(provider: Provider, messages: WireMessage[], options: Cha
 			messages: toOpenAIMessages(messages),
 			stream: true,
 			stream_options: { include_usage: true },
-			max_tokens: MAX_TOKENS_DEFAULT,
 		};
 	}
 
@@ -206,9 +203,9 @@ export function bodyOf(provider: Provider, messages: WireMessage[], options: Cha
 		model,
 		messages,
 		stream: true,
-		max_tokens: MAX_TOKENS_DEFAULT,
+		...(provider.kind === 'custom' ? { max_tokens: CUSTOM_ANTHROPIC_MAX_TOKENS } : {}),
 		thinking: { type: options.thinking ? 'enabled' : 'disabled' },
-		...(provider.kind === 'deepseek' && options.thinking ? { reasoning_effort: 'low' } : {}),
+		...(provider.kind === 'deepseek' && options.thinking ? { output_config: { effort: 'low' } } : {}),
 		// KV 缓存按 user_id 隔离：固定值才能让多轮持续命中（命中价是未命中的 1/50）
 		metadata: { user_id: 'owner' },
 		...(tools.length > 0 ? { tools } : {}),
