@@ -42,6 +42,19 @@ export function estimateContextTokens(session: Session | null): number {
 	return total;
 }
 
+/** 会话里还没被压缩掉的文件引用数量（文档/图片占的上下文由服务端解析决定，估算里算不出来） */
+export function countAttachments(session: Session | null): number {
+	if (!session) return 0;
+	const from = session.compactedBefore ?? 0;
+	let count = 0;
+	for (const message of session.messages.slice(from)) {
+		for (const block of message.content) {
+			if (block.type === 'image' || block.type === 'document') count += 1;
+		}
+	}
+	return count;
+}
+
 /** 压缩时保留的尾部消息条数（从 user 消息开始对齐） */
 export const KEEP_TAIL = 8;
 

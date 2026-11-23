@@ -33,7 +33,7 @@ import MessageView from './MessageView.tsx';
 import ModelPicker from './ModelPicker.tsx';
 import ProviderForm from './ProviderForm.tsx';
 import { shouldStickToBottom } from './scroll.ts';
-import { estimateContextTokens, formatTokens, planCompaction, summaryPrompt } from './context.ts';
+import { countAttachments, estimateContextTokens, formatTokens, planCompaction, summaryPrompt } from './context.ts';
 import { lockVault } from './vault.ts';
 import Settings from './Settings.tsx';
 import { deleteSession, listSessions, putSessions, replaceAllSessions, saveSession } from './db.ts';
@@ -725,6 +725,17 @@ export default function Chat() {
 						const data = await res.json().catch(() => ({}));
 						if (res.status === 401) setServerAuthed(false);
 						message = data?.message ?? message;
+						// 服务端已经把上游 detail 带回来了；message 里没有时补上，方便定位 400
+						if (data?.detail && !message.includes(String(data.detail).slice(0, 60))) {
+							let detailText = String(data.detail);
+							try {
+								const parsed = JSON.parse(detailText);
+								detailText = String(parsed?.error?.message ?? parsed?.message ?? detailText);
+							} catch {
+								/* 不是 JSON 就直接显示原文 */
+							}
+							message = `${message}\n${detailText.slice(0, 300)}`;
+						}
 					}
 					patchSession(sessionId, (session) => ({
 						...session,
@@ -960,6 +971,7 @@ export default function Chat() {
 	// 上下文占用与压缩
 	const compactThreshold = options.compactAt ?? DEFAULT_COMPACT_AT;
 	const contextTokens = estimateContextTokens(current);
+	const attachmentCount = countAttachments(current);
 	const contextRatio = compactThreshold > 0 ? contextTokens / compactThreshold : 0;
 	const canCompact = Boolean(current && planCompaction(current));
 	const manualCompact = async () => {
@@ -1182,9 +1194,10 @@ export default function Chat() {
 					</div>
 
 					<div className="ac-composer-foot">
-					<div className="ac-context" title="按字符数估算，不是精确计费口径">
+					<div className="ac-context" title="按字符数估算，不是精确计费口径；附件由服务端解析，未计入">
 						<span className={contextRatio >= 0.9 ? 'ac-context-danger' : contextRatio >= 0.7 ? 'ac-context-warn' : ''}>
 							上下文 ~{formatTokens(contextTokens)} / {formatTokens(compactThreshold)}
+							{attachmentCount > 0 && ` · 附件 ${attachmentCount}`}
 						</span>
 						{canCompact && (
 							<button className="ac-text-btn" type="button" disabled={busy} onClick={() => void manualCompact()}>

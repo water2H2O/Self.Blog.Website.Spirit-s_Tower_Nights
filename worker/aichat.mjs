@@ -255,7 +255,15 @@ async function handleChat(request, env) {
 		request.signal?.removeEventListener?.('abort', abort);
 		const detail = (await upstream.text().catch(() => '')).slice(0, 600);
 		const status = upstream.status === 429 ? 429 : upstream.status === 401 ? 502 : 502;
-		const message =
+		// 把上游 JSON 里的 error.message 挖出来，前端只显示 message 也能看到真实原因
+		let upstreamMessage = '';
+		try {
+			const parsed = JSON.parse(detail);
+			upstreamMessage = String(parsed?.error?.message ?? parsed?.message ?? '').slice(0, 300);
+		} catch {
+			upstreamMessage = detail.slice(0, 300);
+		}
+		const base =
 			upstream.status === 401
 				? '上游拒绝了服务端密钥（401），检查 DEEPSEEK_API_KEY'
 				: upstream.status === 402
@@ -263,6 +271,7 @@ async function handleChat(request, env) {
 					: upstream.status === 429
 						? '上游限流（429），稍后再试'
 						: `上游返回 ${upstream.status}`;
+		const message = upstreamMessage ? `${base}：${upstreamMessage}` : base;
 		return json({ error: 'upstream_error', status: upstream.status, message, detail }, status);
 	}
 
